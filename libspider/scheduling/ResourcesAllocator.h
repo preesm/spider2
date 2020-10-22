@@ -49,7 +49,7 @@ namespace spider {
         class Graph;
     }
 
-    namespace srless {
+    namespace pisdf {
         class GraphHandler;
     }
 
@@ -73,7 +73,7 @@ namespace spider {
 
             void execute(const srdag::Graph *graph);
 
-            void execute(srless::GraphHandler *graphHandler);
+            void execute(pisdf::GraphHandler *graphHandler);
 
             void clear();
 

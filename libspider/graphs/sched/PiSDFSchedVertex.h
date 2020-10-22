@@ -43,9 +43,7 @@ namespace spider {
 
     namespace pisdf {
         class Vertex;
-    }
 
-    namespace srless {
         class GraphFiring;
     }
 
@@ -56,7 +54,7 @@ namespace spider {
         class PiSDFVertex final : public sched::Vertex {
         public:
 
-            explicit PiSDFVertex(srless::GraphFiring *handler,
+            explicit PiSDFVertex(pisdf::GraphFiring *handler,
                                  const pisdf::Vertex *vertex,
                                  u32 firing) : sched::Vertex(),
                                                handler_{ handler },
@@ -88,7 +86,7 @@ namespace spider {
             void setIx(u32 ix) final;
 
         private:
-            srless::GraphFiring *handler_ = nullptr;
+            pisdf::GraphFiring *handler_ = nullptr;
             const pisdf::Vertex *vertex_ = nullptr;
             u32 firing_ = UINT32_MAX;
 

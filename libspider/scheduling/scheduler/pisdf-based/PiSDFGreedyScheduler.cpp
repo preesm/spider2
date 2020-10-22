@@ -47,7 +47,7 @@
 
 /* === Method(s) implementation === */
 
-void spider::sched::PiSDFGreedyScheduler::schedule(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFGreedyScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
     /* == Evaluate tasks == */
@@ -56,7 +56,7 @@ void spider::sched::PiSDFGreedyScheduler::schedule(srless::GraphHandler *graphHa
 
 /* === Private method(s) implementation === */
 
-void spider::sched::PiSDFGreedyScheduler::evaluate(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHandler) {
     for (auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
@@ -76,7 +76,7 @@ void spider::sched::PiSDFGreedyScheduler::evaluate(srless::GraphHandler *graphHa
 
 bool spider::sched::PiSDFGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
                                                    u32 firing,
-                                                   srless::GraphFiring *handler) {
+                                                   pisdf::GraphFiring *handler) {
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
         u32 depCount{ };
@@ -93,7 +93,7 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
                 }
                 for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                     if (dep.handler_->getTaskIx(dep.vertex_, k) == UINT32_MAX) {
-                        schedulable &= evaluate(dep.vertex_, k, const_cast<srless::GraphFiring *>(dep.handler_));
+                        schedulable &= evaluate(dep.vertex_, k, const_cast<pisdf::GraphFiring *>(dep.handler_));
                     }
                 }
             }

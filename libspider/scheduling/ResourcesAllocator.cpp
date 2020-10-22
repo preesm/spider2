@@ -87,6 +87,7 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
         executionPolicy_{ executionPolicy } {
     if (allocator_) {
         checkFifoAllocatorTraits(allocator_.get(), executionPolicy);
+        allocator_->setSchedule(schedule_.get());
     }
 }
 
@@ -97,7 +98,7 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     applyExecPolicy();
 }
 
-void spider::sched::ResourcesAllocator::execute(srless::GraphHandler *graphHandler) {
+void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
     scheduler_->schedule(graphHandler);
     /* == Map and execute the scheduled tasks == */

@@ -41,19 +41,17 @@
 
 namespace spider {
 
-    namespace srless {
-        class GraphFiring;
-    }
-
     namespace pisdf {
 
         class Vertex;
+
+        class GraphFiring;
 
         /* === Struct definition === */
 
         struct DependencyInfo {
             const Vertex *vertex_;
-            const srless::GraphFiring *handler_;
+            const pisdf::GraphFiring *handler_;
             int64_t rate_;
             u32 edgeIx_;
             u32 memoryStart_;

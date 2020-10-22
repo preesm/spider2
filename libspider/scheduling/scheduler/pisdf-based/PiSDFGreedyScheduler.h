@@ -41,7 +41,7 @@
 
 namespace spider {
 
-    namespace srless {
+    namespace pisdf {
         class GraphFiring;
     }
 
@@ -58,7 +58,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(srless::GraphHandler *graphHandler) override;
+            void schedule(pisdf::GraphHandler *graphHandler) override;
 
         private:
 
@@ -70,7 +70,7 @@ namespace spider {
              * @brief Recursively add vertices into the unscheduledVertices_ vector.
              * @param graphHandler  Top level graph handler;
              */
-            void evaluate(srless::GraphHandler *graphHandler);
+            void evaluate(pisdf::GraphHandler *graphHandler);
 
             /**
              * @brief Evaluate if a vertex is schedulable for a given firing.
@@ -79,7 +79,7 @@ namespace spider {
              * @param handler Pointer to the GraphFiring handler.
              * @return true if schedulable, false else.
              */
-            bool evaluate(const pisdf::Vertex *vertex, u32 firing, srless::GraphFiring *handler);
+            bool evaluate(const pisdf::Vertex *vertex, u32 firing, pisdf::GraphFiring *handler);
         };
     }
 }

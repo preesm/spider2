@@ -66,7 +66,7 @@ spider::PiSDFJITMSRuntime::PiSDFJITMSRuntime(pisdf::Graph *graph, const RuntimeC
     }
     resourcesAllocator_->allocator()->allocatePersistentDelays(graph_);
     pisdf::recursiveSplitDynamicGraph(graph_);
-    graphHandler_ = make_unique<srless::GraphHandler, StackID::TRANSFO>(graph_, graph_->params(), 1u);
+    graphHandler_ = make_unique<pisdf::GraphHandler, StackID::TRANSFO>(graph_, graph_->params(), 1u);
 }
 
 bool spider::PiSDFJITMSRuntime::execute() {
@@ -212,7 +212,7 @@ bool spider::PiSDFJITMSRuntime::dynamicExecute() {
     return true;
 }
 
-size_t spider::PiSDFJITMSRuntime::countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const {
+size_t spider::PiSDFJITMSRuntime::countExpectedNumberOfParams(const pisdf::GraphHandler *graphHandler) const {
     size_t count = 0;
     for (const auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {

@@ -54,7 +54,7 @@
 spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Vertex *vertex,
                                                                        u32 firing,
                                                                        size_t edgeIx,
-                                                                       const srless::GraphFiring *handler,
+                                                                       const pisdf::GraphFiring *handler,
                                                                        i32 *count) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
@@ -77,7 +77,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
 i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
                                               u32 firing,
                                               size_t edgeIx,
-                                              const srless::GraphFiring *handler) {
+                                              const pisdf::GraphFiring *handler) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();
@@ -94,7 +94,7 @@ i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
 spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,
                                                                        u32 firing,
                                                                        size_t edgeIx,
-                                                                       const spider::srless::GraphFiring *handler,
+                                                                       const spider::pisdf::GraphFiring *handler,
                                                                        i32 *count) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
@@ -117,7 +117,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
 i32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
                                               u32 firing,
                                               size_t edgeIx,
-                                              const srless::GraphFiring *handler) {
+                                              const pisdf::GraphFiring *handler) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();

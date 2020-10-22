@@ -42,12 +42,12 @@
 
 namespace spider {
 
-    namespace srless {
-        class GraphFiring;
-    }
-
     namespace pisdf {
         class Vertex;
+
+        class GraphFiring;
+
+        struct DependencyInfo;
 
         struct DependencyIterator;
     }
@@ -57,7 +57,7 @@ namespace spider {
 
         class PiSDFTask final : public Task {
         public:
-            explicit PiSDFTask(srless::GraphFiring *handler,
+            explicit PiSDFTask(pisdf::GraphFiring *handler,
                                const pisdf::Vertex *vertex,
                                u32 firing,
                                u32 depCount,
@@ -70,10 +70,6 @@ namespace spider {
             void allocate(FifoAllocator *allocator) override;
 
             void updateTaskExecutionDependencies(const Schedule *schedule) override;
-
-            AllocationRule allocationRuleForInputFifo(size_t edgeIx) const override;
-
-            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
 
             JobMessage createJobMessage() const override;
 
@@ -95,7 +91,7 @@ namespace spider {
 
             DependencyInfo getDependencyInfo(size_t size) const override;
 
-            inline srless::GraphFiring *handler() const { return handler_; }
+            inline pisdf::GraphFiring *handler() const { return handler_; }
 
             inline const pisdf::Vertex *vertex() const { return vertex_; }
 
@@ -105,11 +101,32 @@ namespace spider {
 
             void setIx(u32 ix) noexcept override;
 
+            /**
+             * @brief Set output fifo and register the corresponding virtual address.
+             * @param ix    Index of the output edge.
+             * @param fifo  Fifo to set.
+             */
+            void setOutputFifo(size_t ix, Fifo fifo);
+
+            void addMergeFifoInfo(const pisdf::Edge *edge, size_t address);
+
         private:
-            srless::GraphFiring *handler_;
+            spider::vector<std::pair<size_t, size_t>> mergeFifoInfo_;
+            pisdf::GraphFiring *handler_;
             const pisdf::Vertex *vertex_;
             u32 firing_;
             u32 dependenciesCount_;
+
+            /* === Private method(s) === */
+
+            static Fifo allocateDefaultInputFifo(const pisdf::DependencyInfo &dep);
+
+            void sendMergeFifoMessage(JobMessage &jobMessage,
+                                      const pisdf::Edge *edge,
+                                      const pisdf::DependencyIterator &dependencies,
+                                      i32 depCount) const;
+
+            size_t getMergeFifoAddress(const pisdf::Edge *edge) const;
         };
     }
 }

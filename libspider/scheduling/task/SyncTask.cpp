@@ -59,37 +59,6 @@ void spider::sched::SyncTask::allocate(FifoAllocator *allocator) {
     allocator->allocate(this);
 }
 
-#ifndef NDEBUG
-
-spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForInputFifo(size_t ix) const {
-    if (ix >= 1u) {
-        throwSpiderException("index out of bound.");
-    }
-#else
-    spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForInputFifo(size_t) const {
-#endif
-    if (type_ == SyncType::SEND) {
-        return { static_cast<u32>(size_), 0, inputPortIx_, 0, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
-    }
-    return { };
-}
-
-#ifndef NDEBUG
-
-spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFifo(size_t ix) const {
-    if (ix >= 1u) {
-        throwSpiderException("index out of bound.");
-    }
-#else
-    spider::sched::AllocationRule spider::sched::SyncTask::allocationRuleForOutputFifo(size_t) const {
-#endif
-    if (type_ == SyncType::SEND) {
-        return { static_cast<u32>(size_), 0, 0, 0, AllocType::SAME_IN, FifoAttribute::RW_OWN };
-    } else {
-        return { static_cast<u32>(size_), 0, UINT32_MAX, 0, AllocType::SAME_IN, FifoAttribute::RW_OWN };
-    }
-}
-
 u32 spider::sched::SyncTask::color() const {
     /* ==  SEND    -> vivid tangerine color == */
     /* ==  RECEIVE -> Studio purple color == */

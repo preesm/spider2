@@ -74,60 +74,6 @@ void spider::sched::SRDAGTask::updateTaskExecutionDependencies(const spider::sch
     }
 }
 
-spider::sched::AllocationRule spider::sched::SRDAGTask::allocationRuleForInputFifo(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= vertex_->inputEdgeCount()) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    const auto *inputEdge = vertex_->inputEdge(ix);
-    const auto rate = static_cast<u32>(inputEdge->sinkRateValue());
-    const auto fifoIx = static_cast<u32>(inputEdge->sourcePortIx());
-    return { rate, 0u, fifoIx, 0u, SAME_IN, FifoAttribute::RW_OWN };
-}
-
-spider::sched::AllocationRule spider::sched::SRDAGTask::allocationRuleForOutputFifo(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= vertex_->outputEdgeCount()) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    auto *edge = vertex_->outputEdge(ix);
-    const auto rate = static_cast<u32>(edge->sourceRateValue());
-    const auto count = rate ? 1u : 0u;
-    switch (vertex_->subtype()) {
-        case pisdf::VertexType::FORK:
-            if (ix == 0u) {
-                return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
-            } else {
-                const auto prevIx = static_cast<u32>(ix - 1);
-                const auto *previousEdge = vertex_->outputEdge(prevIx);
-                const auto offset = static_cast<u32>(previousEdge->sourceRateValue());
-                return { rate, offset, prevIx, count, AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
-            }
-        case pisdf::VertexType::DUPLICATE:
-            return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
-        case pisdf::VertexType::EXTERN_IN: {
-            const auto offset = vertex_->reference()->convertTo<pisdf::ExternInterface>()->bufferIndex();
-            return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
-        }
-        case pisdf::VertexType::REPEAT:
-            if (rate == static_cast<size_t>(vertex_->inputEdge(0u)->sourceRateValue())) {
-                return { rate, 0u, 0u, count, AllocType::SAME_IN, fifos_->inputFifo(0u).attribute_ };
-            }
-            break;
-        default: {
-            const auto *sink = edge->sink();
-            if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
-                const auto offset = sink->reference()->convertTo<pisdf::ExternInterface>()->bufferIndex();
-                return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
-            }
-            break;
-        }
-    }
-    return { rate, 0u, 0u, count, AllocType::NEW, FifoAttribute::RW_OWN };
-}
-
 u32 spider::sched::SRDAGTask::color() const {
     const auto *reference = vertex_->reference();
     const u32 red = static_cast<u8>((reinterpret_cast<uintptr_t>(reference) >> 3u) * 50 + 100);

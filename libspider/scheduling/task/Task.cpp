@@ -36,16 +36,16 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
-#include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
+#include <api/archi-api.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <api/runtime-api.h>
 #include <algorithm>
 
-/* === Static function === */
 
 /* === Method(s) implementation === */
-
-/* === Private method(s) implementation === */
 
 spider::sched::Task::Task() {
     const auto lrtCount{ archi::platform()->LRTCount() };
@@ -150,8 +150,11 @@ spider::JobMessage spider::sched::Task::createJobMessage() const {
     /* == Set the synchronization flags == */
     const auto lrtCount{ archi::platform()->LRTCount() };
     const auto *flags = notifications_.get();
-    message.synchronizationFlags_ = make_unique<bool>(spider::allocate<bool, StackID::RUNTIME>(lrtCount));
-    std::copy(flags, flags + lrtCount, message.synchronizationFlags_.get());
+    auto oneTrue = std::any_of(flags, flags + lrtCount, [](bool value) { return value; });
+    if (oneTrue) {
+        message.synchronizationFlags_ = make_unique<bool>(spider::allocate<bool, StackID::RUNTIME>(lrtCount));
+        std::copy(flags, flags + lrtCount, message.synchronizationFlags_.get());
+    }
     /* == Set the execution task constraints == */
     message.execConstraints_ = Task::getExecutionConstraints();
     /* == Set Fifos == */

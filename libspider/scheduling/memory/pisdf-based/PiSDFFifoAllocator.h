@@ -39,8 +39,15 @@
 
 #include <scheduling/memory/FifoAllocator.h>
 #include <containers/vector.h>
+#include <runtime/message/JobMessage.h>
 
 namespace spider {
+
+    namespace pisdf {
+        class DependencyInfo;
+
+        class DependencyIterator;
+    }
 
     /* === Forward declaration(s) === */
 
@@ -74,13 +81,14 @@ namespace spider {
 
         private:
 
-            size_t allocateMergedInputFifo(Task *task,
-                                           Fifo *fifo,
-                                           sched::AllocationRule &rule,
-                                           size_t realFifoIx,
-                                           size_t taskOffset);
+            /* === Vertex specialized allocation methods === */
 
-            void allocateInputFifo(const Task *task, Fifo *fifo, sched::AllocationRule &rule);
+            void allocateDefaultVertexTask(sched::PiSDFTask *task);
+
+            void allocateRepeatTask(sched::PiSDFTask *task);
+
+            spider::Fifo allocateDefaultVertexOutputFifo(sched::PiSDFTask *task, const pisdf::Edge *edge);
+
         };
     }
 }

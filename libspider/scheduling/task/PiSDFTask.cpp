@@ -47,22 +47,27 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
 #include <runtime/special-kernels/specialKernels.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <runtime/message/Notification.h>
+#include <runtime-api.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::sched::PiSDFTask::PiSDFTask(srless::GraphFiring *handler,
+spider::sched::PiSDFTask::PiSDFTask(pisdf::GraphFiring *handler,
                                     const pisdf::Vertex *vertex,
                                     u32 firing,
                                     u32 depCount,
-                                    u32 mergedFifoCount) : Task(),
-                                                             handler_{ handler },
-                                                             vertex_{ vertex },
-                                                             firing_{ firing },
-                                                             dependenciesCount_{ depCount } {
-    const auto inputFifoCount = depCount + mergedFifoCount;
-    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(inputFifoCount, vertex->outputEdgeCount());
+                                    u32 mergedFifoCount) :
+        Task(),
+        mergeFifoInfo_{ factory::vector<std::pair<size_t, size_t>>(StackID::RUNTIME) },
+        handler_{ handler },
+        vertex_{ vertex },
+        firing_{ firing },
+        dependenciesCount_{ depCount } {
+    spider::reserve(mergeFifoInfo_, mergedFifoCount);
     dependencies_ = spider::make_unique(spider::allocate<Task *, StackID::SCHEDULE>(depCount));
     std::fill(dependencies_.get(), dependencies_.get() + depCount, nullptr);
 }
@@ -87,112 +92,87 @@ void spider::sched::PiSDFTask::updateTaskExecutionDependencies(const Schedule *s
     }
 }
 
-spider::sched::AllocationRule spider::sched::PiSDFTask::allocationRuleForInputFifo(size_t edgeIx) const {
-#ifndef NDEBUG
-    if ((vertex_->subtype() != pisdf::VertexType::INPUT) && (edgeIx >= vertex_->inputEdgeCount())) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    const auto *edge = vertex_->inputEdge(edgeIx);
-    u32 count = 0;
-    const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_);
-    for (const auto &dep : deps) {
-        count += dep.firingEnd_ - dep.firingStart_ + 1u;
-    }
-    auto rule = AllocationRule{ };
-    if (count > 1u) {
-        rule.others_ = spider::allocate<AllocationRule, StackID::SCHEDULE>(count);
-        rule.size_ = static_cast<u32>(handler_->getSinkRate(edge));
-        rule.offset_ = count;
-        rule.fifoIx_ = UINT32_MAX;
-        rule.count_ = 1u;
-        rule.type_ = AllocType::MERGE;
-        rule.attribute_ = FifoAttribute::R_MERGE;
-        size_t depOffset = 0u;
-        for (const auto &dep : deps) {
-            /* == first dependency == */
-            auto rate = dep.firingStart_ == dep.firingEnd_ ? (dep.memoryEnd_ - dep.memoryStart_ + 1u) :
-                        static_cast<u32>(dep.rate_) - dep.memoryStart_;
-            rule.others_[depOffset] = AllocationRule(rate, dep.memoryStart_, dep.edgeIx_, 0u, AllocType::SAME_IN,
-                                                     FifoAttribute::RW_OWN);
-            /* == middle dependencies if > 2 == */
-            for (auto k = dep.firingStart_ + 1; k < dep.firingEnd_; ++k) {
-                const auto ix = k + depOffset - dep.firingStart_;
-                rate = static_cast<u32>(dep.rate_);
-                rule.others_[ix] = AllocationRule(rate, 0u, dep.edgeIx_, 0u, AllocType::SAME_IN, FifoAttribute::RW_OWN);
-            }
-            /* == last dependency == */
-            const auto ix = dep.firingEnd_ - dep.firingStart_ + depOffset;
-            if (ix > depOffset) {
-                rate = dep.memoryEnd_ + 1u;
-                rule.others_[ix] = AllocationRule(rate, 0u, dep.edgeIx_, 0u, AllocType::SAME_IN, FifoAttribute::RW_OWN);
-            }
-            depOffset += (dep.firingEnd_ - dep.firingStart_) + 1u;
-        }
-    } else if (deps.count()) {
-        const auto &dep = *(deps.begin());
-        const auto rate = (dep.rate_ > 0) * (dep.memoryEnd_ - dep.memoryStart_ + 1u);
-        rule = AllocationRule(rate, dep.memoryStart_, dep.edgeIx_, 0u, AllocType::SAME_IN, FifoAttribute::RW_OWN);
-        if (!rate) {
-            rule.attribute_ = FifoAttribute::DUMMY;
-        }
-    } else {
-        rule = AllocationRule(0, 0, 0, 0u, AllocType::SAME_IN, FifoAttribute::DUMMY);
-    }
-    return rule;
-}
-
-spider::sched::AllocationRule spider::sched::PiSDFTask::allocationRuleForOutputFifo(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= vertex_->outputEdgeCount()) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    const auto *edge = vertex_->outputEdge(ix);
-    const auto rate = static_cast<u32>(handler_->getSourceRate(edge));
-    auto count = spider::pisdf::computeConsDependencyCount(vertex_, firing_, edge->sourcePortIx(), handler_);
-    if (rate && count == UINT32_MAX) {
-        return { rate, 0u, 0u, 1u, AllocType::NEW, FifoAttribute::W_SINK };
-    } else if (!count) {
-        count = rate > 0;
-    }
-    switch (vertex_->subtype()) {
-        case pisdf::VertexType::FORK:
-            if (ix == 0u) {
-                return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
-            } else {
-                const auto prevIx = static_cast<u32>(ix - 1);
-                const auto *previousEdge = vertex_->outputEdge(prevIx);
-                const auto offset = static_cast<u32>(handler_->getSourceRate(previousEdge));
-                return { rate, offset, prevIx, count, AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
-            }
-        case pisdf::VertexType::DUPLICATE:
-            return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
-        case pisdf::VertexType::EXTERN_IN: {
-            const auto offset = vertex_->convertTo<pisdf::ExternInterface>()->bufferIndex();
-            return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
-        }
-        case pisdf::VertexType::REPEAT:
-            if (rate == static_cast<size_t>(handler_->getSourceRate(vertex_->inputEdge(0u)))) {
-                return { rate, 0u, 0u, count, AllocType::SAME_IN, fifos_->inputFifo(0u).attribute_ };
-            }
-            break;
-        default:
-            if (edge->sink() && edge->sink()->subtype() == pisdf::VertexType::EXTERN_OUT) {
-                const auto offset = edge->sink()->convertTo<pisdf::ExternInterface>()->bufferIndex();
-                return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
-            }
-            break;
-    }
-    return { rate, 0u, 0u, count, AllocType::NEW, FifoAttribute::RW_OWN };
-}
-
 spider::JobMessage spider::sched::PiSDFTask::createJobMessage() const {
     auto message = Task::createJobMessage();
     message.nParamsOut_ = static_cast<u32>(vertex_->outputParamCount());
     message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
     /* == Set the input parameters (if any) == */
     message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex_, handler_->getParams());
+    message.fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(vertex_->inputEdgeCount(),
+                                                                      vertex_->outputEdgeCount());
+    for (const auto *edge : vertex_->inputEdges()) {
+        i32 count = 0;
+        const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_, &count);
+        if (count > 1) {
+            /* == Allocating a merged edge == */
+            sendMergeFifoMessage(message, edge, deps, count);
+        } else {
+            message.fifos_->setInputFifo(edge->sinkPortIx(), allocateDefaultInputFifo(*deps.begin()));
+        }
+    }
+    if (vertex_->subtype() == pisdf::VertexType::FORK) {
+        auto inputFifo = message.fifos_->inputFifo(0);
+        u32 offset = 0;
+        for (const auto *edge : vertex_->outputEdges()) {
+            auto fifo = inputFifo;
+            fifo.size_ = static_cast<u32>(handler_->getSourceRate(edge));
+            fifo.offset_ += offset;
+            if (fifo.size_) {
+                const auto ix = edge->sourcePortIx();
+                fifo.count_ = spider::pisdf::computeConsDependencyCount(vertex_, firing_, ix, handler_);
+            }
+            fifo.attribute_ = FifoAttribute::RW_ONLY;
+            offset += fifo.size_;
+            message.fifos_->setOutputFifo(edge->sourcePortIx(), fifo);
+            handler_->registerEdgeAlloc(fifo, edge, firing_);
+        }
+    } else if (vertex_->subtype() == pisdf::VertexType::DUPLICATE) {
+        auto inputFifo = message.fifos_->inputFifo(0);
+        for (const auto *edge : vertex_->outputEdges()) {
+            auto fifo = inputFifo;
+            if (fifo.size_) {
+                const auto ix = edge->sourcePortIx();
+                fifo.count_ = spider::pisdf::computeConsDependencyCount(vertex_, firing_, ix, handler_);
+            }
+            fifo.attribute_ = FifoAttribute::RW_ONLY;
+            message.fifos_->setOutputFifo(edge->sourcePortIx(), fifo);
+            handler_->registerEdgeAlloc(fifo, edge, firing_);
+        }
+    } else if (vertex_->subtype() == pisdf::VertexType::REPEAT) {
+        const auto *inputEdge = vertex_->inputEdge(0U);
+        const auto *outputEdge = vertex_->outputEdge(0U);
+        if (handler_->getSinkRate(inputEdge) == handler_->getSourceRate(outputEdge)) {
+            auto inputFifo = message.fifos_->inputFifo(0);
+            auto outputFifo = inputFifo;
+            auto count = spider::pisdf::computeConsDependencyCount(vertex_, firing_, 0U, handler_);
+            outputFifo.count_ = outputFifo.size_ ? count : 0;
+            if (outputFifo.attribute_ != FifoAttribute::RW_EXT) {
+                if (count < 0 && outputFifo.size_) {
+                    outputFifo.count_ = 1;
+                    outputFifo.attribute_ = FifoAttribute::W_SINK;
+                } else {
+                    outputFifo.attribute_ = FifoAttribute::RW_ONLY;
+                }
+            }
+            message.fifos_->setOutputFifo(0U, outputFifo);
+            handler_->registerEdgeAlloc(outputFifo, vertex_->outputEdge(0U), firing_);
+        } else {
+            message.fifos_->setOutputFifo(0U, handler_->getEdgeAlloc(outputEdge, firing_));
+        }
+    } else if (vertex_->subtype() == pisdf::VertexType::EXTERN_IN) {
+        Fifo fifo{ };
+        fifo.size_ = static_cast<u32>(handler_->getSourceRate(vertex_->outputEdge(0)));
+        fifo.offset_ = 0;
+        fifo.count_ = 1;
+        fifo.virtualAddress_ = vertex_->convertTo<pisdf::ExternInterface>()->bufferIndex();
+        fifo.attribute_ = FifoAttribute::RW_EXT;
+        message.fifos_->setOutputFifo(0U, fifo);
+        handler_->registerEdgeAlloc(fifo, vertex_->outputEdge(0U), firing_);
+    } else {
+        for (const auto *edge : vertex_->outputEdges()) {
+            message.fifos_->setOutputFifo(edge->sourcePortIx(), handler_->getEdgeAlloc(edge, firing_));
+        }
+    }
     return message;
 }
 
@@ -241,3 +221,103 @@ spider::sched::DependencyInfo spider::sched::PiSDFTask::getDependencyInfo(size_t
 size_t spider::sched::PiSDFTask::dependencyCount() const {
     return dependenciesCount_;
 }
+
+void spider::sched::PiSDFTask::setOutputFifo(size_t ix, spider::Fifo fifo) {
+    fifos_->setOutputFifo(ix, fifo);
+    handler_->registerEdgeAlloc(fifo, vertex_->outputEdge(ix), firing_);
+}
+
+void spider::sched::PiSDFTask::addMergeFifoInfo(const pisdf::Edge *edge, size_t address) {
+    mergeFifoInfo_.emplace_back(edge->sinkPortIx(), address);
+}
+
+/* === Private method(s) === */
+
+spider::Fifo spider::sched::PiSDFTask::allocateDefaultInputFifo(const pisdf::DependencyInfo &dep) {
+    if (!dep.vertex_) {
+        return Fifo{ };
+    } else {
+        const auto *srcVertex = dep.vertex_;
+        const auto *edge = srcVertex->outputEdge(dep.edgeIx_);
+        auto fifo = dep.handler_->getEdgeAlloc(edge, dep.firingStart_);
+        fifo.size_ = (dep.rate_ > 0) * (dep.memoryEnd_ - dep.memoryStart_ + 1u);
+        fifo.offset_ += dep.memoryStart_;
+        fifo.count_ = 0U;
+        if (fifo.attribute_ == FifoAttribute::RW_EXT) {
+            fifo.attribute_ = FifoAttribute::RW_EXT;
+        } else if (fifo.attribute_ == FifoAttribute::RW_AUTO) {
+            fifo.attribute_ = FifoAttribute::RW_AUTO;
+        }
+        return fifo;
+    }
+}
+
+void spider::sched::PiSDFTask::sendMergeFifoMessage(JobMessage &jobMessage,
+                                                    const pisdf::Edge *edge,
+                                                    const pisdf::DependencyIterator &dependencies,
+                                                    i32 depCount) const {
+    /* == Create the actual job message == */
+    JobMessage message{ };
+    message.kernelIx_ = rt::END_KERNEL_IX;
+    message.ix_ = ix_;
+    message.taskIx_ = jobExecIx_;
+    message.nParamsOut_ = 0u;
+    message.execConstraints_ = jobMessage.execConstraints_;
+    /* == Allocate the Fifos == */
+    message.fifos_ = spider::make_shared<JobFifos, StackID::RUNTIME>(depCount + 1, 0);
+    size_t fifoIx = 1u;
+    size_t inputSize = 0u;
+    for (const auto &dep : dependencies) {
+        for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+            const auto *srcVertex = dep.vertex_;
+            const auto *srcEdge = srcVertex->outputEdge(dep.edgeIx_);
+            const auto memStart = k == dep.firingStart_ ? dep.memoryStart_ : 0;
+            const auto memEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
+            auto fifo = dep.handler_->getEdgeAlloc(srcEdge, k);
+            fifo.size_ = memEnd - memStart + 1u;
+            fifo.offset_ += memStart;
+            fifo.count_ = 0;
+            if (fifo.attribute_ == FifoAttribute::RW_EXT) {
+                fifo.attribute_ = FifoAttribute::RW_EXT;
+            } else if (fifo.attribute_ == FifoAttribute::RW_AUTO) {
+                fifo.attribute_ = FifoAttribute::RW_AUTO;
+            }
+            message.fifos_->setInputFifo(fifoIx, fifo);
+            inputSize += fifo.size_;
+            fifoIx++;
+        }
+    }
+    /* == Allocate merged fifo == */
+    const auto mergedSize = static_cast<size_t>(handler_->getSinkRate(edge));
+    if (inputSize != mergedSize) {
+        throwSpiderException("invalid rate.");
+    }
+    auto fifo = Fifo{ };
+    fifo.size_ = static_cast<u32>(mergedSize);
+    fifo.offset_ = static_cast<u32>(fifoIx - 1);
+    fifo.count_ = 1;
+    fifo.virtualAddress_ = getMergeFifoAddress(edge);
+    fifo.attribute_ = FifoAttribute::R_MERGE;
+    message.fifos_->setInputFifo(0, fifo);
+    /* == Set the input fifo of the task == */
+    fifo.count_ = 0;
+    fifo.offset_ = 0;
+    fifo.attribute_ = FifoAttribute::RW_OWN;
+    jobMessage.fifos_->setInputFifo(edge->sinkPortIx(), fifo);
+    /* == Send the message == */
+    const auto grtIx = archi::platform()->getGRTIx();
+    const auto mappedLRTIx = mappedLRT()->virtualIx();
+    auto *communicator = rt::platform()->communicator();
+    const auto messageIx = communicator->push(std::move(message), mappedLRTIx);
+    communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, mappedLRTIx);
+}
+
+size_t spider::sched::PiSDFTask::getMergeFifoAddress(const pisdf::Edge *edge) const {
+    for (const auto &elt : mergeFifoInfo_) {
+        if (elt.first == edge->sinkPortIx()) {
+            return elt.second;
+        }
+    }
+    throwSpiderException("unable to find merged fifo address.");
+}
+

@@ -62,7 +62,7 @@ namespace spider {
                                                 int64_t upperCons,
                                                 int64_t srcRate,
                                                 int64_t delayValue,
-                                                const srless::GraphFiring *handler) {
+                                                const pisdf::GraphFiring *handler) {
                 if (!srcRate) {
                     return { nullptr, nullptr, 0, 0, 0, 0, 0, 0 };
                 }
@@ -83,7 +83,7 @@ namespace spider {
                                                 int64_t upperProd,
                                                 int64_t snkRate,
                                                 int64_t delayValue,
-                                                const srless::GraphFiring *handler) {
+                                                const pisdf::GraphFiring *handler) {
                 if (!snkRate) {
                     return { nullptr, nullptr, 0, 0, 0, 0, 0, 0 };
                 }
@@ -107,7 +107,7 @@ namespace spider {
 i32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
                                                  int64_t lowerCons,
                                                  int64_t upperCons,
-                                                 const srless::GraphFiring *handler,
+                                                 const pisdf::GraphFiring *handler,
                                                  spider::vector<DependencyInfo> *result) {
     const auto *source = edge->source();
     const auto sourceType = source->subtype();
@@ -187,7 +187,7 @@ i32 spider::pisdf::detail::computeExecDependency(const Edge *edge,
 i32 spider::pisdf::detail::computeConsDependency(const Edge *edge,
                                                  int64_t lowerProd,
                                                  int64_t upperProd,
-                                                 const srless::GraphFiring *handler,
+                                                 const pisdf::GraphFiring *handler,
                                                  spider::vector<DependencyInfo> *result) {
     /* == Precompute some numerical values == */
     const auto *sink = edge->sink();

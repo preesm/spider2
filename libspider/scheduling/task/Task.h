@@ -45,6 +45,7 @@
 #include <runtime/message/JobMessage.h>
 
 namespace spider {
+
     /* === Forward Declaration(s) === */
 
     class PE;
@@ -92,6 +93,8 @@ namespace spider {
              * @brief Set all notification flags to true.
              */
             void enableBroadcast();
+
+            spider::array<SyncInfo> getExecutionConstraints() const;
 
             /* === Getter(s) === */
 
@@ -218,8 +221,18 @@ namespace spider {
 
             /* === Virtual method(s) === */
 
+            /**
+             * @brief Get output fifo of index ix.
+             * @param ix Index of the Fifo.
+             * @return fifo at position ix.
+             */
             virtual Fifo getOutputFifo(size_t ix) const;
 
+            /**
+             * @brief Get input fifo of index ix.
+             * @param ix Index of the Fifo.
+             * @return fifo at position ix.
+             */
             virtual Fifo getInputFifo(size_t ix) const;
 
             /**
@@ -239,22 +252,6 @@ namespace spider {
              * @return true if the task could be optimized away by allocator, false else.
              */
             virtual bool isSyncOptimizable() const noexcept = 0;
-
-            /**
-             * @brief Return the memory allocation rule for a given input fifo.
-             * @param ix Index of the Fifo.
-             * @return @refitem AllocationRule
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual AllocationRule allocationRuleForInputFifo(size_t ix) const = 0;
-
-            /**
-             * @brief Return the memory allocation rule for a given output fifo.
-             * @param ix Index of the Fifo.
-             * @return @refitem AllocationRule
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual AllocationRule allocationRuleForOutputFifo(size_t ix) const = 0;
 
             /**
              * @brief Return a color value for the task.
@@ -328,11 +325,6 @@ namespace spider {
             u32 ix_{ UINT32_MAX };                          /*!< Index of the task in the schedule */
             u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
             TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the task */
-
-            /* === Protected method(s) === */
-
-            spider::array<SyncInfo> getExecutionConstraints() const;
-
         };
     }
 }

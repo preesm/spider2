@@ -66,10 +66,6 @@ namespace spider {
 
             void allocate(FifoAllocator *allocator) override;
 
-            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
-
-            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
-
             u32 color() const override;
 
             std::string name() const override;

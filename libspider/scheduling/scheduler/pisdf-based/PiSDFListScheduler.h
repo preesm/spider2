@@ -41,12 +41,9 @@
 
 namespace spider {
 
-    namespace srless {
-        class GraphFiring;
-    }
-
     namespace pisdf {
         struct DependencyIterator;
+        class GraphFiring;
     }
 
     namespace sched {
@@ -62,7 +59,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(srless::GraphHandler *graphHandler) override;
+            void schedule(pisdf::GraphHandler *graphHandler) override;
 
             void clear() override;
 
@@ -76,7 +73,7 @@ namespace spider {
 
             struct ListTask {
                 pisdf::Vertex *vertex_;
-                srless::GraphFiring *handler_;
+                pisdf::GraphFiring *handler_;
                 i32 level_;
                 u32 firing_;
                 u32 depCount_;
@@ -100,7 +97,7 @@ namespace spider {
              * @brief Recursively add vertices into the sortedTaskVector_ vector.
              * @param graphHandler  Top level graph handler;
              */
-            void recursiveAddVertices(spider::srless::GraphHandler *graphHandler);
+            void recursiveAddVertices(spider::pisdf::GraphHandler *graphHandler);
 
             /**
              * @brief Create @refitem ListScheduler::ListTask for every non-scheduled vertex.
@@ -110,7 +107,7 @@ namespace spider {
              * @param firing  Firing of the vertex.
              * @param handler Pointer to the handler of the vertex.
              */
-            void createListTask(pisdf::Vertex *vertex, u32 firing, srless::GraphFiring *handler);
+            void createListTask(pisdf::Vertex *vertex, u32 firing, pisdf::GraphFiring *handler);
 
             /**
              * @brief Recursively set all consumer of this vertex as not schedulable.
@@ -120,7 +117,7 @@ namespace spider {
              */
             void recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
                                             u32 firing,
-                                            const srless::GraphFiring *handler);
+                                            const pisdf::GraphFiring *handler);
 
             /**
              * @brief Compute recursively the schedule level used to sort the vertices for scheduling.

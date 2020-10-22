@@ -57,7 +57,7 @@ spider::sched::PiSDFListScheduler::PiSDFListScheduler() :
 
 }
 
-void spider::sched::PiSDFListScheduler::schedule(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
     /* == Reset previous non-schedulable tasks == */
@@ -106,7 +106,7 @@ void spider::sched::PiSDFListScheduler::resetUnScheduledTasks() {
     }
 }
 
-void spider::sched::PiSDFListScheduler::recursiveAddVertices(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFListScheduler::recursiveAddVertices(pisdf::GraphHandler *graphHandler) {
     for (auto &firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
@@ -131,7 +131,7 @@ void spider::sched::PiSDFListScheduler::recursiveAddVertices(srless::GraphHandle
 
 void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
                                                        u32 firing,
-                                                       srless::GraphFiring *handler) {
+                                                       pisdf::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
         sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0 });
@@ -141,7 +141,7 @@ void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
 
 void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
                                                                    u32 firing,
-                                                                   const srless::GraphFiring *handler) {
+                                                                   const pisdf::GraphFiring *handler) {
     for (const auto *edge : vertex->outputEdges()) {
         const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
         for (const auto &dep : deps) {

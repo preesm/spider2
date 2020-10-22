@@ -54,7 +54,7 @@ void spider::sched::BestFitMapper::map(sched::Graph *graph, sched::Vertex *verte
     if (!vertex) {
         throwSpiderException("can not map nullptr task.");
     }
-    vertex->setState(sched::SchedState::PENDING);
+    vertex->setState(sched::State::PENDING);
     /* == Compute the minimum start time possible for the task == */
     const auto minStartTime = Mapper::computeStartTime(vertex);
     /* == Build the data dependency vector in order to compute receive cost == */

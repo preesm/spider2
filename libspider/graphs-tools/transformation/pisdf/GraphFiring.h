@@ -41,16 +41,15 @@
 #include <memory/unique_ptr.h>
 #include <containers/vector.h>
 #include <containers/array.h>
+#include <runtime/common/Fifo.h>
 
 namespace spider {
 
     namespace pisdf {
+
         class Graph;
 
         class Param;
-    }
-
-    namespace srless {
 
         class GraphHandler;
 
@@ -171,6 +170,8 @@ namespace spider {
              */
             const GraphFiring *getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const;
 
+            spider::Fifo getEdgeAlloc(const pisdf::Edge *edge, u32 producerFiring) const;
+
             /* === Setter(s) === */
 
             /**
@@ -179,6 +180,8 @@ namespace spider {
              * @param value Value of the parameter to be set.
              */
             void setParamValue(size_t ix, int64_t value);
+
+            void registerEdgeAlloc(spider::Fifo value, const pisdf::Edge *edge, u32 producerFiring);
 
         private:
             struct EdgeRate {
@@ -190,6 +193,7 @@ namespace spider {
             spider::unique_ptr<u32> brv_;                         /* == BRV of this firing of the graph == */
             spider::unique_ptr<u32 *> taskIxRegister_;
             spider::unique_ptr<EdgeRate> rates_;
+            spider::unique_ptr<Fifo *> edgeAllocAddress_;
             const GraphHandler *parent_;
             u32 firing_{ };
             u32 dynamicParamCount_{ };

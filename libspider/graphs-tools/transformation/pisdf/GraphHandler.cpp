@@ -45,10 +45,10 @@
 
 /* === Method(s) implementation === */
 
-spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
+spider::pisdf::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
                                            const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                            u32 repetitionCount,
-                                           const srless::GraphFiring *handler) :
+                                           const pisdf::GraphFiring *handler) :
         handler_{ handler },
         graph_{ graph },
         repetitionCount_{ repetitionCount } {
@@ -69,13 +69,13 @@ spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
     }
 }
 
-spider::srless::GraphHandler::~GraphHandler() {
+spider::pisdf::GraphHandler::~GraphHandler() {
     for (u32 k = 0; k < repetitionCount_; ++k) {
         destroy(firings_.get()[k]);
     }
 }
 
-void spider::srless::GraphHandler::clear() {
+void spider::pisdf::GraphHandler::clear() {
     for (auto &firing : firings()) {
         if (firing) {
             firing->clear();
@@ -83,7 +83,7 @@ void spider::srless::GraphHandler::clear() {
     }
 }
 
-void spider::srless::GraphHandler::resolveFirings() {
+void spider::pisdf::GraphHandler::resolveFirings() {
     if (repetitionCount_ && !graph_->configVertexCount()) {
         auto *firstFiring = firings_.get()[0u];
         firstFiring->resolveBRV();
