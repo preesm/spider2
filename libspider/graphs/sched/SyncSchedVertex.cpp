@@ -50,9 +50,9 @@ u64 spider::sched::SyncVertex::timingOnPE(const spider::PE *pe) const {
         return UINT64_MAX;
     }
     if (type_ == SyncType::SEND) {
-        return bus_->writeSpeed() / Vertex::inputEdge(0)->getAlloc().size_;
+        return bus_->writeSpeed() / Vertex::inputEdge(0)->rate();
     } else {
-        return bus_->readSpeed() / Vertex::outputEdge(0)->getAlloc().size_;
+        return bus_->readSpeed() / Vertex::outputEdge(0)->rate();
     }
 }
 
@@ -76,7 +76,7 @@ spider::unique_ptr<i64> spider::sched::SyncVertex::buildInputParams() const {
     if (type_ == SyncType::SEND) {
         const auto *fstLRT = Vertex::mappedLRT();
         const auto *sndLRT = Vertex::outputEdge(0)->sink()->mappedLRT();
-        const auto size = Vertex::inputEdge(0)->getAlloc().size_;
+        const auto size = Vertex::inputEdge(0)->rate();
         params[0u] = static_cast<i64>(fstLRT->cluster()->ix());
         params[1u] = static_cast<i64>(sndLRT->cluster()->ix());
         params[2u] = static_cast<i64>(size);
@@ -84,7 +84,7 @@ spider::unique_ptr<i64> spider::sched::SyncVertex::buildInputParams() const {
     } else {
         const auto *fstLRT = inputEdge(0)->source()->mappedLRT();
         const auto *sndLRT = Vertex::mappedLRT();
-        const auto size = Vertex::outputEdge(0)->getAlloc().size_;
+        const auto size = Vertex::outputEdge(0)->rate();
         params[0u] = static_cast<i64>(fstLRT->cluster()->ix());
         params[1u] = static_cast<i64>(sndLRT->cluster()->ix());
         params[2u] = static_cast<i64>(size);

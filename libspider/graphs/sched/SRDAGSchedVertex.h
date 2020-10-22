@@ -91,8 +91,6 @@ namespace spider {
 
             spider::unique_ptr<i64> buildInputParams() const final;
 
-            void reduceForkDuplicate();
-
             void reduceRepeat(sched::Graph *graph);
         };
     }

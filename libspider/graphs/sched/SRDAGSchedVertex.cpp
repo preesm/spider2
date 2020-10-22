@@ -77,18 +77,8 @@ void spider::sched::SRDAGVertex::reduce(sched::Graph *graph) {
             break;
         }
     }
-    if (isOptimizable) {
-        switch (vertex_->subtype()) {
-            case pisdf::VertexType::FORK:
-            case pisdf::VertexType::DUPLICATE:
-                reduceForkDuplicate();
-                break;
-            case pisdf::VertexType::REPEAT:
-                reduceRepeat(graph);
-                break;
-            default:
-                break;
-        }
+    if (isOptimizable && vertex_->subtype() == pisdf::VertexType::REPEAT) {
+        reduceRepeat(graph);
     }
 }
 
@@ -109,25 +99,6 @@ u32 spider::sched::SRDAGVertex::getKernelIx() const {
 
 spider::unique_ptr<i64> spider::sched::SRDAGVertex::buildInputParams() const {
     return srdag::buildVertexRuntimeInputParameters(vertex_);
-}
-
-void spider::sched::SRDAGVertex::reduceForkDuplicate() {
-    i32 count = 0;
-    for (const auto *edge : Vertex::outputEdges()) {
-        count += edge->getAlloc().count_;
-    }
-    auto *edgeIn = Vertex::inputEdge(0);
-    auto fifo = edgeIn->getAlloc();
-    fifo.count_ += count;
-    edgeIn->setAlloc(fifo);
-    /* == update input vertex with notification flags == */
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    auto *source = edgeIn->source();
-    for (size_t i = 0; i < lrtCount; ++i) {
-        const auto currentFlag = source->getNotificationFlagForLRT(i);
-        source->setNotificationFlag(i, currentFlag | Vertex::getNotificationFlagForLRT(i));
-    }
-    Vertex::setState(State::SKIPPED);
 }
 
 void spider::sched::SRDAGVertex::reduceRepeat(sched::Graph *graph) {

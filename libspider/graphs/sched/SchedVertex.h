@@ -53,6 +53,8 @@ namespace spider {
         enum class Type {
             NORMAL,
             MERGE,
+            FORK,
+            DUPLICATE,
             SEND,
             RECEIVE,
         };

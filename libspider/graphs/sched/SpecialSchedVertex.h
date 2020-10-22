@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_MERGESCHEDVERTEX_H
-#define SPIDER2_MERGESCHEDVERTEX_H
+#ifndef SPIDER2_SPECIALSCHEDVERTEX_H
+#define SPIDER2_SPECIALSCHEDVERTEX_H
 
 /* === Include(s) === */
 
@@ -47,41 +47,64 @@ namespace spider {
 
         /* === Class definition === */
 
-        class MergeVertex final : public sched::Vertex {
+        class SpecialVertex final : public sched::Vertex {
         public:
 
-            explicit MergeVertex() = default;
+            explicit SpecialVertex(Type type, size_t edgeINCount, size_t edgeOUTCount);
 
-            ~MergeVertex() final = default;
+            ~SpecialVertex() final = default;
 
             /* === Method(s) === */
 
             u64 timingOnPE(const PE *pe) const final;
 
-            inline void reduce(sched::Graph *) final { };
+            void reduce(sched::Graph *) final;
 
             inline u32 color() const final {
-                /* == Studio Purple == */
-                return 0x8e44ad;
+                if (type_ == Type::MERGE) {
+                    /* == Studio Purple == */
+                    return 0x8e44ad;
+                } else if (type_ == Type::FORK) {
+                    /* == Buttercup orange == */
+                    return 0xf39c12;
+                }
+                /* == Shakespeare blue for duplicate == */
+                return 0x52b3d9;
             }
 
             /* === Getter(s) === */
 
-            inline sched::Type type() const final { return Type::MERGE; }
+            inline sched::Type type() const final { return type_; }
 
-            inline std::string name() const final { return "merge"; }
+            inline std::string name() const final {
+                if (type_ == Type::MERGE) {
+                    return "merge";
+                } else if (type_ == Type::FORK) {
+                    return "fork";
+                }
+                return "duplicate";
+            }
 
             /* === Setter(s) === */
 
         private:
+            Type type_;
 
             /* === Private method(s) === */
+
+            void reduceForkDuplicate();
 
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
 
+            spider::unique_ptr<i64> buildMergeParams() const;
+
+            spider::unique_ptr<i64> buildForkParams() const;
+
+            spider::unique_ptr<i64> buildDuplicateParams() const;
+
         };
     }
 }
-#endif //SPIDER2_MERGESCHEDVERTEX_H
+#endif //SPIDER2_SPECIALSCHEDVERTEX_H
