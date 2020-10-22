@@ -63,8 +63,6 @@ namespace spider {
 
             u64 timingOnPE(const PE *pe) const final;
 
-            inline void reduce(sched::Graph *) final { };
-
             inline u32 color() const final {
                 /* ==  SEND    -> vivid tangerine color == */
                 /* ==  RECEIVE -> Studio purple color == */

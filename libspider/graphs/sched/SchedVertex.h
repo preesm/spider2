@@ -145,7 +145,7 @@ namespace spider {
              * @brief Try to remove this synchronization point (if possible).
              * @param graph Pointer to the schedule graph.
              */
-            virtual void reduce(sched::Graph *graph) = 0;
+            inline virtual bool reduce(sched::Graph */*graph*/) { return false; };
 
             /**
              * @brief Send the execution job associated with this vertex to its mapped LRT and set state as RUNNING.

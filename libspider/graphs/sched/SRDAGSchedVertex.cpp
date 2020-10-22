@@ -67,7 +67,7 @@ u32 spider::sched::SRDAGVertex::color() const {
     return 0u | (red << 16u) | (green << 8u) | (blue);
 }
 
-void spider::sched::SRDAGVertex::reduce(sched::Graph *graph) {
+bool spider::sched::SRDAGVertex::reduce(sched::Graph *graph) {
     auto isOptimizable = Vertex::state() == State::READY;
     /* == Check if predecessors are running or not == */
     for (const auto *edge : Vertex::inputEdges()) {
@@ -78,8 +78,9 @@ void spider::sched::SRDAGVertex::reduce(sched::Graph *graph) {
         }
     }
     if (isOptimizable && vertex_->subtype() == pisdf::VertexType::REPEAT) {
-        reduceRepeat(graph);
+        return reduceRepeat(graph);
     }
+    return false;
 }
 
 void spider::sched::SRDAGVertex::setIx(u32 ix) {
@@ -101,7 +102,7 @@ spider::unique_ptr<i64> spider::sched::SRDAGVertex::buildInputParams() const {
     return srdag::buildVertexRuntimeInputParameters(vertex_);
 }
 
-void spider::sched::SRDAGVertex::reduceRepeat(sched::Graph *graph) {
+bool spider::sched::SRDAGVertex::reduceRepeat(sched::Graph *graph) {
     auto *edgeIn = Vertex::inputEdge(0);
     auto *edgeOut = Vertex::outputEdge(0);
     auto inputFifo = edgeIn->getAlloc();
@@ -112,8 +113,9 @@ void spider::sched::SRDAGVertex::reduceRepeat(sched::Graph *graph) {
         edgeIn->setAlloc(inputFifo);
         edgeIn->setSink(edgeOut->sink(), edgeOut->sinkPortIx());
         graph->removeEdge(edgeOut);
-        graph->removeVertex(this);
+        return true;
     }
+    return false;
 }
 
 #endif

@@ -66,7 +66,7 @@ namespace spider {
 
             u64 timingOnPE(const PE *pe) const final;
 
-            void reduce(sched::Graph *graph) final;
+            bool reduce(sched::Graph *graph) final;
 
             /* === Getter(s) === */
 
@@ -91,7 +91,7 @@ namespace spider {
 
             spider::unique_ptr<i64> buildInputParams() const final;
 
-            void reduceRepeat(sched::Graph *graph);
+            bool reduceRepeat(sched::Graph *graph);
         };
     }
 }

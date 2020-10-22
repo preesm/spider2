@@ -58,7 +58,7 @@ namespace spider {
 
             u64 timingOnPE(const PE *pe) const final;
 
-            void reduce(sched::Graph *) final;
+            bool reduce(sched::Graph *) final;
 
             inline u32 color() const final {
                 if (type_ == Type::MERGE) {

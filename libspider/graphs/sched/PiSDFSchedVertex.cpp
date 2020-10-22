@@ -65,7 +65,7 @@ u32 spider::sched::PiSDFVertex::color() const {
     return 0u | (red << 16u) | (green << 8u) | (blue);
 }
 
-void spider::sched::PiSDFVertex::reduce(sched::Graph *graph) {
+bool spider::sched::PiSDFVertex::reduce(sched::Graph *graph) {
     auto isOptimizable = Vertex::state() == State::READY;
     /* == Check if predecessors are running or not == */
     for (const auto *edge : Vertex::inputEdges()) {
@@ -75,19 +75,10 @@ void spider::sched::PiSDFVertex::reduce(sched::Graph *graph) {
             break;
         }
     }
-    if (isOptimizable) {
-        switch (vertex_->subtype()) {
-            case pisdf::VertexType::FORK:
-            case pisdf::VertexType::DUPLICATE:
-                reduceForkDuplicate();
-                break;
-            case pisdf::VertexType::REPEAT:
-                reduceRepeat(graph);
-                break;
-            default:
-                break;
-        }
+    if (isOptimizable && vertex_->subtype() == pisdf::VertexType::REPEAT) {
+        return reduceRepeat(graph);
     }
+    return false;
 }
 
 void spider::sched::PiSDFVertex::setIx(u32 ix) {
@@ -109,26 +100,7 @@ spider::unique_ptr<i64> spider::sched::PiSDFVertex::buildInputParams() const {
     return pisdf::buildVertexRuntimeInputParameters(vertex_, handler_->getParams());
 }
 
-void spider::sched::PiSDFVertex::reduceForkDuplicate() {
-    i32 count = 0;
-    for (const auto *edge : Vertex::outputEdges()) {
-        count += edge->getAlloc().count_;
-    }
-    auto *edgeIn = Vertex::inputEdge(0);
-    auto fifo = edgeIn->getAlloc();
-    fifo.count_ += count;
-    edgeIn->setAlloc(fifo);
-    /* == update input vertex with notification flags == */
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    auto *source = edgeIn->source();
-    for (size_t i = 0; i < lrtCount; ++i) {
-        const auto currentFlag = source->getNotificationFlagForLRT(i);
-        source->setNotificationFlag(i, currentFlag | Vertex::getNotificationFlagForLRT(i));
-    }
-    Vertex::setState(State::SKIPPED);
-}
-
-void spider::sched::PiSDFVertex::reduceRepeat(sched::Graph *graph) {
+bool spider::sched::PiSDFVertex::reduceRepeat(sched::Graph *graph) {
     auto *edgeIn = Vertex::inputEdge(0);
     auto *edgeOut = Vertex::outputEdge(0);
     auto inputFifo = edgeIn->getAlloc();
@@ -139,6 +111,7 @@ void spider::sched::PiSDFVertex::reduceRepeat(sched::Graph *graph) {
         edgeIn->setAlloc(inputFifo);
         edgeIn->setSink(edgeOut->sink(), edgeOut->sinkPortIx());
         graph->removeEdge(edgeOut);
-        graph->removeVertex(this);
+        return true;
     }
+    return false;
 }

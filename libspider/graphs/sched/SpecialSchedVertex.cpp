@@ -83,7 +83,7 @@ u64 spider::sched::SpecialVertex::timingOnPE(const spider::PE *pe) const {
     return time;
 }
 
-void spider::sched::SpecialVertex::reduce(spider::sched::Graph *) {
+bool spider::sched::SpecialVertex::reduce(spider::sched::Graph *) {
     switch (type()) {
         case Type::FORK:
         case Type::DUPLICATE:
@@ -92,6 +92,7 @@ void spider::sched::SpecialVertex::reduce(spider::sched::Graph *) {
         default:
             break;
     }
+    return false;
 }
 
 /* === Private method(s) === */

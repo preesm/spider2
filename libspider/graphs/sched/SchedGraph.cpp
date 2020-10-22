@@ -117,3 +117,16 @@ spider::sched::Graph::createEdge(sched::Vertex *source, u32 srcIx, sched::Vertex
     addEdge(edge);
     return edge;
 }
+
+void spider::sched::Graph::reduce(size_t vertexIx) {
+    auto it = std::next(std::begin(vertexVector_), static_cast<long>(vertexIx));
+    while (it != std::end(vertexVector_)) {
+        if (it->get()->reduce(this)) {
+            auto dist = std::distance(std::begin(vertexVector_), it);
+            removeVertex(it->get());
+            it = std::next(std::begin(vertexVector_), dist);
+        } else {
+            it++;
+        }
+    }
+}

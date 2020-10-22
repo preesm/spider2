@@ -112,6 +112,12 @@ namespace spider {
              */
             void removeEdge(sched::Edge *edge);
 
+            /**
+             * @brief Apply certain rules to try and optimize memory and synchronization.
+             * @param vertexIx Index of the vertex to start.
+             */
+            void reduce(size_t vertexIx = 0);
+
             /* === Getter(s) === */
 
             /**
