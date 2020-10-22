@@ -85,7 +85,7 @@ spider::srdag::Edge *spider::srdag::Vertex::disconnectInputEdge(size_t ix) {
     auto *edge = disconnectEdge(inputEdgeArray_, ix);
     if (edge) {
         /* == Reset the Edge == */
-        edge->setSink(nullptr, SIZE_MAX, 0);
+        edge->setSink(nullptr, SIZE_MAX);
     }
     return edge;
 }
@@ -94,7 +94,7 @@ spider::srdag::Edge *spider::srdag::Vertex::disconnectOutputEdge(size_t ix) {
     auto *edge = disconnectEdge(outputEdgeArray_, ix);
     if (edge) {
         /* == Reset the Edge == */
-        edge->setSource(nullptr, SIZE_MAX, 0);
+        edge->setSource(nullptr, SIZE_MAX);
     }
     return edge;
 }

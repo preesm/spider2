@@ -91,11 +91,12 @@ namespace spider {
 
             srdag::Vertex *createEndVertex(std::string name);
 
-            srdag::Edge * createEdge(srdag::Vertex *source, size_t srcIx, i64 srcRate,
-                                     srdag::Vertex *sink, size_t snkIx, i64 snkRate);
+            srdag::Edge *createEdge(srdag::Vertex *source, size_t srcIx, srdag::Vertex *sink, size_t snkIx, i64 rate);
 
 #ifndef _NO_BUILD_GRAPH_EXPORTER
+
             void exportToDOT(const std::string &path) const;
+
 #endif
 
             /**

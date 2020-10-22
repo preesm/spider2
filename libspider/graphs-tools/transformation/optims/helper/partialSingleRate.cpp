@@ -62,8 +62,7 @@ void spider::partialSingleRateTransformation(srdag::Graph *graph,
     auto sinkIt = std::begin(sinkArray);
     while (sinkIt != std::end(sinkArray)) {
         if (sinkIt->rate_ == sourceIt->rate_) {
-            graph->createEdge(sourceIt->vertex_, sourceIt->portIx_, sourceIt->rate_,
-                              sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
+            graph->createEdge(sourceIt->vertex_, sourceIt->portIx_, sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
             sourceIt++;
             sinkIt++;
         } else if (sourceIt->rate_ > sinkIt->rate_) {
@@ -72,10 +71,9 @@ void spider::partialSingleRateTransformation(srdag::Graph *graph,
                     std::to_string(sourceIt->portIx_));
             const auto nForkEdge = computeNEdge(sourceIt->rate_, sinkIt);
             auto *addedFork = graph->createForkVertex(std::move(name), nForkEdge);
-            graph->createEdge(sourceIt->vertex_, sourceIt->portIx_, sourceIt->rate_, addedFork, 0, sourceIt->rate_);
+            graph->createEdge(sourceIt->vertex_, sourceIt->portIx_, addedFork, 0, sourceIt->rate_);
             for (size_t forkPortIx = 0; forkPortIx < (nForkEdge - 1); ++forkPortIx) {
-                graph->createEdge(addedFork, forkPortIx, sinkIt->rate_,
-                                  sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
+                graph->createEdge(addedFork, forkPortIx, sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
                 sourceIt->rate_ -= sinkIt->rate_;
                 sinkIt++;
             }
@@ -87,10 +85,9 @@ void spider::partialSingleRateTransformation(srdag::Graph *graph,
                     std::to_string(sinkIt->portIx_));
             const auto nJoinEdge = computeNEdge(sinkIt->rate_, sourceIt);
             auto *addedJoin = graph->createJoinVertex(std::move(name), nJoinEdge);
-            graph->createEdge(addedJoin, 0, sinkIt->rate_, sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
+            graph->createEdge(addedJoin, 0, sinkIt->vertex_, sinkIt->portIx_, sinkIt->rate_);
             for (size_t joinPortIx = 0; joinPortIx < (nJoinEdge - 1); ++joinPortIx) {
-                graph->createEdge(sourceIt->vertex_, sourceIt->portIx_, sourceIt->rate_,
-                                  addedJoin, joinPortIx, sourceIt->rate_);
+                graph->createEdge(sourceIt->vertex_, sourceIt->portIx_, addedJoin, joinPortIx, sourceIt->rate_);
                 sinkIt->rate_ -= sourceIt->rate_;
                 sourceIt++;
             }

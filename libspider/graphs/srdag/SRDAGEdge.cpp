@@ -44,11 +44,8 @@
 
 /* === Method(s) implementation === */
 
-spider::srdag::Edge::Edge(srdag::Vertex *source, size_t srcIx, i64 srcRate,
-                          srdag::Vertex *sink, size_t snkIx, i64 snkRate) :
-        source_{ source }, sink_{ sink },
-        srcRate_{ srcRate }, snkRate_{ snkRate },
-        srcPortIx_{ srcIx }, snkPortIx_{ snkIx } {
+spider::srdag::Edge::Edge(srdag::Vertex *source, size_t srcIx, srdag::Vertex *sink, size_t snkIx, i64 rate) :
+        source_{ source }, sink_{ sink }, rate_{ rate }, srcPortIx_{ srcIx }, snkPortIx_{ snkIx } {
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
     }
@@ -66,7 +63,7 @@ std::string spider::srdag::Edge::name() const {
     return std::string("edge_").append(srcName).append("-").append(snkName);
 }
 
-void spider::srdag::Edge::setSource(srdag::Vertex *vertex, size_t ix, i64 rate) {
+void spider::srdag::Edge::setSource(srdag::Vertex *vertex, size_t ix) {
     if (vertex) {
         if (sink_ && vertex->graph() != sink_->graph()) {
             throwSpiderException("Can not set edge between [%s] and [%s]: not in the same graph.",
@@ -74,23 +71,19 @@ void spider::srdag::Edge::setSource(srdag::Vertex *vertex, size_t ix, i64 rate) 
         }
         /* == Disconnect current input edge (if any) == */
         vertex->disconnectOutputEdge(ix);
-
         /* == Connect this edge == */
         vertex->connectOutputEdge(this, ix);
     }
-
     /* == Disconnect current snk_ (if any) == */
     if (source_) {
         source_->disconnectOutputEdge(srcPortIx_);
     }
-
     /* == Set sink of this edge == */
     source_ = vertex;
     srcPortIx_ = ix;
-    srcRate_ = rate;
 }
 
-void spider::srdag::Edge::setSink(srdag::Vertex *vertex, size_t ix, i64 rate) {
+void spider::srdag::Edge::setSink(srdag::Vertex *vertex, size_t ix) {
     if (vertex) {
         if (source_ && vertex->graph() != source_->graph()) {
             throwSpiderException("Can not set edge between [%s] and [%s]: not in the same graph.",
@@ -98,20 +91,16 @@ void spider::srdag::Edge::setSink(srdag::Vertex *vertex, size_t ix, i64 rate) {
         }
         /* == Disconnect current input edge (if any) == */
         vertex->disconnectInputEdge(ix);
-
         /* == Connect this edge == */
         vertex->connectInputEdge(this, ix);
     }
-
     /* == Disconnect current snk_ (if any) == */
     if (sink_) {
         sink_->disconnectInputEdge(snkPortIx_);
     }
-
     /* == Set sink of this edge == */
     sink_ = vertex;
     snkPortIx_ = ix;
-    snkRate_ = rate;
 }
 
 #endif

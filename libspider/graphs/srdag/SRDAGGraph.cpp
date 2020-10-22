@@ -77,13 +77,13 @@ void spider::srdag::Graph::removeVertex(spider::srdag::Vertex *vertex) {
     /* == Reset vertex input edges == */
     for (auto &edge : vertex->inputEdges()) {
         if (edge) {
-            edge->setSink(nullptr, SIZE_MAX, 0);
+            edge->setSink(nullptr, SIZE_MAX);
         }
     }
     /* == Reset vertex output edges == */
     for (auto &edge : vertex->outputEdges()) {
         if (edge) {
-            edge->setSource(nullptr, SIZE_MAX, 0);
+            edge->setSource(nullptr, SIZE_MAX);
         }
     }
     /* == swap and destroy the element == */
@@ -114,8 +114,8 @@ void spider::srdag::Graph::removeEdge(spider::srdag::Edge *edge) {
                              edgeVector_[ix]->name().c_str());
     }
     /* == Reset edge source and sink == */
-    edge->setSource(nullptr, SIZE_MAX, 0);
-    edge->setSink(nullptr, SIZE_MAX, 0);
+    edge->setSource(nullptr, SIZE_MAX);
+    edge->setSink(nullptr, SIZE_MAX);
     /* == swap and destroy the element == */
     if (edgeVector_.back()) {
         edgeVector_.back()->setIx(ix);
@@ -223,18 +223,19 @@ spider::srdag::Vertex *spider::srdag::Graph::createEndVertex(std::string name) {
 }
 
 spider::srdag::Edge *
-spider::srdag::Graph::createEdge(srdag::Vertex *source, size_t srcIx, i64 srcRate,
-                                 srdag::Vertex *sink, size_t snkIx, i64 snkRate) {
-    auto *edge = make<srdag::Edge, StackID::TRANSFO>(source, srcIx, srcRate, sink, snkIx, snkRate);
+spider::srdag::Graph::createEdge(srdag::Vertex *source, size_t srcIx, srdag::Vertex *sink, size_t snkIx, i64 rate) {
+    auto *edge = make<srdag::Edge, StackID::TRANSFO>(source, srcIx, sink, snkIx, rate);
     addEdge(edge);
     return edge;
 }
 
 #ifndef _NO_BUILD_GRAPH_EXPORTER
+
 void spider::srdag::Graph::exportToDOT(const std::string &path) const {
     auto exporter = pisdf::SRDAGDOTExporter(const_cast<Graph *>(this));
     exporter.printFromPath(path);
 }
+
 #endif
 
 #endif
