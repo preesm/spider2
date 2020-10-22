@@ -32,64 +32,50 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SYNCSCHEDVERTEX_H
-#define SPIDER2_SYNCSCHEDVERTEX_H
 
 /* === Include(s) === */
 
-#include <graphs/sched/SchedVertex.h>
+#include <graphs/sched/MergeSchedVertex.h>
+#include <graphs/sched/SchedGraph.h>
+#include <graphs/srdag/SRDAGVertex.h>
+#include <archi/MemoryBus.h>
+#include <api/archi-api.h>
+#include <runtime/common/RTKernel.h>
+#include <runtime/special-kernels/specialKernels.h>
 
-namespace spider {
+/* === Static function === */
 
-    class MemoryBus;
+/* === Method(s) implementation === */
 
-    namespace sched {
-
-        enum class SyncType : u8 {
-            SEND,
-            RECEIVE
-        };
-
-        /* === Class definition === */
-
-        class SyncVertex final : public sched::Vertex {
-        public:
-
-            explicit SyncVertex(SyncType type, MemoryBus *bus) : sched::Vertex(), bus_{ bus }, type_{ type } { }
-
-            ~SyncVertex() final = default;
-
-            /* === Method(s) === */
-
-            u64 timingOnPE(const PE *pe) const final;
-
-            inline void reduce(sched::Graph *) final { };
-
-            inline u32 color() const final {
-                /* ==  SEND    -> vivid tangerine color == */
-                /* ==  RECEIVE -> Studio purple color == */
-                return type_ == SyncType::SEND ? 0xff9478 : 0x8e44ad;
-            }
-
-            /* === Getter(s) === */
-
-            inline sched::Type type() const final { return type_ == SyncType::SEND ? Type::SEND : Type::RECEIVE; }
-
-            inline std::string name() const final { return type_ == SyncType::SEND ? "send" : "receive"; }
-
-            /* === Setter(s) === */
-
-        private:
-            const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
-            SyncType type_;
-
-            /* === Private method(s) === */
-
-            u32 getKernelIx() const final;
-
-            spider::unique_ptr<i64> buildInputParams() const final;
-
-        };
+u64 spider::sched::MergeVertex::timingOnPE(const spider::PE *pe) const {
+    u64 time = 0;
+    for (const auto *edge : Vertex::inputEdges()) {
+        const auto *source = edge->source();
+        if (source) {
+            const auto *srcPe = edge->source()->mappedPe();
+            time += archi::platform()->dataCommunicationCostPEToPE(srcPe, pe, edge->getAlloc().size_);
+        }
     }
+    return time;
 }
-#endif //SPIDER2_SYNCSCHEDVERTEX_H
+
+/* === Private method(s) === */
+
+u32 spider::sched::MergeVertex::getKernelIx() const {
+    return rt::JOIN_KERNEL_IX;
+}
+
+spider::unique_ptr<i64> spider::sched::MergeVertex::buildInputParams() const {
+    auto params = spider::allocate<i64, StackID::RUNTIME>(Vertex::inputEdgeCount() + 2);
+#ifndef NDEBUG
+    if (!params) {
+        throwNullptrException();
+    }
+#endif
+    params[0] = outputEdge(0)->getAlloc().size_;
+    params[1] = static_cast<i64>(Vertex::inputEdgeCount());
+    for (const auto *edge : Vertex::inputEdges()) {
+        params[2 + edge->sinkPortIx()] = edge->getAlloc().size_;
+    }
+    return make_unique(params);
+}

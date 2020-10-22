@@ -45,7 +45,7 @@
 
 /* === Method(s) implementation === */
 
-u64 spider::sched::SyncSchedVertex::timingOnPE(const spider::PE *pe) const {
+u64 spider::sched::SyncVertex::timingOnPE(const spider::PE *pe) const {
     if (!bus_ || pe != mappedPe()) {
         return UINT64_MAX;
     }
@@ -58,7 +58,7 @@ u64 spider::sched::SyncSchedVertex::timingOnPE(const spider::PE *pe) const {
 
 /* === Private method(s) === */
 
-u32 spider::sched::SyncSchedVertex::getKernelIx() const {
+u32 spider::sched::SyncVertex::getKernelIx() const {
     if (type_ == SyncType::SEND) {
         return static_cast<u32>(bus_->sendKernel()->ix());
     } else {
@@ -66,7 +66,7 @@ u32 spider::sched::SyncSchedVertex::getKernelIx() const {
     }
 }
 
-spider::unique_ptr<i64> spider::sched::SyncSchedVertex::buildInputParams() const {
+spider::unique_ptr<i64> spider::sched::SyncVertex::buildInputParams() const {
     auto params = spider::allocate<i64, StackID::RUNTIME>(4u);
 #ifndef NDEBUG
     if (!params) {

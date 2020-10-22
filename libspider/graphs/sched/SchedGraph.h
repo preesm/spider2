@@ -43,6 +43,17 @@
 #include <memory/unique_ptr.h>
 
 namespace spider {
+
+    namespace srdag {
+        class Vertex;
+    }
+
+    namespace pisdf {
+        class Vertex;
+
+        class GraphFiring;
+    }
+
     namespace sched {
 
         /* === Class definition === */
