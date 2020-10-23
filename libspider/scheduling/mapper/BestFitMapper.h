@@ -61,7 +61,7 @@ namespace spider {
 
             void map(Task *task, Schedule *schedule) override;
 
-            void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule);
+            void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) override;
 
             /* === Getter(s) === */
 

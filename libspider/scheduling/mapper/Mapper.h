@@ -71,6 +71,8 @@ namespace spider {
              */
             virtual void map(Task *task, Schedule *schedule) = 0;
 
+            virtual void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) = 0;
+
             /* === Getter(s) === */
 
             /* === Setter(s) === */
@@ -88,6 +90,7 @@ namespace spider {
              * @return value of the minimum start time possible
              */
             ufast64 computeStartTime(const Task *task) const;
+
             ufast64 computeStartTime(const sched::Vertex *vertex) const;
 
         };

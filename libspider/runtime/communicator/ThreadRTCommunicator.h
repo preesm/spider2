@@ -82,7 +82,7 @@ namespace spider {
         bool pop(TraceMessage &message, size_t receiver, size_t ix) override;
 
     private:
-        vector<spider::Queue<Notification>> notificationQueueVector_;
+        spider::vector<spider::Queue<Notification>> notificationQueueVector_;
         spider::Queue<Notification> paramNotificationQueue_;
         spider::Queue<Notification> traceNotificationQueue_;
         IndexedQueue<JobMessage, StackID::RUNTIME> jobMessageQueueArray_;

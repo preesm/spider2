@@ -102,6 +102,7 @@ namespace spider {
              * @throw std::out_of_range if bad ix.
              */
             void updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime);
+            void updateTaskAndSetReady(sched::Vertex *vertex, const PE *slave, u64 startTime, u64 endTime);
 
             /**
              * @brief Send every tasks currently in JobState::READY.

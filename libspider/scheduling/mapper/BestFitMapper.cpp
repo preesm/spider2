@@ -54,6 +54,9 @@ void spider::sched::BestFitMapper::map(sched::Graph *graph, sched::Vertex *verte
     if (!vertex) {
         throwSpiderException("can not map nullptr task.");
     }
+    if (vertex->state() == State::SKIPPED) {
+        return;
+    }
     vertex->setState(sched::State::PENDING);
     /* == Compute the minimum start time possible for the task == */
     const auto minStartTime = Mapper::computeStartTime(vertex);
@@ -86,15 +89,13 @@ void spider::sched::BestFitMapper::map(sched::Graph *graph, sched::Vertex *verte
     if (!mappingResult.mappingPE) {
         throwSpiderException("Could not find suitable processing element for vertex: [%s]", vertex->name().c_str());
     }
-    vertex->setMappedPE(mappingResult.mappingPE);
-    vertex->setStartTime(mappingResult.startTime);
-    vertex->setEndTime(mappingResult.endTime);
     if (mappingResult.needToAddCommunication) {
         /* == Map communications == */
 //        mapCommunications(task, mappingResult.mappingPE->cluster(), schedule);
 //        mappingResult.startTime = task->startTime();
 //        mappingResult.endTime = task->endTime();
     }
+    schedule->updateTaskAndSetReady(vertex, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
     // TODO: add to schedule
 }
 
