@@ -40,6 +40,7 @@
 #include <containers/vector.h>
 #include <memory/unique_ptr.h>
 #include <runtime/common/RTInfo.h>
+#include <runtime/message/JobMessage.h>
 #include <scheduling/memory/JobFifos.h>
 
 namespace spider {
@@ -382,6 +383,20 @@ namespace spider {
              * @return @refitem spider::unique_ptr of booleans
              */
             spider::unique_ptr<bool> buildJobNotificationFlags() const;
+
+            bool updateNotificationFlags() const;
+
+            /**
+             * @brief Check whether or not this job should broadcast its job stamp.
+             * @return true if should broadcast, false else.
+             */
+            bool shouldBroadCast() const;
+
+            /**
+             * @brief Build the minimised number of execution constraints.
+             * @return array of synchronization information.
+             */
+            spider::array<spider::SyncInfo> buildExecConstraints() const;
 
             /**
              * @brief Build and set the fifos needed by the job to run.

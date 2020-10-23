@@ -96,6 +96,9 @@ std::pair<ufast64, ufast64> spider::sched::Vertex::computeCommunicationCost(cons
     /* == Compute communication cost == */
     ufast64 communicationCost = 0;
     for (const auto *edge : inputEdges()) {
+        if (!edge) {
+            continue;
+        }
         const auto rate = edge->rate();
         const auto source = edge->source();
         if (rate && source && source->state() != State::NOT_RUNNABLE) {
@@ -121,6 +124,8 @@ void spider::sched::Vertex::send() {
     message.ix_ = jobExecIx_;
     /* == Set the synchronization flags == */
     message.synchronizationFlags_ = buildJobNotificationFlags();
+    /* == Set the execution constraints == */
+    message.execConstraints_ = buildExecConstraints();
     /* == Set input params == */
     message.inputParams_ = this->buildInputParams();
     /* == Set Fifos == */
@@ -156,51 +161,109 @@ void spider::sched::Vertex::connectEdge(sched::Edge **edges, sched::Edge *edge, 
 }
 
 spider::unique_ptr<bool> spider::sched::Vertex::buildJobNotificationFlags() const {
-    auto shouldBroadcast = false;
     /* == Check if task are not ready == */
-    for (const auto *edge : outputEdges()) {
-        const auto *sink = edge->sink();
-        if (!sink || (sink->state() != State::READY && sink->state() != State::SKIPPED)) {
-            shouldBroadcast = true;
-            break;
-        }
-    }
-    const auto lrtCount{ archi::platform()->LRTCount() };
+    const auto shouldBroadcast = shouldBroadCast();
     if (!shouldBroadcast) {
         /* == Update values == */
-        auto *flags = notifications_.get();
-        bool oneTrue = false;
-        for (const auto *edge : outputEdges()) {
-            const auto *sink = edge->sink();
-            auto &currentFlag = flags[sink->mappedLRT()->virtualIx()];
-            if (!currentFlag) {
-                currentFlag = true;
-                for (const auto *inEdge : sink->inputEdges()) {
-                    const auto *source = inEdge->source();
-                    if (source && (source != this) && (source->jobExecIx_ > jobExecIx_)) {
-                        currentFlag = false;
-                        break;
-                    }
-                }
-            }
-            oneTrue |= currentFlag;
-        }
-        if (oneTrue) {
+        if (updateNotificationFlags()) {
+            const auto lrtCount{ archi::platform()->LRTCount() };
             auto result = spider::allocate<bool, StackID::RUNTIME>(lrtCount);
-            std::copy(flags, flags + lrtCount, result);
+            std::copy(notifications_.get(), notifications_.get() + lrtCount, result);
             return make_unique(result);
         } else {
             return spider::unique_ptr<bool>();
         }
     } else {
         /* == broadcast to every LRT == */
-        return make_unique(spider::make_n<bool, StackID::RUNTIME>(lrtCount, true));
+        return make_unique(spider::make_n<bool, StackID::RUNTIME>(archi::platform()->LRTCount(), true));
     }
+}
+
+bool spider::sched::Vertex::updateNotificationFlags() const {
+    auto oneTrue = false;
+    auto *flags = notifications_.get();
+    for (const auto *edge : outputEdges()) {
+        if (!edge) {
+            continue;
+        }
+        const auto *sink = edge->sink();
+        auto &currentFlag = flags[sink->mappedLRT()->virtualIx()];
+        if (!currentFlag) {
+            currentFlag = true;
+            for (const auto *inEdge : sink->inputEdges()) {
+                if (!inEdge) {
+                    continue;
+                }
+                const auto *source = inEdge->source();
+                if (source && (source != this) && (source->jobExecIx_ > jobExecIx_)) {
+                    currentFlag = false;
+                    break;
+                }
+            }
+        }
+        oneTrue |= currentFlag;
+    }
+    return oneTrue;
+}
+
+bool spider::sched::Vertex::shouldBroadCast() const {
+    return std::any_of(outputEdgeArray_, outputEdgeArray_ + nOUTEdges_,
+                       [](const sched::Edge *edge) {
+                           if (edge) {
+                               const auto *sink = edge->sink();
+                               return !sink || (sink->state() != State::READY && sink->state() != State::SKIPPED);
+                           }
+                           return false;
+                       });
+}
+
+spider::array<spider::SyncInfo> spider::sched::Vertex::buildExecConstraints() const {
+    /* == Get the number of actual execution constraints == */
+    auto shouldNotifyArray = array<size_t>(archi::platform()->LRTCount(), SIZE_MAX, StackID::SCHEDULE);
+    size_t numberOfConstraints{ 0u };
+    for (const auto *edge : inputEdges()) {
+        if (!edge) {
+            continue;
+        }
+        const auto *source = edge->source();
+        if (source && (source->mappedLRT() != mappedLRT())) {
+            const auto sourceLRTIx = source->mappedLRT()->virtualIx();
+            const auto currentDepIxOnLRT = shouldNotifyArray[sourceLRTIx];
+            const auto gotConstraintOnLRT = currentDepIxOnLRT != SIZE_MAX;
+            if (!gotConstraintOnLRT || (source->jobExecIx_ > inputEdge(currentDepIxOnLRT)->source()->jobExecIx_)) {
+                numberOfConstraints += !gotConstraintOnLRT;
+                shouldNotifyArray[sourceLRTIx] = edge->sinkPortIx();
+            }
+        }
+    }
+    /* == Now build the actual array of synchronization info == */
+    auto result = array<SyncInfo>(numberOfConstraints, StackID::RUNTIME);
+    if (!numberOfConstraints) {
+        return result;
+    }
+    auto resultIt = std::begin(result);
+    for (const auto depIx : shouldNotifyArray) {
+        if (depIx != SIZE_MAX) {
+            auto *dependency = inputEdge(depIx)->source();
+            /* == Set this dependency as a synchronization constraint == */
+            resultIt->lrtToWait_ = dependency->mappedLRT()->virtualIx();
+            resultIt->jobToWait_ = dependency->jobExecIx();
+            /* == Update iterator == */
+            if ((++resultIt) == std::end(result)) {
+                /* == shortcut to avoid useless other checks == */
+                return result;
+            }
+        }
+    }
+    return result;
 }
 
 std::shared_ptr<spider::JobFifos> spider::sched::Vertex::buildJobFifos() const {
     auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(nINEdges_, nOUTEdges_);
     for (const auto *edge : inputEdges()) {
+        if (!edge) {
+            continue;
+        }
         auto fifo = edge->getAlloc();
         fifo.count_ = 0;
         if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {
@@ -209,7 +272,11 @@ std::shared_ptr<spider::JobFifos> spider::sched::Vertex::buildJobFifos() const {
         fifos->setInputFifo(edge->sinkPortIx(), fifo);
     }
     for (const auto *edge : outputEdges()) {
+        if (!edge) {
+            continue;
+        }
         fifos->setOutputFifo(edge->sourcePortIx(), edge->getAlloc());
     }
     return fifos;
 }
+

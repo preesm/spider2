@@ -197,6 +197,7 @@ size_t spider::sched::ListScheduler::countNonSchedulableTasks() {
     for (; (it->level_ == NON_SCHEDULABLE_LEVEL) && (it != sortedTaskVector_.rend()); ++it) {
         auto isExec = it->vertex_->executable();
         if (!isExec) {
+            it->vertex_->setScheduleTaskIx(SIZE_MAX);
             std::swap(*it, sortedTaskVector_.back());
             sortedTaskVector_.pop_back();
         }

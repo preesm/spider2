@@ -242,6 +242,9 @@ void spider::sched::ResourcesAllocator::createScheduleVertices(const spider::vec
         /* == Connect input edges == */
         for (const auto *edge : vertex->inputEdges()) {
             const auto *source = edge->source();
+            if (!edge->rate() || !source->executable()) {
+                continue;
+            }
             const auto *srcSchedVertex = schedGraph->vertex(source->scheduleTaskIx());
 #ifndef NDEBUG
             if (!srcSchedVertex) {

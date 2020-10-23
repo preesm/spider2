@@ -62,8 +62,10 @@ ufast64 spider::sched::Mapper::computeStartTime(const sched::Vertex *vertex) con
     auto minTime = startTime_;
     if (vertex) {
         for (const auto *edge : vertex->inputEdges()) {
-            const auto *source = edge->source();
-            minTime = std::max(minTime, source ? source->endTime() : ufast64{ 0 });
+            if (edge) {
+                const auto *source = edge->source();
+                minTime = std::max(minTime, source ? source->endTime() : ufast64{ 0 });
+            }
         }
     }
     return minTime;
