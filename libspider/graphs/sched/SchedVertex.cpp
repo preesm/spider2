@@ -191,11 +191,8 @@ bool spider::sched::Vertex::updateNotificationFlags() const {
         if (!currentFlag) {
             currentFlag = true;
             for (const auto *inEdge : sink->inputEdges()) {
-                if (!inEdge) {
-                    continue;
-                }
                 const auto *source = inEdge->source();
-                if (source && (source != this) && (source->jobExecIx_ > jobExecIx_)) {
+                if (source && (source->mappedLRT() == mappedLRT()) && (source->jobExecIx_ > jobExecIx_)) {
                     currentFlag = false;
                     break;
                 }
@@ -222,9 +219,6 @@ spider::array<spider::SyncInfo> spider::sched::Vertex::buildExecConstraints() co
     auto shouldNotifyArray = array<size_t>(archi::platform()->LRTCount(), SIZE_MAX, StackID::SCHEDULE);
     size_t numberOfConstraints{ 0u };
     for (const auto *edge : inputEdges()) {
-        if (!edge) {
-            continue;
-        }
         const auto *source = edge->source();
         if (source && (source->mappedLRT() != mappedLRT())) {
             const auto sourceLRTIx = source->mappedLRT()->virtualIx();
@@ -261,9 +255,6 @@ spider::array<spider::SyncInfo> spider::sched::Vertex::buildExecConstraints() co
 std::shared_ptr<spider::JobFifos> spider::sched::Vertex::buildJobFifos() const {
     auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(nINEdges_, nOUTEdges_);
     for (const auto *edge : inputEdges()) {
-        if (!edge) {
-            continue;
-        }
         auto fifo = edge->getAlloc();
         fifo.count_ = 0;
         if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {

@@ -243,6 +243,7 @@ void spider::sched::ResourcesAllocator::createScheduleVertices(const spider::vec
         for (const auto *edge : vertex->inputEdges()) {
             const auto *source = edge->source();
             if (!edge->rate() || !source->executable()) {
+                schedGraph->createEdge(nullptr, 0, schedVertex, static_cast<u32>(edge->sinkPortIx()), Fifo{ });
                 continue;
             }
             const auto *srcSchedVertex = schedGraph->vertex(source->scheduleTaskIx());

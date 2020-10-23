@@ -53,6 +53,7 @@ void spider::sched::Schedule::clear() {
     tasks_.clear();
     readyTaskVector_.clear();
     stats_.reset();
+    scheduleGraph_->clear();
 }
 
 void spider::sched::Schedule::reset() {
