@@ -46,9 +46,6 @@ spider::sched::Edge::Edge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink,
         alloc_{ alloc },
         source_{ source }, sink_{ sink },
         srcPortIx_{ srcIx }, snkPortIx_{ snkIx } {
-    if (!source || !sink) {
-        throwSpiderException("nullptr vertex connected to Edge.");
-    }
     source->connectOutputEdge(this, srcIx);
     sink->connectInputEdge(this, snkIx);
 }

@@ -40,6 +40,7 @@
 
 #include <scheduling/memory/FifoAllocator.h>
 #include <containers/vector.h>
+#include <graphs/srdag/SRDAGEdge.h>
 
 namespace spider {
 

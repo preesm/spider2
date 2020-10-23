@@ -64,7 +64,7 @@ namespace spider {
 
             /* == Private method(s) === */
 
-            inline void schedule(const srdag::Graph *) override { }
+            inline spider::vector<srdag::Vertex *> schedule(const srdag::Graph *) final { return { }; }
 
             /**
              * @brief Recursively add vertices into the unscheduledVertices_ vector.

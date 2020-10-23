@@ -52,7 +52,7 @@ void spider::sched::SRDAGFifoAllocator::allocate(SRDAGTask *task) {
     if (!task) {
         return;
     }
-    /* == Allocating output FIFOs == */
+    /* == Allocating FIFOs == */
     const auto *vertex = task->vertex();
     switch (vertex->subtype()) {
         case pisdf::VertexType::REPEAT:
@@ -95,7 +95,7 @@ spider::sched::SRDAGFifoAllocator::allocateDefaultVertexInputFifo(SRDAGTask *tas
         auto fifo = inputTask->getOutputFifo(edge->sourcePortIx());
         if (fifo.attribute_ != FifoAttribute::RW_EXT) {
             fifo.attribute_ = FifoAttribute::RW_OWN;
-            fifo.count_ = 0u;
+            fifo.count_ = 0;
         }
         return fifo;
     }
@@ -114,7 +114,7 @@ spider::Fifo spider::sched::SRDAGFifoAllocator::allocateDefaultVertexOutputFifo(
         fifo.attribute_ = FifoAttribute::RW_EXT;
         return fifo;
     } else {
-        return allocateNewFifo(static_cast<size_t>(size));
+        return FifoAllocator::allocate(static_cast<size_t>(size));
     }
 }
 

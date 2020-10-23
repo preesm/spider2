@@ -60,7 +60,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(const srdag::Graph *graph) override;
+            spider::vector<srdag::Vertex *> schedule(const srdag::Graph *graph) override;
 
         private:
 
@@ -71,11 +71,10 @@ namespace spider {
             /**
              * @brief Evaluate if a vertex is schedulable for a given firing.
              * @param vertex  Pointer to the vertex.
-             * @param firing  Firing of the vertex.
-             * @param handler Pointer to the GraphFiring handler.
+             * @param result  Vector of scheduled graph.
              * @return true if schedulable, false else.
              */
-            bool evaluate(spider::srdag::Vertex *vertex);
+            bool evaluate(srdag::Vertex *vertex, spider::vector<srdag::Vertex *> &result);
         };
     }
 }

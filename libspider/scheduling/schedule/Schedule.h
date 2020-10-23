@@ -39,7 +39,9 @@
 
 #include <containers/vector.h>
 #include <memory/unique_ptr.h>
+#include <graphs/sched/SchedGraph.h>
 #include <scheduling/schedule/ScheduleStats.h>
+#include <runtime/message/JobMessage.h>
 
 namespace spider {
 
@@ -47,13 +49,27 @@ namespace spider {
 
         class Task;
 
+        class FifoAllocator;
+
         /* === Class definition === */
 
         class Schedule {
         public:
-            Schedule() : tasks_{ factory::vector<spider::unique_ptr<Task>>(StackID::SCHEDULE) } { };
+            Schedule() : tasks_{ factory::vector<spider::unique_ptr<Task>>(StackID::SCHEDULE) },
+                         readyTaskVector_{ factory::vector<Task *>(StackID::SCHEDULE) },
+                         scheduleGraph_{ spider::make<sched::Graph, StackID::SCHEDULE>() } {
+
+            };
 
             ~Schedule() = default;
+
+            Schedule(const Schedule &) = delete;
+
+            Schedule &operator=(const Schedule &) = delete;
+
+            Schedule(Schedule &&) = default;
+
+            Schedule &operator=(Schedule &&) = default;
 
             /* === Method(s) === */
 
@@ -150,10 +166,15 @@ namespace spider {
                 return tasks_.size();
             }
 
+            inline sched::Graph *scheduleGraph() { return scheduleGraph_.get(); }
+
+            inline const sched::Graph *scheduleGraph() const { return scheduleGraph_.get(); }
+
         private:
             spider::vector<spider::unique_ptr<Task>> tasks_;
             spider::vector<Task *> readyTaskVector_;
             Stats stats_;
+            spider::unique_ptr<sched::Graph> scheduleGraph_;
         };
     }
 }

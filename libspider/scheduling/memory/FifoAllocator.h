@@ -45,10 +45,6 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    namespace srdag {
-        class Edge;
-    }
-
     namespace sched {
 
         class PiSDFTask;
@@ -56,6 +52,8 @@ namespace spider {
         class SRDAGTask;
 
         class SyncTask;
+
+        class Schedule;
 
         /* === Class definition === */
 
@@ -86,13 +84,26 @@ namespace spider {
              * @brief Allocate Fifos of a given task.
              * @param task Pointer to the task.
              */
-            inline virtual void allocate(sched::SRDAGTask *) {}
+            inline virtual void allocate(sched::SRDAGTask *) { }
 
             /**
              * @brief Allocate Fifos of a given task.
              * @param task Pointer to the task.
              */
             virtual void allocate(sched::SyncTask *task);
+
+            /**
+             * @brief Allocate a new fifo with given size.
+             * @remark The allocated fifo has the following attributes:
+             *         virtualAddress_ -> determined by the allocator
+             *         size_t          -> given size
+             *         offset_         -> 0 (it's a new fifo)
+             *         count_          -> 1 if size > 0, 0 else
+             *         attribute_      -> @refitem FifoAttribute::RW_OWN
+             * @param size Size to allocate.
+             * @return new @refitem Fifo
+             */
+            Fifo allocate(size_t size);
 
             /**
              * @brief Clears the allocator.
@@ -113,13 +124,22 @@ namespace spider {
              */
             virtual FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
 
+            /* === Setter(s) === */
+
+            /**
+             * @brief Set the schedule that can be used by the FifoAllocator for additionnal information.
+             * @param schedule Pointer to the schedule to set.
+             */
+            inline void setSchedule(const Schedule *schedule) {
+                schedule_ = schedule;
+            }
+
         protected:
+            const Schedule *schedule_ = nullptr;
             size_t reservedMemory_ = 0;
             size_t virtualMemoryAddress_ = 0;
 
             explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
-
-            Fifo allocateNewFifo(size_t size);
         };
     }
 }

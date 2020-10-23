@@ -71,7 +71,11 @@ namespace spider {
 
             /* === Method(s) === */
 
+#ifndef _NO_BUILD_LEGACY_RT
+
             void execute(const srdag::Graph *graph);
+
+#endif
 
             void execute(pisdf::GraphHandler *graphHandler);
 
@@ -105,7 +109,7 @@ namespace spider {
              * @return pointer to the created @refitem Scheduler.
              * @throw @refitem spider::Exception if the scheduling policy is not supported.
              */
-            static Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy) ;
+            static Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy);
 
             /**
              * @brief Allocates the fifo allocator corresponding to the given type.
@@ -114,7 +118,7 @@ namespace spider {
              * @return pointer to the created @refitem FifoAllocator.
              * @throw @refitem spider::Exception if the allocating type is not supported.
              */
-            static FifoAllocator *allocateAllocator(FifoAllocatorType type, bool legacy) ;
+            static FifoAllocator *allocateAllocator(FifoAllocatorType type, bool legacy);
 
             /**
              * @brief Allocates the mapper corresponding to the given policy.
@@ -122,7 +126,7 @@ namespace spider {
              * @return pointer to the created @refitem Mapper.
              * @throw @refitem spider::Exception if the mapping policy is not supported.
              */
-            static Mapper *allocateMapper(MappingPolicy policy) ;
+            static Mapper *allocateMapper(MappingPolicy policy);
 
             /**
              * @brief Apply the @refitem ExecutionPolicy of the ResourceAllocator.
@@ -133,7 +137,23 @@ namespace spider {
              */
             void applyExecPolicy();
 
+            /**
+             * @brief Compute the minimum start time for the mapper.
+             * @return minimum start time.
+             */
             ufast64 computeMinStartTime() const;
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+            void createScheduleVertices(const spider::vector<srdag::Vertex *> &vertices);
+
+            void allocateOutputEdges(srdag::Vertex *vertex, sched::Vertex *schedVertex, sched::Graph *schedGraph);
+
+            static void allocateForkOutputEdges(srdag::Vertex *vertex, sched::Vertex *schedVertex, sched::Graph *schedGraph);
+
+            static void allocateDupOutputEdges(srdag::Vertex *vertex, sched::Vertex *schedVertex, sched::Graph *schedGraph);
+
+#endif
         };
     }
 }

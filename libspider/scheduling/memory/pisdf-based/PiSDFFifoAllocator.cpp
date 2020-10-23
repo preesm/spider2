@@ -128,7 +128,7 @@ spider::sched::PiSDFFifoAllocator::allocateDefaultVertexOutputFifo(PiSDFTask *ta
         fifo.virtualAddress_ = reference->bufferIndex();
         fifo.attribute_ = FifoAttribute::RW_EXT;
     } else {
-        fifo = FifoAllocator::allocateNewFifo(rate);
+        fifo = FifoAllocator::allocate(rate);
         auto consCount = spider::pisdf::computeConsDependencyCount(vertex, firing, edge->sourcePortIx(), handler);
         if (!consCount) {
             /* == Dynamic case, the FIFO will be automatically managed == */

@@ -70,7 +70,7 @@ void spider::sched::FifoAllocator::allocate(SyncTask *task) {
         return;
     }
     if (task->syncType() == RECEIVE) {
-        task->fifos().setOutputFifo(0, allocateNewFifo(task->size()));
+        task->fifos().setOutputFifo(0, allocate(task->size()));
     } else {
         auto fifo = task->previousTask(0)->getOutputFifo(task->inputPortIx());
         if (fifo.attribute_ != FifoAttribute::RW_EXT) {
@@ -83,7 +83,7 @@ void spider::sched::FifoAllocator::allocate(SyncTask *task) {
 
 /* === Protected method(s) === */
 
-spider::Fifo spider::sched::FifoAllocator::allocateNewFifo(size_t size) {
+spider::Fifo spider::sched::FifoAllocator::allocate(size_t size) {
     Fifo fifo{ };
     fifo.size_ = static_cast<u32>(size);
     fifo.offset_ = 0;
