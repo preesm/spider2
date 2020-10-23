@@ -152,6 +152,12 @@ namespace spider {
              */
             void send();
 
+            /**
+             * @brief Update output params based on received values.
+             * @param values Values of the params.
+             */
+            inline virtual void receiveParams(const spider::array<i64> &/*values*/) { }
+
             /* === Getter(s) === */
 
             /**

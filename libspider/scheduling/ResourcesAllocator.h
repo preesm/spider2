@@ -135,7 +135,7 @@ namespace spider {
              *          - Delayed execution policy: In this execution policy, tasks are
              *            sent to their mapped LRT after EVERY tasks have been mapped.
              */
-            void applyExecPolicy();
+            void applyExecPolicy(size_t vertexOffset = 0);
 
             /**
              * @brief Compute the minimum start time for the mapper.

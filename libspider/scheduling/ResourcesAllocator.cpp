@@ -103,9 +103,11 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graph);
     /* == Add vertices to the sched::Graph and allocate memory == */
+    auto *schedGraph = schedule_->scheduleGraph();
+    const auto currentSize = schedGraph->vertexCount();
     createScheduleVertices(result);
     /* == Map and execute the scheduled tasks == */
-    applyExecPolicy();
+    applyExecPolicy(currentSize);
 }
 
 #endif
@@ -200,34 +202,30 @@ ufast64 spider::sched::ResourcesAllocator::computeMinStartTime() const {
     return minStartTime;
 }
 
-void spider::sched::ResourcesAllocator::applyExecPolicy() {
+void spider::sched::ResourcesAllocator::applyExecPolicy(size_t vertexOffset) {
     mapper_->setStartTime(computeMinStartTime());
+    auto *schedGraph = schedule_->scheduleGraph();
     switch (executionPolicy_) {
         case ExecutionPolicy::JIT:
-            /* == Map, allocate fifos and execute tasks == */
-            for (auto &task : scheduler_->tasks()) {
+            /* == Map and send tasks == */
+            for (auto k = vertexOffset; k < schedGraph->vertexCount(); ++k) {
                 /* == Map the task == */
-                mapper_->map(task.get(), schedule_.get());
-                /* == We are in JIT mode, we need to broadcast the job stamp == */
-                task->enableBroadcast();
-                /* == Allocate the fifos task == */
-                task->allocate(allocator_.get());
-                /* == Add and execute the task == */
-                schedule_->addTask(std::move(task));
-                schedule_->sendReadyTasks();
+                mapper_->map(schedGraph, schedGraph->vertex(k), schedule_.get());
+                /* == Send the task == */
+                schedGraph->vertex(k)->send();
             }
             break;
-        case ExecutionPolicy::DELAYED: {            /* == Map every tasks == */
-            for (auto &task : scheduler_->tasks()) {
-                mapper_->map(task.get(), schedule_.get());
-                schedule_->addTask(std::move(task));
+        case ExecutionPolicy::DELAYED: {
+            /* == Map every tasks == */
+            for (auto k = vertexOffset; k < schedGraph->vertexCount(); ++k) {
+                /* == Map the task == */
+                mapper_->map(schedGraph, schedGraph->vertex(k), schedule_.get());
             }
-            /* == Allocate fifos for every tasks == */
-            for (auto *task : schedule_->readyTasks()) {
-                task->allocate(allocator_.get());
+            /* == Send every tasks == */
+            for (auto k = vertexOffset; k < schedGraph->vertexCount(); ++k) {
+                /* == Send the task == */
+                schedGraph->vertex(k)->send();
             }
-            /* == Execute every tasks == */
-            schedule_->sendReadyTasks();
         }
             break;
         default:

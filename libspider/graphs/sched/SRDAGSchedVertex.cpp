@@ -89,6 +89,21 @@ bool spider::sched::SRDAGVertex::reduce(sched::Graph *graph) {
     return false;
 }
 
+void spider::sched::SRDAGVertex::receiveParams(const spider::array<i64> &values) {
+    if (vertex_->subtype() != pisdf::VertexType::CONFIG) {
+        throwSpiderException("Only config vertices can update parameter values.");
+    }
+    auto paramIterator = values.begin();
+    for (const auto &param : vertex_->outputParamVector()) {
+        param->setValue((*(paramIterator++)));
+        if (log::enabled<log::TRANSFO>()) {
+            log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
+                                    param->name().c_str(),
+                                    param->value());
+        }
+    }
+}
+
 void spider::sched::SRDAGVertex::setIx(u32 ix) {
     Vertex::setIx(ix);
     vertex_->setScheduleTaskIx(ix);

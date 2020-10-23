@@ -157,16 +157,34 @@ void spider::sched::Vertex::connectEdge(sched::Edge **edges, sched::Edge *edge, 
 
 spider::unique_ptr<bool> spider::sched::Vertex::buildJobNotificationFlags() const {
     auto shouldBroadcast = false;
+    /* == Check if task are not ready == */
     for (const auto *edge : outputEdges()) {
-        if (edge->sink()->state() != State::READY) {
+        const auto *sink = edge->sink();
+        if (!sink || (sink->state() != State::READY && sink->state() != State::SKIPPED)) {
             shouldBroadcast = true;
             break;
         }
     }
     const auto lrtCount{ archi::platform()->LRTCount() };
     if (!shouldBroadcast) {
-        const auto *flags = notifications_.get();
-        auto oneTrue = std::any_of(flags, flags + lrtCount, [](bool value) { return value; });
+        /* == Update values == */
+        auto *flags = notifications_.get();
+        bool oneTrue = false;
+        for (const auto *edge : outputEdges()) {
+            const auto *sink = edge->sink();
+            auto &currentFlag = flags[sink->mappedLRT()->virtualIx()];
+            if (!currentFlag) {
+                currentFlag = true;
+                for (const auto *inEdge : sink->inputEdges()) {
+                    const auto *source = inEdge->source();
+                    if (source && (source != this) && (source->jobExecIx_ > jobExecIx_)) {
+                        currentFlag = false;
+                        break;
+                    }
+                }
+            }
+            oneTrue |= currentFlag;
+        }
         if (oneTrue) {
             auto result = spider::allocate<bool, StackID::RUNTIME>(lrtCount);
             std::copy(flags, flags + lrtCount, result);
