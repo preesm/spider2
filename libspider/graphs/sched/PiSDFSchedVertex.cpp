@@ -46,6 +46,16 @@
 
 /* === Method(s) implementation === */
 
+spider::sched::PiSDFVertex::PiSDFVertex(pisdf::GraphFiring *handler,
+                                        const pisdf::Vertex *vertex,
+                                        u32 firing)  : sched::Vertex(vertex->inputEdgeCount(),
+                                                                     vertex->outputEdgeCount()),
+                                                       handler_{ handler },
+                                                       vertex_{ vertex },
+                                                       firing_{ firing } {
+
+}
+
 bool spider::sched::PiSDFVertex::isMappableOnPE(const spider::PE *pe) const {
     return vertex_->runtimeInformation()->isPEMappable(pe);
 }

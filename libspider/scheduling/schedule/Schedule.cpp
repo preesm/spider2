@@ -69,7 +69,7 @@ void spider::sched::Schedule::addTask(spider::unique_ptr<Task> task) {
     tasks_.emplace_back(std::move(task));
 }
 
-void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE* slave, u64 startTime, u64 endTime) {
+void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime) {
     if (task->state() == TaskState::READY) {
         return;
     }
@@ -100,12 +100,12 @@ void spider::sched::Schedule::sendReadyTasks() {
     }
     const auto grtIx = archi::platform()->getGRTIx();
     auto *communicator = rt::platform()->communicator();
-    for (const auto &task : readyTaskVector_) {
+    for (auto *task : readyTaskVector_) {
         if (task->state() == TaskState::READY) {
             /* == Create job message and send the notification == */
-            const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLRT()->virtualIx());
-            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx },
-                               task->mappedLRT()->virtualIx());
+            const auto mappedLRTIx = task->mappedLRT()->virtualIx();
+            const auto messageIx = communicator->push(task->createJobMessage(), mappedLRTIx);
+            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, mappedLRTIx);
             /* == Set job in TaskState::RUNNING == */
             task->setState(TaskState::RUNNING);
         }

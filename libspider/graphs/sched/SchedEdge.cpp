@@ -46,8 +46,12 @@ spider::sched::Edge::Edge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink,
         alloc_{ alloc },
         source_{ source }, sink_{ sink },
         srcPortIx_{ srcIx }, snkPortIx_{ snkIx } {
-    source->connectOutputEdge(this, srcIx);
-    sink->connectInputEdge(this, snkIx);
+    if (source) {
+        source->connectOutputEdge(this, srcIx);
+    }
+    if (sink) {
+        sink->connectInputEdge(this, snkIx);
+    }
 }
 
 std::string spider::sched::Edge::name() const {

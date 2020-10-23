@@ -54,9 +54,7 @@ namespace spider {
         class SRDAGVertex final : public sched::Vertex {
         public:
 
-            explicit SRDAGVertex(srdag::Vertex *vertex) : sched::Vertex(), vertex_{ vertex } {
-
-            }
+            explicit SRDAGVertex(srdag::Vertex *vertex);
 
             ~SRDAGVertex() final = default;
 

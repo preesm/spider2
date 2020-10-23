@@ -54,14 +54,7 @@ namespace spider {
         class PiSDFVertex final : public sched::Vertex {
         public:
 
-            explicit PiSDFVertex(pisdf::GraphFiring *handler,
-                                 const pisdf::Vertex *vertex,
-                                 u32 firing) : sched::Vertex(),
-                                               handler_{ handler },
-                                               vertex_{ vertex },
-                                               firing_{ firing } {
-
-            }
+            explicit PiSDFVertex(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex, u32 firing);
 
             ~PiSDFVertex() final = default;
 

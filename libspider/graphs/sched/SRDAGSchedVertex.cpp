@@ -47,6 +47,12 @@
 
 /* === Method(s) implementation === */
 
+spider::sched::SRDAGVertex::SRDAGVertex(srdag::Vertex *vertex) : sched::Vertex(vertex->inputEdgeCount(),
+                                                                               vertex->outputEdgeCount()),
+                                                                 vertex_{ vertex } {
+
+}
+
 bool spider::sched::SRDAGVertex::isMappableOnPE(const spider::PE *pe) const {
     return vertex_->runtimeInformation()->isPEMappable(pe);
 }
