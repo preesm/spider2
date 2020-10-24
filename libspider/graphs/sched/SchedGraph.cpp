@@ -113,8 +113,11 @@ void spider::sched::Graph::removeEdge(sched::Edge *edge) {
 
 spider::sched::Edge *
 spider::sched::Graph::createEdge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink, u32 snkIx, Fifo alloc) {
-    auto *edge = make<sched::Edge, StackID::SCHEDULE>(source, srcIx, sink, snkIx, alloc);
+    auto *edge = make<sched::Edge, StackID::SCHEDULE>(source, srcIx, sink, snkIx);
     addEdge(edge);
+    if (source) {
+        source->setOutputFifo(srcIx, alloc);
+    }
     return edge;
 }
 

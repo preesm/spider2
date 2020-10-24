@@ -275,19 +275,16 @@ namespace spider {
             inline State state() const noexcept { return state_; }
 
             /**
-             * @brief Get notification flag for given LRT.
-             * @remark no boundary check is performed.
-             * @return boolean flag indicating if this task is notifying given LRT.
-             */
-            inline bool getNotificationFlagForLRT(size_t ix) const { return notifications_.get()[ix]; }
-
-            /**
              * @brief Returns the executable job index value of the task in the job queue of the mapped PE.
              * @return ix value, SIZE_MAX else.
              */
             inline u32 jobExecIx() const noexcept { return jobExecIx_; }
 
+            inline Fifo outputFifo(size_t ix) const { return fifos_->outputFifo(ix); }
+
             /* === Setter(s) === */
+
+            inline void setOutputFifo(size_t ix, Fifo fifo) const { fifos_->setOutputFifo(ix, fifo); }
 
             /**
              * @brief Set the ix of the vertex in the containing graph.
@@ -324,14 +321,6 @@ namespace spider {
             inline void setState(State state) noexcept { state_ = state; }
 
             /**
-             * @brief Set the notification flag for this lrt.
-             * @warning There is no check on the value of lrt.
-             * @param lrt   Index of the lrt.
-             * @param value Value to set: true = should notify, false = should not notify.
-             */
-            inline void setNotificationFlag(size_t lrt, bool value) { notifications_.get()[lrt] = value; }
-
-            /**
              * @brief Set the execution job index value of the task (that will be used for synchronization).
              * @remark This method will overwrite current values.
              * @param ix Ix to set.
@@ -347,7 +336,7 @@ namespace spider {
             inline virtual spider::unique_ptr<i64> buildInputParams() const { return spider::unique_ptr<i64>(); }
 
         private:
-            spider::unique_ptr<bool> notifications_;  /*!< Notification flags of the task */
+            std::shared_ptr<JobFifos> fifos_;         /*!< Fifo(s) attached to the task */
             sched::Edge **inputEdgeArray_ = nullptr;  /*!< Array of input Edge = */
             sched::Edge **outputEdgeArray_ = nullptr; /*!< Array of output Edge = */
             const PE *mappedPE_{ nullptr };           /*!< Mapping PE of the task */
@@ -384,7 +373,7 @@ namespace spider {
              */
             spider::unique_ptr<bool> buildJobNotificationFlags() const;
 
-            bool updateNotificationFlags() const;
+            bool updateNotificationFlags(bool *flags) const;
 
             /**
              * @brief Check whether or not this job should broadcast its job stamp.

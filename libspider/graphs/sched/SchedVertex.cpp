@@ -54,9 +54,7 @@ spider::sched::Vertex::Vertex(size_t edgeINCount,
         nOUTEdges_{ static_cast<u32>(edgeOUTCount) } {
     inputEdgeArray_ = spider::make_n<sched::Edge *, StackID::SCHEDULE>(edgeINCount, nullptr);
     outputEdgeArray_ = spider::make_n<sched::Edge *, StackID::SCHEDULE>(edgeOUTCount, nullptr);
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    notifications_ = make_unique<bool>(spider::allocate<bool, StackID::SCHEDULE>(lrtCount));
-    std::fill(notifications_.get(), notifications_.get() + lrtCount, false);
+    fifos_ = spider::make_shared<JobFifos, StackID::RUNTIME>(edgeINCount, edgeOUTCount);
 }
 
 spider::sched::Vertex::~Vertex() {
@@ -165,12 +163,12 @@ spider::unique_ptr<bool> spider::sched::Vertex::buildJobNotificationFlags() cons
     const auto shouldBroadcast = shouldBroadCast();
     if (!shouldBroadcast) {
         /* == Update values == */
-        if (updateNotificationFlags()) {
-            const auto lrtCount{ archi::platform()->LRTCount() };
-            auto result = spider::allocate<bool, StackID::RUNTIME>(lrtCount);
-            std::copy(notifications_.get(), notifications_.get() + lrtCount, result);
-            return make_unique(result);
+        const auto lrtCount{ archi::platform()->LRTCount() };
+        auto flags = spider::make_n<bool, StackID::RUNTIME>(lrtCount, false);
+        if (updateNotificationFlags(flags)) {
+            return make_unique(flags);
         } else {
+            deallocate(flags);
             return spider::unique_ptr<bool>();
         }
     } else {
@@ -179,14 +177,16 @@ spider::unique_ptr<bool> spider::sched::Vertex::buildJobNotificationFlags() cons
     }
 }
 
-bool spider::sched::Vertex::updateNotificationFlags() const {
+bool spider::sched::Vertex::updateNotificationFlags(bool *flags) const {
     auto oneTrue = false;
-    auto *flags = notifications_.get();
     for (const auto *edge : outputEdges()) {
         if (!edge) {
             continue;
         }
         const auto *sink = edge->sink();
+        if (sink->state() == State::SKIPPED) {
+            sink->updateNotificationFlags(flags);
+        }
         auto &currentFlag = flags[sink->mappedLRT()->virtualIx()];
         if (!currentFlag) {
             currentFlag = true;
@@ -221,6 +221,7 @@ spider::array<spider::SyncInfo> spider::sched::Vertex::buildExecConstraints() co
     for (const auto *edge : inputEdges()) {
         const auto *source = edge->source();
         if (source && (source->mappedLRT() != mappedLRT())) {
+            // TODO: handle SKIPPED source
             const auto sourceLRTIx = source->mappedLRT()->virtualIx();
             const auto currentDepIxOnLRT = shouldNotifyArray[sourceLRTIx];
             const auto gotConstraintOnLRT = currentDepIxOnLRT != SIZE_MAX;
@@ -253,21 +254,25 @@ spider::array<spider::SyncInfo> spider::sched::Vertex::buildExecConstraints() co
 }
 
 std::shared_ptr<spider::JobFifos> spider::sched::Vertex::buildJobFifos() const {
-    auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(nINEdges_, nOUTEdges_);
     for (const auto *edge : inputEdges()) {
         auto fifo = edge->getAlloc();
-        fifo.count_ = 0;
-        if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {
+        const auto *source = edge->source();
+        if (source && source->state() == State::SKIPPED) {
+            fifo.attribute_ = FifoAttribute::RW_AUTO;
+        } else if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {
             fifo.attribute_ = FifoAttribute::RW_OWN;
         }
-        fifos->setInputFifo(edge->sinkPortIx(), fifo);
+        fifo.count_ = 0;
+        fifos_->setInputFifo(edge->sinkPortIx(), fifo);
     }
     for (const auto *edge : outputEdges()) {
-        if (!edge) {
-            continue;
+        const auto *sink = edge->sink();
+        if (sink && sink->state() == State::SKIPPED) {
+            auto fifo = fifos_->outputFifo(edge->sourcePortIx());
+            fifo.attribute_ = FifoAttribute::RW_AUTO;
+            fifos_->setOutputFifo(edge->sourcePortIx(), fifo);
         }
-        fifos->setOutputFifo(edge->sourcePortIx(), edge->getAlloc());
     }
-    return fifos;
+    return fifos_;
 }
 

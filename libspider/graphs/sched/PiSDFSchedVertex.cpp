@@ -118,7 +118,7 @@ bool spider::sched::PiSDFVertex::reduceRepeat(sched::Graph *graph) {
     if (inputFifo.virtualAddress_ == outputFifo.virtualAddress_ &&
         outputFifo.attribute_ != FifoAttribute::RW_OWN) {
         inputFifo.count_ += outputFifo.count_;
-        edgeIn->setAlloc(inputFifo);
+        edgeIn->source()->setOutputFifo(edgeIn->sourcePortIx(), inputFifo);
         edgeIn->setSink(edgeOut->sink(), edgeOut->sinkPortIx());
         graph->removeEdge(edgeOut);
         return true;

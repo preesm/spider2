@@ -42,8 +42,7 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::Edge::Edge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink, u32 snkIx, Fifo alloc) :
-        alloc_{ alloc },
+spider::sched::Edge::Edge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink, u32 snkIx) :
         source_{ source }, sink_{ sink },
         srcPortIx_{ srcIx }, snkPortIx_{ snkIx } {
     if (source) {
@@ -58,6 +57,14 @@ std::string spider::sched::Edge::name() const {
     auto srcName = std::string(source_->name()).append(":").append(std::to_string(srcPortIx_));
     auto snkName = std::string(sink_->name()).append(":").append(std::to_string(snkPortIx_));
     return std::string("edge_").append(srcName).append("-").append(snkName);
+}
+
+spider::Fifo spider::sched::Edge::getAlloc() const {
+    return source_ ? source_->outputFifo(srcPortIx_) : Fifo{ };
+}
+
+size_t spider::sched::Edge::rate() const {
+    return getAlloc().size_;
 }
 
 void spider::sched::Edge::setSource(sched::Vertex *vertex, u32 ix) {

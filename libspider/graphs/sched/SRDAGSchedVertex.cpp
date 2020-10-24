@@ -50,7 +50,6 @@
 spider::sched::SRDAGVertex::SRDAGVertex(srdag::Vertex *vertex) : sched::Vertex(vertex->inputEdgeCount(),
                                                                                vertex->outputEdgeCount()),
                                                                  vertex_{ vertex } {
-
 }
 
 bool spider::sched::SRDAGVertex::isMappableOnPE(const spider::PE *pe) const {
@@ -131,7 +130,7 @@ bool spider::sched::SRDAGVertex::reduceRepeat(sched::Graph *graph) {
     if (inputFifo.virtualAddress_ == outputFifo.virtualAddress_ &&
         outputFifo.attribute_ != FifoAttribute::RW_OWN) {
         inputFifo.count_ += outputFifo.count_;
-        edgeIn->setAlloc(inputFifo);
+        edgeIn->source()->setOutputFifo(edgeIn->sourcePortIx(), inputFifo);
         edgeIn->setSink(edgeOut->sink(), edgeOut->sinkPortIx());
         graph->removeEdge(edgeOut);
         return true;

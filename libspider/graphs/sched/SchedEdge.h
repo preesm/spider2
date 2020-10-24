@@ -50,7 +50,7 @@ namespace spider {
         class Edge {
         public:
 
-            Edge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink, u32 snkIx, Fifo alloc);
+            Edge(sched::Vertex *source, u32 srcIx, sched::Vertex *sink, u32 snkIx);
 
             ~Edge() = default;
 
@@ -92,13 +92,13 @@ namespace spider {
              * @brief Get the allocated fifo of this edge.
              * @return @refitem Fifo.
              */
-            inline Fifo getAlloc() const { return alloc_; }
+            Fifo getAlloc() const;
 
             /**
              * @brief Get the allocated size on this edge.
              * @return size of the fifo of the edge.
              */
-            inline size_t rate() const { return alloc_.size_; }
+            size_t rate() const;
 
             /* === Setter(s) === */
 
@@ -120,14 +120,7 @@ namespace spider {
              */
             void setSink(sched::Vertex *vertex, u32 ix);
 
-            /**
-             * @brief Set the allocated fifo associated with this edge.
-             * @param alloc Fifo to set.
-             */
-            inline void setAlloc(Fifo alloc) { alloc_ = alloc; }
-
         private:
-            Fifo alloc_{ };
             sched::Vertex *source_ = nullptr;
             sched::Vertex *sink_ = nullptr;
             u32 srcPortIx_ = UINT32_MAX;  /* = Index of the Edge in the source outputEdgeArray = */

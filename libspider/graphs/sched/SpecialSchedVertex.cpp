@@ -112,13 +112,8 @@ void spider::sched::SpecialVertex::reduceForkDuplicate() {
         }
         auto fifo = edgeIn->getAlloc();
         fifo.count_ += count;
-        edgeIn->setAlloc(fifo);
+        source->setOutputFifo(edgeIn->sourcePortIx(), fifo);
         /* == update input vertex with notification flags == */
-        const auto lrtCount{ archi::platform()->LRTCount() };
-        for (size_t i = 0; i < lrtCount; ++i) {
-            const auto currentFlag = source->getNotificationFlagForLRT(i);
-            source->setNotificationFlag(i, currentFlag | Vertex::getNotificationFlagForLRT(i));
-        }
         Vertex::setState(State::SKIPPED);
     }
 }
