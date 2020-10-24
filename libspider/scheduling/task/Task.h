@@ -41,7 +41,6 @@
 #include <common/Types.h>
 #include <containers/array.h>
 #include <scheduling/memory/JobFifos.h>
-#include <scheduling/memory/AllocationRule.h>
 #include <runtime/message/JobMessage.h>
 
 namespace spider {

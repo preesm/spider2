@@ -38,7 +38,6 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
-#include <scheduling/memory/AllocationRule.h>
 #include <api/global-api.h>
 
 namespace spider {
@@ -50,8 +49,6 @@ namespace spider {
         class PiSDFTask;
 
         class SRDAGTask;
-
-        class SyncTask;
 
         class Schedule;
 
