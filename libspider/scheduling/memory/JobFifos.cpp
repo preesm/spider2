@@ -41,8 +41,8 @@
 /* === Method(s) implementation === */
 
 spider::JobFifos::JobFifos(u32 inputFifoCount, u32 outputFifoCount) :
-        inputFifos_{ spider::allocate<Fifo, StackID::SCHEDULE>(inputFifoCount) },
-        outputFifos_{ spider::allocate<Fifo, StackID::SCHEDULE>(outputFifoCount) },
+        inputFifos_{ spider::allocate<Fifo, StackID::RUNTIME>(inputFifoCount) },
+        outputFifos_{ spider::allocate<Fifo, StackID::RUNTIME>(outputFifoCount) },
         inputFifoCount_{ inputFifoCount },
         outputFifoCount_{ outputFifoCount } {
 

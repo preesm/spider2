@@ -216,7 +216,7 @@ bool spider::sched::Vertex::shouldBroadCast() const {
 
 spider::array<spider::SyncInfo> spider::sched::Vertex::buildExecConstraints() const {
     /* == Get the number of actual execution constraints == */
-    auto shouldNotifyArray = array<size_t>(archi::platform()->LRTCount(), SIZE_MAX, StackID::SCHEDULE);
+    auto shouldNotifyArray = array<size_t>(archi::platform()->LRTCount(), SIZE_MAX, StackID::RUNTIME);
     size_t numberOfConstraints{ 0u };
     for (const auto *edge : inputEdges()) {
         const auto *source = edge->source();

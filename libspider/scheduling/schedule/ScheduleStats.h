@@ -38,6 +38,8 @@
 /* === Include(s) === */
 
 #include <cstdint>
+#include <common/Types.h>
+#include <memory/unique_ptr.h>
 #include <containers/vector.h>
 
 namespace spider {
@@ -145,19 +147,16 @@ namespace spider {
 
         inline void updateIDLETime(size_t ix, uint64_t time);
 
-        inline void updateMemoryUsage(size_t ix, uint64_t size);
-
         inline void updateJobCount(size_t ix, uint32_t incValue = 1);
 
     private:
-        vector<uint64_t> startTimeVector_;
-        vector<uint64_t> endTimeVector_;
-        vector<uint64_t> loadTimeVector_;
-        vector<uint64_t> idleTimeVector_;
-        vector<uint64_t> memoryUsageVector_;
-        vector<size_t> jobCountVector_;
-        uint64_t minStartTime_ = UINT64_MAX;
-        uint64_t maxEndTime_ = 0;
+        spider::unique_ptr<u64> startTimeArray_;
+        spider::unique_ptr<u64> endTimeArray_;
+        spider::unique_ptr<u64> loadTimeArray_;
+        spider::unique_ptr<u64> idleTimeArray_;
+        spider::unique_ptr<size_t> jobCountArray_;
+        u64 minStartTime_ = UINT64_MAX;
+        u64 maxEndTime_ = 0;
     };
 
     /* === Inline method(s) === */
@@ -173,29 +172,29 @@ namespace spider {
     }
 
     uint64_t Stats::startTime(size_t ix) const {
-        return startTimeVector_.at(ix);
+        return startTimeArray_.get()[ix];
     }
 
     uint64_t Stats::endTime(size_t ix) const {
-        return endTimeVector_.at(ix);
+        return endTimeArray_.get()[ix];
     }
 
     uint64_t Stats::loadTime(size_t ix) const {
-        return loadTimeVector_.at(ix);
+        return loadTimeArray_.get()[ix];
     }
 
     uint64_t Stats::idleTime(size_t ix) const {
-        return idleTimeVector_.at(ix);
+        return idleTimeArray_.get()[ix];
     }
 
     uint64_t Stats::makespan(size_t ix) const {
         /* == Here, we use the at method on the first vector to check the validity of PE value then we use
          * random access operator on second vector due to it being faster. == */
-        return startTimeVector_.at(ix) - endTimeVector_[ix];
+        return startTimeArray_.get()[ix] - endTimeArray_.get()[ix];
     }
 
     size_t Stats::jobCount(size_t ix) const {
-        return jobCountVector_.at(ix);
+        return jobCountArray_.get()[ix];
     }
 
     uint64_t Stats::minStartTime() const {
@@ -207,34 +206,29 @@ namespace spider {
     }
 
     void Stats::updateStartTime(size_t ix, uint64_t time) {
-        auto &startTime = startTimeVector_.at(ix);
+        auto &startTime = startTimeArray_.get()[ix];
         startTime = time;
         minStartTime_ = std::min(startTime, minStartTime_);
     }
 
     void Stats::updateEndTime(size_t ix, uint64_t time) {
-        auto &endTime = endTimeVector_.at(ix);
+        auto &endTime = endTimeArray_.get()[ix];
         endTime = time;
         maxEndTime_ = std::max(endTime, maxEndTime_);
     }
 
     void Stats::updateLoadTime(size_t ix, uint64_t time) {
-        auto &loadTime = loadTimeVector_.at(ix);
+        auto &loadTime = loadTimeArray_.get()[ix];
         loadTime += time;
     }
 
     void Stats::updateIDLETime(size_t ix, uint64_t time) {
-        auto &idleTime = idleTimeVector_.at(ix);
+        auto &idleTime = idleTimeArray_.get()[ix];
         idleTime += time;
     }
 
-    void Stats::updateMemoryUsage(size_t ix, uint64_t size) {
-        auto &usage = memoryUsageVector_.at(ix);
-        usage -= size;
-    }
-
     void Stats::updateJobCount(size_t ix, uint32_t incValue) {
-        auto &jobCount = jobCountVector_.at(ix);
+        auto &jobCount = jobCountArray_.get()[ix];
         jobCount += incValue;
     }
 }
