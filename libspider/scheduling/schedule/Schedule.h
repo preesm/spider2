@@ -55,9 +55,7 @@ namespace spider {
 
         class Schedule {
         public:
-            Schedule() : tasks_{ factory::vector<spider::unique_ptr<Task>>(StackID::SCHEDULE) },
-                         readyTaskVector_{ factory::vector<Task *>(StackID::SCHEDULE) },
-                         scheduleGraph_{ spider::make<sched::Graph, StackID::SCHEDULE>() } {
+            Schedule() : scheduleGraph_{ spider::make<sched::Graph, StackID::SCHEDULE>() } {
 
             };
 
@@ -80,18 +78,10 @@ namespace spider {
 
             /**
              * @brief Reset schedule tasks.
-             * @remark Set all task state to @refitem TaskState::PENDING.
+             * @remark Set all task state to @refitem sched::State::PENDING.
              * @remark Statistics of the platform are not modified.
              */
             void reset();
-
-            /**
-             * @brief Add a new schedule task to the schedule.
-             * @remark if task has an index >= 0, nothing happens.
-             * @remark if task is nullptr, nothing happens.
-             * @param task Pointer to the task.
-             */
-            void addTask(spider::unique_ptr<Task> task);
 
             /**
              * @brief Updates a task information and set its state as JobState::READY
@@ -101,27 +91,9 @@ namespace spider {
              * @param endTime   End time of the task.
              * @throw std::out_of_range if bad ix.
              */
-            void updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime);
             void updateTaskAndSetReady(sched::Vertex *vertex, const PE *slave, u64 startTime, u64 endTime);
 
-            /**
-             * @brief Send every tasks currently in JobState::READY.
-             */
-            void sendReadyTasks();
-
             /* === Getter(s) === */
-
-            /**
-             * @brief Get the list of scheduled tasks, obtained after the call to Scheduler::schedule method.
-             * @return const reference to a vector of pointer to Task.
-             */
-            inline const spider::vector<spider::unique_ptr<Task>> &tasks() const { return tasks_; }
-
-            /**
-             * @brief Get the ready task vector of the schedule.
-             * @return  const reference to the ready task vector.
-             */
-            inline const spider::vector<Task *> &readyTasks() const { return readyTaskVector_; }
 
             /**
              * @brief Get a task from its ix.
@@ -129,8 +101,8 @@ namespace spider {
              * @return pointer to the task.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline Task *task(size_t ix) const {
-                return tasks_.at(ix).get();
+            inline sched::Vertex *task(size_t ix) const {
+                return scheduleGraph_->vertex(ix);
             }
 
             /**
@@ -164,7 +136,7 @@ namespace spider {
              * @return number of tasks in the schedule.
              */
             inline size_t taskCount() const {
-                return tasks_.size();
+                return scheduleGraph_->vertexCount();
             }
 
             inline sched::Graph *scheduleGraph() { return scheduleGraph_.get(); }
@@ -172,8 +144,6 @@ namespace spider {
             inline const sched::Graph *scheduleGraph() const { return scheduleGraph_.get(); }
 
         private:
-            spider::vector<spider::unique_ptr<Task>> tasks_;
-            spider::vector<Task *> readyTaskVector_;
             Stats stats_;
             spider::unique_ptr<sched::Graph> scheduleGraph_;
         };

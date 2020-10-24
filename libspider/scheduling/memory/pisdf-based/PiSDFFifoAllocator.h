@@ -67,8 +67,6 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void allocate(sched::SyncTask *task) override;
-
             void allocate(sched::PiSDFTask *task) override;
 
             /* === Getter(s) === */

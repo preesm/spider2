@@ -41,7 +41,7 @@
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/task/Task.h>
+#include <graphs/sched/SchedGraph.h>
 
 /* === Method(s) implementation === */
 
@@ -51,15 +51,15 @@ void spider::SchedXMLGanttExporter::print() const {
 
 void spider::SchedXMLGanttExporter::printFromFile(FILE *file) const {
     printer::fprintf(file, "<data>\n");
-    for (const auto &task : schedule_->tasks()) {
-        if (task->state() != sched::TaskState::PENDING && task->state() != sched::TaskState::NOT_SCHEDULABLE) {
+    for (const auto &task : schedule_->scheduleGraph()->vertices()) {
+        if (task->state() != sched::State::PENDING && task->state() != sched::State::NOT_SCHEDULABLE) {
             printTask(file, task.get());
         }
     }
     printer::fprintf(file, "</data>\n");
 }
 
-void spider::SchedXMLGanttExporter::printTask(FILE *file, const sched::Task *task) const {
+void spider::SchedXMLGanttExporter::printTask(FILE *file, const sched::Vertex *task) const {
     /* == Let's compute a color based on the value of the pointer == */
     const auto name = task->name();
     u32 color = task->color();

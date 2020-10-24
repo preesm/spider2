@@ -45,6 +45,13 @@
 
 /* === Method(s) implementation === */
 
+spider::sched::SyncVertex::SyncVertex(SyncType type, const MemoryBus *bus) :
+        sched::Vertex(1, 1),
+        bus_{ bus },
+        type_{ type } {
+
+}
+
 u64 spider::sched::SyncVertex::timingOnPE(const spider::PE *pe) const {
     if (!bus_ || pe != mappedPe()) {
         return UINT64_MAX;

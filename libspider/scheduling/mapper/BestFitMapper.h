@@ -39,7 +39,6 @@
 
 #include <scheduling/mapper/Mapper.h>
 #include <scheduling/schedule/ScheduleStats.h>
-#include <scheduling/task/SyncTask.h>
 
 namespace spider {
 
@@ -58,8 +57,6 @@ namespace spider {
             ~BestFitMapper() noexcept override = default;
 
             /* === Method(s) === */
-
-            void map(Task *task, Schedule *schedule) override;
 
             void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) override;
 
@@ -87,22 +84,15 @@ namespace spider {
              * @param task          Pointer to the task.
              * @return best fit PE found, nullptr if no fit was found.
              */
-            const PE *
-            findBestFitPE(const Cluster *cluster, const Stats &stats, ufast64 minStartTime, const Task *task) const;
-
             static const PE *findBestFitPE(const Cluster *cluster,
                                            const Stats &stats,
                                            const sched::Vertex *vertex,
                                            ufast64 minStartTime);
 
-            void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
-
-            SyncTask *insertCommunicationTask(const Cluster *cluster,
-                                              const Cluster *distCluster,
-                                              ufast64 dataSize,
-                                              Task *previousTask,
-                                              SyncType type,
-                                              Schedule *schedule);
+            static void mapCommunications(sched::Graph *graph,
+                                   sched::Vertex *vertex,
+                                   const Cluster *cluster,
+                                   Schedule *schedule);
         };
     }
 }

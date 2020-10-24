@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <graphs/sched/SchedVertex.h>
+#include <common/Types.h>
 
 namespace spider {
 
@@ -55,7 +56,7 @@ namespace spider {
         class SyncVertex final : public sched::Vertex {
         public:
 
-            explicit SyncVertex(SyncType type, MemoryBus *bus) : sched::Vertex(), bus_{ bus }, type_{ type } { }
+            explicit SyncVertex(SyncType type, const MemoryBus *bus);
 
             ~SyncVertex() final = default;
 

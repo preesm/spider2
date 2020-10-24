@@ -49,10 +49,6 @@
 
 /* === Function(s) definition === */
 
-void spider::sched::PiSDFFifoAllocator::allocate(SyncTask *task) {
-    FifoAllocator::allocate(task);
-}
-
 void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task) {
     if (!task) {
         return;

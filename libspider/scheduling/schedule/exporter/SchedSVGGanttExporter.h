@@ -53,7 +53,7 @@ namespace spider {
 
         class Schedule;
 
-        class Task;
+        class Vertex;
     }
 
     namespace pisdf {
@@ -103,7 +103,7 @@ namespace spider {
 
         void axisPrinter(FILE *file) const;
 
-        void taskPrinter(FILE *file, const sched::Task *task) const;
+        void taskPrinter(FILE *file, const sched::Vertex *task) const;
     };
 
     /* === Inline method(s) === */

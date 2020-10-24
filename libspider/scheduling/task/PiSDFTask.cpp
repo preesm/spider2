@@ -84,7 +84,7 @@ void spider::sched::PiSDFTask::updateTaskExecutionDependencies(const Schedule *s
             if (dep.vertex_) {
                 for (u32 k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                     const auto taskIx = dep.handler_->getTaskIx(dep.vertex_, k);
-                    setExecutionDependency(i + k - dep.firingStart_, schedule->tasks()[taskIx].get());
+//                    setExecutionDependency(i + k - dep.firingStart_, schedule->tasks()[taskIx].get());
                 }
             }
             i += (dep.firingEnd_ - dep.firingStart_) + 1u;

@@ -36,27 +36,12 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/Mapper.h>
-#include <scheduling/task/SRDAGTask.h>
-#include <scheduling/task/SyncTask.h>
 #include <graphs/sched/SchedVertex.h>
 #include <graphs/sched/SchedEdge.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
-
-ufast64 spider::sched::Mapper::computeStartTime(const Task *task) const {
-    auto minTime = startTime_;
-    if (task) {
-        for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
-            const auto *previousTask = task->previousTask(ix);
-            if (previousTask) {
-                minTime = std::max(minTime, previousTask->endTime());
-            }
-        }
-    }
-    return minTime;
-}
 
 ufast64 spider::sched::Mapper::computeStartTime(const sched::Vertex *vertex) const {
     auto minTime = startTime_;

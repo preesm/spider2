@@ -41,7 +41,6 @@
 
 #include <scheduling/scheduler/srdag-based/ListScheduler.h>
 #include <scheduling/scheduler/srdag-based/GreedyScheduler.h>
-#include <scheduling/memory/srdag-based/NoSyncFifoAllocator.h>
 #include <graphs/srdag/SRDAGVertex.h>
 #include <graphs/srdag/SRDAGEdge.h>
 #include <graphs/sched/SRDAGSchedVertex.h>
@@ -162,7 +161,7 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
                 return spider::make<spider::sched::PiSDFFifoAllocator, StackID::RUNTIME>();
             }
 #ifndef _NO_BUILD_LEGACY_RT
-            return spider::make<spider::sched::SRDAGFifoAllocator, StackID::RUNTIME>();
+            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
 #else
             printer::fprintf(stderr, "Default allocator is part of the legacy runtime which was not built.\n"
                                      "Rebuild the Spider 2.0 library with the cmake flag -DBUILD_LEGACY_RUNTIME=ON.\n");
@@ -173,7 +172,7 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
                 return spider::make<spider::sched::PiSDFFifoAllocator, StackID::RUNTIME>();
             }
 #ifndef _NO_BUILD_LEGACY_RT
-            return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
+            return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
 #else
             printer::fprintf(stderr, "NO_SYNC allocator is part of the legacy runtime which was not built.\n"
                                      "Rebuild the Spider 2.0 library with the cmake flag -DBUILD_LEGACY_RUNTIME=ON.\n");

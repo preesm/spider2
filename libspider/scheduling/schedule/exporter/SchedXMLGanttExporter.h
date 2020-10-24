@@ -49,7 +49,7 @@ namespace spider {
 
     namespace sched {
 
-        class Task;
+        class Vertex;
 
         class Schedule;
     }
@@ -87,7 +87,7 @@ namespace spider {
     private:
         const sched::Schedule *schedule_ = nullptr;
 
-        void printTask(FILE *file, const sched::Task *task) const;
+        void printTask(FILE *file, const sched::Vertex *task) const;
     };
 }
 #endif

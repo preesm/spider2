@@ -167,6 +167,8 @@ bool spider::PiSDFJITMSRuntime::dynamicExecute() {
             }
             TraceMessage transfoMsg{ };
             TRACE_TRANSFO_START();
+            const auto *schedule = resourcesAllocator_->schedule();
+            auto *schedGraph = schedule->scheduleGraph();
             size_t readParam = 0;
             while (readParam != expectedParamCount) {
                 Notification notification;
@@ -176,19 +178,8 @@ bool spider::PiSDFJITMSRuntime::dynamicExecute() {
                     ParameterMessage message;
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
                     /* == Get the config vertex == */
-                    const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
-                    const auto *srlessTask = static_cast<const sched::PiSDFTask *>(task);
-                    const auto *cfg = srlessTask->vertex();
-                    auto *handler = srlessTask->handler();
-                    auto paramIterator = message.params_.begin();
-                    for (const auto ix : cfg->outputParamIxVector()) {
-                        const auto value = *(paramIterator++);
-                        handler->setParamValue(ix, value);
-                        if (log::enabled<log::TRANSFO>()) {
-                            log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
-                                                    handler->getParams()[ix]->name().c_str(), value);
-                        }
-                    }
+                    auto *vertexTask = schedGraph->vertex(message.taskIx_);
+                    vertexTask->receiveParams(message.params_);
                     readParam++;
                 } else {
                     // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.

@@ -66,6 +66,8 @@ namespace spider {
 
             bool reduce(sched::Graph *graph) final;
 
+            void receiveParams(const spider::array<i64> &values) final;
+
             /* === Getter(s) === */
 
             inline sched::Type type() const final { return Type::NORMAL; }

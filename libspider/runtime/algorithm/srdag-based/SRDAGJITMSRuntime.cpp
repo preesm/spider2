@@ -48,7 +48,6 @@
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
-#include <scheduling/task/SRDAGTask.h>
 #include <api/runtime-api.h>
 #include <api/config-api.h>
 #include <api/spider.h>

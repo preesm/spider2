@@ -69,8 +69,6 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
              */
-            virtual void map(Task *task, Schedule *schedule) = 0;
-
             virtual void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) = 0;
 
             /* === Getter(s) === */
@@ -86,11 +84,9 @@ namespace spider {
 
             /**
              * @brief Compute the minimum start time possible for a given task.
-             * @param task    Pointer to the task.
+             * @param vertex  Pointer to the task.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(const Task *task) const;
-
             ufast64 computeStartTime(const sched::Vertex *vertex) const;
 
         };

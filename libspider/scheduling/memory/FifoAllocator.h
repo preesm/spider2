@@ -87,12 +87,6 @@ namespace spider {
             inline virtual void allocate(sched::SRDAGTask *) { }
 
             /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            virtual void allocate(sched::SyncTask *task);
-
-            /**
              * @brief Allocate a new fifo with given size.
              * @remark The allocated fifo has the following attributes:
              *         virtualAddress_ -> determined by the allocator

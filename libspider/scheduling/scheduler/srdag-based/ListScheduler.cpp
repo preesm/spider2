@@ -37,7 +37,6 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/srdag-based/ListScheduler.h>
-#include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
 #include <graphs/srdag/SRDAGVertex.h>

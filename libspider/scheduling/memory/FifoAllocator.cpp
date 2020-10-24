@@ -36,7 +36,6 @@
 /* === Include(s) === */
 
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/SyncTask.h>
 #include <archi/MemoryInterface.h>
 #include <api/archi-api.h>
 #include <graphs/pisdf/Graph.h>
@@ -63,22 +62,6 @@ void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph)
         }
     }
     virtualMemoryAddress_ = reservedMemory_;
-}
-
-void spider::sched::FifoAllocator::allocate(SyncTask *task) {
-    if (!task) {
-        return;
-    }
-    if (task->syncType() == RECEIVE) {
-        task->fifos().setOutputFifo(0, allocate(task->size()));
-    } else {
-        auto fifo = task->previousTask(0)->getOutputFifo(task->inputPortIx());
-        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
-            fifo.attribute_ = FifoAttribute::RW_ONLY;
-        }
-        task->fifos().setInputFifo(0, fifo);
-        task->fifos().setOutputFifo(0, fifo);
-    }
 }
 
 /* === Protected method(s) === */

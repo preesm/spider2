@@ -125,3 +125,18 @@ bool spider::sched::PiSDFVertex::reduceRepeat(sched::Graph *graph) {
     }
     return false;
 }
+
+void spider::sched::PiSDFVertex::receiveParams(const spider::array<i64> &values) {
+    if (vertex_->subtype() != pisdf::VertexType::CONFIG) {
+        throwSpiderException("Only config vertices can update parameter values.");
+    }
+    auto paramIterator = values.begin();
+    for (const auto ix : vertex_->outputParamIxVector()) {
+        const auto value = *(paramIterator++);
+        handler_->setParamValue(ix, value);
+        if (log::enabled<log::TRANSFO>()) {
+            log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
+                                    handler_->getParams()[ix]->name().c_str(), value);
+        }
+    }
+}
