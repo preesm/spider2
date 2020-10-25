@@ -62,7 +62,7 @@ void spider::SchedStatsExporter::printFromFile(FILE *file) const {
         printer::fprintf(file, "\t >> utilization factor: %f\n", stats.utilizationFactor(pe->virtualIx()));
         if (stats.jobCount(pe->virtualIx())) {
             printer::fprintf(file, "\t >> job list: \n");
-            for (const auto &task : schedule_->scheduleGraph()->vertices()) {
+            for (const auto &task : schedule_->tasks()) {
                 if (task->mappedPe()->virtualIx() == pe->virtualIx()) {
                     printer::fprintf(file, "\t\t >> {%zu,%zu}\n", task->startTime(), task->endTime());
                 }

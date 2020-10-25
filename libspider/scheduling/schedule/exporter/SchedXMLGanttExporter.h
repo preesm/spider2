@@ -49,7 +49,7 @@ namespace spider {
 
     namespace sched {
 
-        class Vertex;
+        class Task;
 
         class Schedule;
     }
@@ -82,12 +82,12 @@ namespace spider {
          */
         void printFromFile(FILE *file) const override;
 
-        void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
+        static void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
 
     private:
         const sched::Schedule *schedule_ = nullptr;
 
-        void printTask(FILE *file, const sched::Vertex *task) const;
+        static void printTask(FILE *file, const sched::Task *task) ;
     };
 }
 #endif

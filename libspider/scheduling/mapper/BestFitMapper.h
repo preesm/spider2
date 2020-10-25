@@ -58,8 +58,6 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) override;
-
             void map(sched::Task *task, Schedule *schedule) override;
 
             /* === Getter(s) === */
@@ -88,18 +86,13 @@ namespace spider {
              */
             static const PE *findBestFitPE(const Cluster *cluster,
                                            const Stats &stats,
-                                           const sched::Vertex *vertex,
-                                           ufast64 minStartTime);
-
-            static const PE *findBestFitPE(const Cluster *cluster,
-                                           const Stats &stats,
                                            const Task *task,
                                            ufast64 minStartTime);
 
-            static void mapCommunications(sched::Graph *graph,
-                                          sched::Vertex *vertex,
-                                          const Cluster *cluster,
-                                          Schedule *schedule);
+//            static void mapCommunications(sched::Graph *graph,
+//                                          sched::Vertex *vertex,
+//                                          const Cluster *cluster,
+//                                          Schedule *schedule);
         };
     }
 }

@@ -53,8 +53,7 @@ namespace spider {
 
         class Schedule {
         public:
-            Schedule() : tasks_{ factory::vector<spider::unique_ptr<sched::Task>>(StackID::SCHEDULE) },
-                         scheduleGraph_{ spider::make<sched::Graph, StackID::SCHEDULE>() } {
+            Schedule() : tasks_{ factory::vector<spider::unique_ptr<sched::Task>>(StackID::SCHEDULE) } {
 
             };
 
@@ -90,8 +89,6 @@ namespace spider {
              * @param endTime   End time of the vertexTask.
              * @throw std::out_of_range if bad ix.
              */
-            void updateTaskAndSetReady(sched::Vertex *vertex, const PE *slave, u64 startTime, u64 endTime);
-
             void updateTaskAndSetReady(sched::Task *task, const PE *slave, u64 startTime, u64 endTime);
 
             inline void addTask(sched::Task *task) {
@@ -101,14 +98,12 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            /**
-             * @brief Get a vertexTask from its ix.
-             * @param ix  Ix of the vertexTask to fetch.
-             * @return pointer to the vertexTask.
-             * @throws @refitem std::out_of_range if ix is out of range.
-             */
-            inline sched::Vertex *vertexTask(size_t ix) const {
-                return scheduleGraph_->vertex(ix);
+            inline spider::vector<spider::unique_ptr<Task>> &tasks() {
+                return tasks_;
+            }
+
+            inline const spider::vector<spider::unique_ptr<Task>> &tasks() const {
+                return tasks_;
             }
 
             inline sched::Task *task(size_t ix) const {
@@ -149,17 +144,12 @@ namespace spider {
              * @return number of tasks in the schedule.
              */
             inline size_t taskCount() const {
-                return scheduleGraph_->vertexCount();
+                return tasks_.size();
             }
-
-            inline sched::Graph *scheduleGraph() { return scheduleGraph_.get(); }
-
-            inline const sched::Graph *scheduleGraph() const { return scheduleGraph_.get(); }
 
         private:
             spider::vector<spider::unique_ptr<sched::Task>> tasks_;
             Stats stats_;
-            spider::unique_ptr<sched::Graph> scheduleGraph_;
         };
     }
 }

@@ -43,10 +43,6 @@ namespace spider {
 
     namespace sched {
 
-        class Vertex;
-
-        class Graph;
-
         class Task;
 
         class SRDAGTask;
@@ -69,8 +65,6 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
-            virtual void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) = 0;
-
             virtual void map(sched::Task *task, Schedule *schedule) = 0;
 
             /* === Getter(s) === */
@@ -89,8 +83,6 @@ namespace spider {
              * @param vertex  Pointer to the vertexTask.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(const sched::Vertex *vertex) const;
-
             ufast64 computeStartTime(const Task *task, const Schedule *schedule) const;
 
         };

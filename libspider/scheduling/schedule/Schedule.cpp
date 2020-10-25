@@ -44,34 +44,13 @@
 
 void spider::sched::Schedule::clear() {
     stats_.reset();
-    scheduleGraph_->clear();
+    tasks_.clear();
 }
 
 void spider::sched::Schedule::reset() {
-    for (auto &vertex : scheduleGraph_->vertices()) {
-        vertex->setState(State::READY);
+    for (auto &task : tasks_) {
+        task->setState(TaskState::READY);
     }
-}
-
-void
-spider::sched::Schedule::updateTaskAndSetReady(sched::Vertex *vertex, const PE *slave, u64 startTime, u64 endTime) {
-    if (vertex->state() == State::READY) {
-        return;
-    }
-    const auto peIx = slave->virtualIx();
-    /* == Set job information == */
-    vertex->setMappedPE(slave);
-    vertex->setStartTime(startTime);
-    vertex->setEndTime(endTime);
-    vertex->setJobExecIx(static_cast<u32>(stats_.jobCount(peIx)));
-    /* == Update schedule statistics == */
-    stats_.updateStartTime(peIx, startTime);
-    stats_.updateIDLETime(peIx, startTime - stats_.endTime(peIx));
-    stats_.updateEndTime(peIx, endTime);
-    stats_.updateLoadTime(peIx, endTime - startTime);
-    stats_.updateJobCount(peIx);
-    /* == Update job state == */
-    vertex->setState(State::READY);
 }
 
 void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime) {

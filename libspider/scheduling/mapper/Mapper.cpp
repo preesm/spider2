@@ -37,8 +37,6 @@
 
 #include <scheduling/mapper/Mapper.h>
 #include <scheduling/task/Task.h>
-#include <graphs/sched/SchedVertex.h>
-#include <graphs/sched/SchedEdge.h>
 
 /* === Static function === */
 
@@ -54,16 +52,3 @@ ufast64 spider::sched::Mapper::computeStartTime(const Task *task, const Schedule
     }
     return minTime;
 }
-
-ufast64 spider::sched::Mapper::computeStartTime(const sched::Vertex *vertex) const {
-    auto minTime = startTime_;
-    if (vertex) {
-        for (const auto *edge : vertex->inputEdges()) {
-            const auto *source = edge->source();
-            minTime = std::max(minTime, source ? source->endTime() : ufast64{ 0 });
-        }
-    }
-    return minTime;
-}
-
-/* === Private method(s) implementation === */

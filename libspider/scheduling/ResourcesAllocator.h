@@ -142,18 +142,6 @@ namespace spider {
              * @return minimum start time.
              */
             ufast64 computeMinStartTime() const;
-
-#ifndef _NO_BUILD_LEGACY_RT
-
-            void createScheduleVertices(const spider::vector<srdag::Vertex *> &vertices);
-
-            void allocateOutputEdges(srdag::Vertex *vertex, sched::Vertex *schedVertex, sched::Graph *schedGraph);
-
-            static void allocateForkOutputEdges(srdag::Vertex *vertex, sched::Vertex *schedVertex, sched::Graph *schedGraph);
-
-            static void allocateDupOutputEdges(srdag::Vertex *vertex, sched::Vertex *schedVertex, sched::Graph *schedGraph);
-
-#endif
         };
     }
 }

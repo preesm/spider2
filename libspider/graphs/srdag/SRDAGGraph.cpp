@@ -224,8 +224,17 @@ spider::srdag::Vertex *spider::srdag::Graph::createEndVertex(std::string name) {
 
 spider::srdag::Edge *
 spider::srdag::Graph::createEdge(srdag::Vertex *source, size_t srcIx, srdag::Vertex *sink, size_t snkIx, i64 rate) {
-    auto *edge = make<srdag::Edge, StackID::TRANSFO>(source, srcIx, sink, snkIx, rate);
-    addEdge(edge);
+    srdag::Edge *edge;
+    if (source && source->outputEdge(srcIx)) {
+        edge = source->outputEdge(srcIx);
+        edge->setSink(sink, snkIx);
+    } else if (sink && sink->inputEdge(snkIx)) {
+        edge = sink->inputEdge(snkIx);
+        edge->setSource(source, srcIx);
+    } else {
+        edge = make<srdag::Edge, StackID::TRANSFO>(source, srcIx, sink, snkIx, rate);
+        addEdge(edge);
+    }
     return edge;
 }
 

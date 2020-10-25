@@ -102,6 +102,7 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graph);
     /* == Add vertices to the sched::Graph and allocate memory == */
+    const auto currentTaskCount = schedule_->taskCount();
     for (auto *vertex : result) {
         auto *task = spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex);
         schedule_->addTask(task);
@@ -116,18 +117,7 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
         }
     }
     /* == Map and execute the scheduled tasks == */
-    for (auto *vertex : result) {
-        /* == Map the task == */
-        auto *task = schedule_->task(vertex->scheduleTaskIx());
-        mapper_->map(task, schedule_.get());
-    }
-    /* == Send every tasks == */
-    for (auto *vertex : result) {
-        /* == Send the task == */
-        auto *task = schedule_->task(vertex->scheduleTaskIx());
-        task->send(schedule_.get());
-    }
-//    applyExecPolicy(currentSize);
+    applyExecPolicy(currentTaskCount);
 }
 
 #endif
@@ -224,27 +214,29 @@ ufast64 spider::sched::ResourcesAllocator::computeMinStartTime() const {
 
 void spider::sched::ResourcesAllocator::applyExecPolicy(size_t vertexOffset) {
     mapper_->setStartTime(computeMinStartTime());
-    auto *schedGraph = schedule_->scheduleGraph();
     switch (executionPolicy_) {
         case ExecutionPolicy::JIT:
             /* == Map and send tasks == */
-            for (auto k = vertexOffset; k < schedGraph->vertexCount(); ++k) {
+            for (auto k = vertexOffset; k < schedule_->taskCount(); ++k) {
                 /* == Map the task == */
-                mapper_->map(schedGraph, schedGraph->vertex(k), schedule_.get());
+                auto *task = schedule_->task(k);
+                mapper_->map(task, schedule_.get());
                 /* == Send the task == */
-                schedGraph->vertex(k)->send();
+                task->send(schedule_.get());
             }
             break;
         case ExecutionPolicy::DELAYED: {
             /* == Map every tasks == */
-            for (auto k = vertexOffset; k < schedGraph->vertexCount(); ++k) {
+            for (auto k = vertexOffset; k < schedule_->taskCount(); ++k) {
                 /* == Map the task == */
-                mapper_->map(schedGraph, schedGraph->vertex(k), schedule_.get());
+                auto *task = schedule_->task(k);
+                mapper_->map(task, schedule_.get());
             }
             /* == Send every tasks == */
-            for (auto k = vertexOffset; k < schedGraph->vertexCount(); ++k) {
+            for (auto k = vertexOffset; k < schedule_->taskCount(); ++k) {
                 /* == Send the task == */
-                schedGraph->vertex(k)->send();
+                auto *task = schedule_->task(k);
+                task->send(schedule_.get());
             }
         }
             break;
@@ -252,94 +244,3 @@ void spider::sched::ResourcesAllocator::applyExecPolicy(size_t vertexOffset) {
             throwSpiderException("unsupported execution policy.");
     }
 }
-
-#ifndef _NO_BUILD_LEGACY_RT
-
-void spider::sched::ResourcesAllocator::createScheduleVertices(const spider::vector<srdag::Vertex *> &vertices) {
-    auto *schedGraph = schedule_->scheduleGraph();
-    for (auto *vertex : vertices) {
-        auto *schedVertex = spider::make<sched::SRDAGVertex, StackID::SCHEDULE>(vertex);
-        /* == Connect input edges == */
-        for (const auto *edge : vertex->inputEdges()) {
-            const auto *source = edge->source();
-            if (!edge->rate() || !source->executable()) {
-                schedGraph->createEdge(nullptr, 0, schedVertex, static_cast<u32>(edge->sinkPortIx()), Fifo{ });
-                continue;
-            }
-            const auto *srcSchedVertex = schedGraph->vertex(source->scheduleTaskIx());
-#ifndef NDEBUG
-            if (!srcSchedVertex) {
-                throwNullptrException();
-            }
-#endif
-            auto *schedEdge = srcSchedVertex->outputEdge(edge->sourcePortIx());
-            if (schedEdge->sink()) {
-                throwSpiderException("edge already has a sink.");
-            }
-            schedEdge->setSink(schedVertex, static_cast<u32>(edge->sinkPortIx()));
-        }
-        /* == Allocate output edges (if needed) == */
-        if (vertex->subtype() == pisdf::VertexType::FORK) {
-            allocateForkOutputEdges(vertex, schedVertex, schedGraph);
-        } else if (vertex->subtype() == pisdf::VertexType::DUPLICATE) {
-            allocateDupOutputEdges(vertex, schedVertex, schedGraph);
-        } else {
-            allocateOutputEdges(vertex, schedVertex, schedGraph);
-        }
-        /* == Add the vertex to the sched::Graph == */
-        schedGraph->addVertex(schedVertex);
-    }
-}
-
-void spider::sched::ResourcesAllocator::allocateOutputEdges(srdag::Vertex *vertex,
-                                                            sched::Vertex *schedVertex,
-                                                            sched::Graph *schedGraph) {
-    for (const auto *edge : vertex->outputEdges()) {
-        Fifo fifo{ };
-        auto *sink = edge->sink();
-        if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
-            const auto *reference = sink->reference()->convertTo<pisdf::ExternInterface>();
-            fifo.size_ = static_cast<u32>(edge->rate());
-            fifo.offset_ = 0;
-            fifo.count_ = fifo.size_ ? 1 : 0;
-            fifo.virtualAddress_ = reference->bufferIndex();
-            fifo.attribute_ = FifoAttribute::RW_EXT;
-        } else {
-            fifo = allocator_->allocate(static_cast<size_t>(edge->rate()));
-        }
-        schedGraph->createEdge(schedVertex, static_cast<u32>(edge->sourcePortIx()), nullptr, 0, fifo);
-    }
-}
-
-void spider::sched::ResourcesAllocator::allocateForkOutputEdges(srdag::Vertex *vertex,
-                                                                sched::Vertex *schedVertex,
-                                                                sched::Graph *schedGraph) {
-    const auto *inputEdge = schedVertex->inputEdge(0U);
-    const auto inputFifo = inputEdge->getAlloc();
-    u32 offset = 0;
-    for (const auto *edge : vertex->outputEdges()) {
-        Fifo fifo{ };
-        fifo.size_ = static_cast<u32>(edge->sourceRateValue());
-        fifo.offset_ = inputFifo.offset_ + offset;
-        fifo.count_ = fifo.size_ ? 1 : 0;
-        fifo.virtualAddress_ = inputFifo.virtualAddress_;
-        fifo.attribute_ = FifoAttribute::RW_ONLY;
-        offset += fifo.size_;
-        schedGraph->createEdge(schedVertex, static_cast<u32>(edge->sourcePortIx()), nullptr, 0, fifo);
-    }
-}
-
-void spider::sched::ResourcesAllocator::allocateDupOutputEdges(srdag::Vertex *vertex,
-                                                               sched::Vertex *schedVertex,
-                                                               sched::Graph *schedGraph) {
-    const auto *inputEdge = schedVertex->inputEdge(0U);
-    const auto inputFifo = inputEdge->getAlloc();
-    for (const auto *edge : vertex->outputEdges()) {
-        auto fifo = inputFifo;
-        fifo.count_ = fifo.size_ ? 1 : 0;
-        fifo.attribute_ = FifoAttribute::RW_ONLY;
-        schedGraph->createEdge(schedVertex, static_cast<u32>(edge->sourcePortIx()), nullptr, 0, fifo);
-    }
-}
-
-#endif
