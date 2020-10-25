@@ -39,7 +39,6 @@
 #include <scheduling/task/SRDAGTask.h>
 #include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/memory/FifoAllocator.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>

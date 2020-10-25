@@ -136,7 +136,7 @@ void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
                                                        pisdf::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
-        sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0 });
+        sortedTaskVector_.push_back({ vertex, handler, -1, firing });
         handler->registerTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }
@@ -170,10 +170,8 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) 
         const auto *platform = archi::platform();
         i32 level = 0;
         for (const auto *edge : vertex->inputEdges()) {
-            const auto current = listTask.depCount_;
             auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
             for (const auto &dep : deps) {
-                listTask.depCount_ += (dep.firingEnd_ - dep.firingStart_ + 1u);
                 const auto *source = dep.vertex_;
                 if (source && dep.rate_ > 0) {
                     const auto *sourceRTInfo = source->runtimeInformation();
@@ -207,7 +205,6 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) 
                     }
                 }
             }
-            listTask.mergedFifoCount_ += ((current + 1) < listTask.depCount_);
         }
         listTask.level_ = level;
     }
@@ -249,6 +246,7 @@ size_t spider::sched::PiSDFListScheduler::countNonSchedulableTasks() {
     size_t count{ };
     for (; (it->level_ == NON_SCHEDULABLE_LEVEL) && (it != sortedTaskVector_.rend()); ++it) {
         count++;
+        it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
         it->level_ = -1; /* = Reset the schedule level = */
     }
     return count;

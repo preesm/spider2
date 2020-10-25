@@ -56,7 +56,7 @@ namespace spider {
         public:
             explicit SyncTask(SyncType type, const MemoryBus *bus);
 
-            ~SyncTask() noexcept override = default;
+            ~SyncTask() noexcept final = default;
 
             /* === Getter(s) === */
 
