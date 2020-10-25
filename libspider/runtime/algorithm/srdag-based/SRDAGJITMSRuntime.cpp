@@ -116,7 +116,6 @@ bool spider::SRDAGJITMSRuntime::execute() {
             }
             TRACE_TRANSFO_START()
             const auto *schedule = resourcesAllocator_->schedule();
-            auto *schedGraph = schedule->scheduleGraph();
             size_t readParam = 0;
             while (readParam != dynamicJobStack.size()) {
                 Notification notification;
@@ -126,8 +125,8 @@ bool spider::SRDAGJITMSRuntime::execute() {
                     ParameterMessage message;
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
                     /* == Get the config vertex == */
-                    auto *vertexTask = schedGraph->vertex(message.taskIx_);
-                    vertexTask->receiveParams(message.params_);
+                    auto *task = schedule->task(message.taskIx_);
+                    task->receiveParams(message.params_);
                     readParam++;
                 } else {
                     // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.

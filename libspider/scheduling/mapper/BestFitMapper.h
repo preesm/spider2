@@ -60,6 +60,8 @@ namespace spider {
 
             void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) override;
 
+            void map(sched::Task *task, Schedule *schedule) override;
+
             /* === Getter(s) === */
 
             /* === Setter(s) === */
@@ -81,7 +83,7 @@ namespace spider {
              * @param cluster       Cluster to go through.
              * @param stats         Schedule information about current usage of PEs.
              * @param minStartTime  Lower bound for start time.
-             * @param task          Pointer to the task.
+             * @param task          Pointer to the vertexTask.
              * @return best fit PE found, nullptr if no fit was found.
              */
             static const PE *findBestFitPE(const Cluster *cluster,
@@ -89,10 +91,15 @@ namespace spider {
                                            const sched::Vertex *vertex,
                                            ufast64 minStartTime);
 
+            static const PE *findBestFitPE(const Cluster *cluster,
+                                           const Stats &stats,
+                                           const Task *task,
+                                           ufast64 minStartTime);
+
             static void mapCommunications(sched::Graph *graph,
-                                   sched::Vertex *vertex,
-                                   const Cluster *cluster,
-                                   Schedule *schedule);
+                                          sched::Vertex *vertex,
+                                          const Cluster *cluster,
+                                          Schedule *schedule);
         };
     }
 }

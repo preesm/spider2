@@ -51,6 +51,14 @@ namespace spider {
 
         Stats();
 
+        Stats(Stats &&) = default;
+
+        Stats &operator=(Stats &&) = default;
+
+        Stats(const Stats &) = delete;
+
+        Stats &operator=(const Stats &) = delete;
+
         ~Stats() = default;
 
         /* === Method(s) === */

@@ -36,7 +36,6 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
@@ -77,9 +76,9 @@ void spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandl
     /* == Create the list of tasks to be scheduled == */
     for (size_t k = 0; k < lastSchedulable; ++k) {
         auto &task = sortedTaskVector_[k];
-        tasks_.emplace_back(
-                make<PiSDFTask, StackID::SCHEDULE>(task.handler_, task.vertex_, task.firing_, task.depCount_,
-                                                   task.mergedFifoCount_));
+//        tasks_.emplace_back(
+//                make<PiSDFTask, StackID::SCHEDULE>(task.handler_, task.vertex_, task.firing_, task.depCount_,
+//                                                   task.mergedFifoCount_));
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
     /* == Remove scheduled vertices == */

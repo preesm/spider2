@@ -53,7 +53,8 @@ void spider::sched::Schedule::reset() {
     }
 }
 
-void spider::sched::Schedule::updateTaskAndSetReady(sched::Vertex *vertex, const PE *slave, u64 startTime, u64 endTime) {
+void
+spider::sched::Schedule::updateTaskAndSetReady(sched::Vertex *vertex, const PE *slave, u64 startTime, u64 endTime) {
     if (vertex->state() == State::READY) {
         return;
     }
@@ -71,4 +72,24 @@ void spider::sched::Schedule::updateTaskAndSetReady(sched::Vertex *vertex, const
     stats_.updateJobCount(peIx);
     /* == Update job state == */
     vertex->setState(State::READY);
+}
+
+void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime) {
+    if (task->state() == TaskState::READY) {
+        return;
+    }
+    const auto peIx = slave->virtualIx();
+    /* == Set job information == */
+    task->setMappedPE(slave);
+    task->setStartTime(startTime);
+    task->setEndTime(endTime);
+    task->setJobExecIx(static_cast<u32>(stats_.jobCount(peIx)));
+    /* == Update schedule statistics == */
+    stats_.updateStartTime(peIx, startTime);
+    stats_.updateIDLETime(peIx, startTime - stats_.endTime(peIx));
+    stats_.updateEndTime(peIx, endTime);
+    stats_.updateLoadTime(peIx, endTime - startTime);
+    stats_.updateJobCount(peIx);
+    /* == Update job state == */
+    task->setState(TaskState::READY);
 }

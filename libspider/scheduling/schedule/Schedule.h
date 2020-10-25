@@ -41,13 +41,11 @@
 #include <memory/unique_ptr.h>
 #include <graphs/sched/SchedGraph.h>
 #include <scheduling/schedule/ScheduleStats.h>
-#include <runtime/message/JobMessage.h>
+#include <scheduling/task/Task.h>
 
 namespace spider {
 
     namespace sched {
-
-        class Task;
 
         class FifoAllocator;
 
@@ -55,7 +53,8 @@ namespace spider {
 
         class Schedule {
         public:
-            Schedule() : scheduleGraph_{ spider::make<sched::Graph, StackID::SCHEDULE>() } {
+            Schedule() : tasks_{ factory::vector<spider::unique_ptr<sched::Task>>(StackID::SCHEDULE) },
+                         scheduleGraph_{ spider::make<sched::Graph, StackID::SCHEDULE>() } {
 
             };
 
@@ -78,31 +77,45 @@ namespace spider {
 
             /**
              * @brief Reset schedule tasks.
-             * @remark Set all task state to @refitem sched::State::PENDING.
+             * @remark Set all vertexTask state to @refitem sched::State::PENDING.
              * @remark Statistics of the platform are not modified.
              */
             void reset();
 
             /**
-             * @brief Updates a task information and set its state as JobState::READY
-             * @param task      Pointer to the task.
+             * @brief Updates a vertexTask information and set its state as JobState::READY
+             * @param task      Pointer to the vertexTask.
              * @param slave     Slave (cluster and pe) to execute on.
-             * @param startTime Start time of the task.
-             * @param endTime   End time of the task.
+             * @param startTime Start time of the vertexTask.
+             * @param endTime   End time of the vertexTask.
              * @throw std::out_of_range if bad ix.
              */
             void updateTaskAndSetReady(sched::Vertex *vertex, const PE *slave, u64 startTime, u64 endTime);
 
+            void updateTaskAndSetReady(sched::Task *task, const PE *slave, u64 startTime, u64 endTime);
+
+            inline void addTask(sched::Task *task) {
+                task->setIx(static_cast<u32>(tasks_.size()));
+                tasks_.emplace_back(task);
+            }
+
             /* === Getter(s) === */
 
             /**
-             * @brief Get a task from its ix.
-             * @param ix  Ix of the task to fetch.
-             * @return pointer to the task.
+             * @brief Get a vertexTask from its ix.
+             * @param ix  Ix of the vertexTask to fetch.
+             * @return pointer to the vertexTask.
              * @throws @refitem std::out_of_range if ix is out of range.
              */
-            inline sched::Vertex *task(size_t ix) const {
+            inline sched::Vertex *vertexTask(size_t ix) const {
                 return scheduleGraph_->vertex(ix);
+            }
+
+            inline sched::Task *task(size_t ix) const {
+                if (ix >= tasks_.size()) {
+                    return nullptr;
+                }
+                return tasks_.at(ix).get();
             }
 
             /**
@@ -132,7 +145,7 @@ namespace spider {
             }
 
             /**
-             * @brief Get the number of task in the schedule (including already launched tasks).
+             * @brief Get the number of vertexTask in the schedule (including already launched tasks).
              * @return number of tasks in the schedule.
              */
             inline size_t taskCount() const {
@@ -144,6 +157,7 @@ namespace spider {
             inline const sched::Graph *scheduleGraph() const { return scheduleGraph_.get(); }
 
         private:
+            spider::vector<spider::unique_ptr<sched::Task>> tasks_;
             Stats stats_;
             spider::unique_ptr<sched::Graph> scheduleGraph_;
         };

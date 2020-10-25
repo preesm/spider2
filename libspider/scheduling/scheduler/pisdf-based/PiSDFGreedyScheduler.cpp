@@ -36,7 +36,6 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/pisdf-based/PiSDFGreedyScheduler.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
@@ -101,7 +100,7 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
         }
         if (schedulable) {
             handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
-            tasks_.emplace_back(make<PiSDFTask, StackID::SCHEDULE>(handler, vertex, firing, depCount, mergedFifoCount));
+//            tasks_.emplace_back(make<PiSDFTask, StackID::SCHEDULE>(handler, vertex, firing, depCount, mergedFifoCount));
         }
     }
     return schedulable;

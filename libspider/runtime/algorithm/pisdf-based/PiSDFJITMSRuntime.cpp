@@ -40,7 +40,6 @@
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>

@@ -41,6 +41,7 @@
 
 #include <scheduling/scheduler/srdag-based/ListScheduler.h>
 #include <scheduling/scheduler/srdag-based/GreedyScheduler.h>
+#include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGVertex.h>
 #include <graphs/srdag/SRDAGEdge.h>
 #include <graphs/sched/SRDAGSchedVertex.h>
@@ -51,7 +52,6 @@
 #include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/memory/pisdf-based/PiSDFFifoAllocator.h>
 #include <scheduling/task/Task.h>
 #include <graphs/sched/SchedGraph.h>
 #include <graphs/sched/SpecialSchedVertex.h>
@@ -102,11 +102,32 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graph);
     /* == Add vertices to the sched::Graph and allocate memory == */
-    auto *schedGraph = schedule_->scheduleGraph();
-    const auto currentSize = schedGraph->vertexCount();
-    createScheduleVertices(result);
+    for (auto *vertex : result) {
+        auto *task = spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex);
+        schedule_->addTask(task);
+        for (auto *edge : vertex->outputEdges()) {
+            if (vertex->subtype() == pisdf::VertexType::FORK ||
+                vertex->subtype() == pisdf::VertexType::DUPLICATE) {
+                edge->setAlloc(vertex->inputEdge(0)->allocatedAddress());
+            } else if (vertex->subtype() != pisdf::VertexType::EXTERN_IN) {
+                auto fifo = allocator_->allocate(static_cast<size_t>(edge->rate()));
+                edge->setAlloc(fifo.virtualAddress_);
+            }
+        }
+    }
     /* == Map and execute the scheduled tasks == */
-    applyExecPolicy(currentSize);
+    for (auto *vertex : result) {
+        /* == Map the task == */
+        auto *task = schedule_->task(vertex->scheduleTaskIx());
+        mapper_->map(task, schedule_.get());
+    }
+    /* == Send every tasks == */
+    for (auto *vertex : result) {
+        /* == Send the task == */
+        auto *task = schedule_->task(vertex->scheduleTaskIx());
+        task->send(schedule_.get());
+    }
+//    applyExecPolicy(currentSize);
 }
 
 #endif
@@ -158,7 +179,7 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
     switch (type) {
         case spider::FifoAllocatorType::DEFAULT:
             if (!legacy) {
-                return spider::make<spider::sched::PiSDFFifoAllocator, StackID::RUNTIME>();
+                return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
             }
 #ifndef _NO_BUILD_LEGACY_RT
             return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
@@ -169,7 +190,7 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
 #endif
         case spider::FifoAllocatorType::DEFAULT_NOSYNC:
             if (!legacy) {
-                return spider::make<spider::sched::PiSDFFifoAllocator, StackID::RUNTIME>();
+                return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();
             }
 #ifndef _NO_BUILD_LEGACY_RT
             return spider::make<spider::sched::FifoAllocator, StackID::RUNTIME>();

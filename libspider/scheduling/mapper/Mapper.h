@@ -64,12 +64,14 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Map a task onto available resources.
-             * @param task     pointer to the task to map.
+             * @brief Map a vertexTask onto available resources.
+             * @param task     pointer to the vertexTask to map.
              * @param schedule pointer to the schedule to update.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
+             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
             virtual void map(sched::Graph *graph, sched::Vertex *vertex, Schedule *schedule) = 0;
+
+            virtual void map(sched::Task *task, Schedule *schedule) = 0;
 
             /* === Getter(s) === */
 
@@ -83,11 +85,13 @@ namespace spider {
             /* === Protected method(s) === */
 
             /**
-             * @brief Compute the minimum start time possible for a given task.
-             * @param vertex  Pointer to the task.
+             * @brief Compute the minimum start time possible for a given vertexTask.
+             * @param vertex  Pointer to the vertexTask.
              * @return value of the minimum start time possible
              */
             ufast64 computeStartTime(const sched::Vertex *vertex) const;
+
+            ufast64 computeStartTime(const Task *task, const Schedule *schedule) const;
 
         };
     }

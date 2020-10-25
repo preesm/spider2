@@ -114,6 +114,12 @@ namespace spider {
              */
             inline srdag::Vertex *sink() const { return sink_; }
 
+            /**
+             * @brief Get the allocated virtual address of this edge.
+             * @return virtual memory address.
+             */
+            inline size_t allocatedAddress() const { return alloc_; }
+
             /* === Setter(s) === */
 
             inline void setRate(i64 rate) { rate_ = rate; }
@@ -145,10 +151,17 @@ namespace spider {
              */
             void setSink(srdag::Vertex *vertex, size_t ix);
 
+            /**
+             * @brief Set the virtual address of this edge.
+             * @param alloc Address to set.
+             */
+            inline void setAlloc(size_t alloc) { alloc_ = alloc; }
+
         private:
             srdag::Vertex *source_ = nullptr;
             srdag::Vertex *sink_ = nullptr;
             i64 rate_ = 0;
+            size_t alloc_ = SIZE_MAX;
             size_t srcPortIx_ = SIZE_MAX;  /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX;  /* = Index of the Edge in the sink inputEdgeArray = */
             size_t ix_ = SIZE_MAX;         /* = Index of the Edge in the Graph (used for add and remove) = */

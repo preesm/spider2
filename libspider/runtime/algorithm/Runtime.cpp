@@ -112,7 +112,7 @@ void spider::Runtime::useExecutionTraces(const sched::Schedule *schedule,
         task.pe_ = notification.senderIx_;
         switch (notification.type_) {
             case NotificationType::TRACE_TASK: {
-                const auto *schedTask = schedule->task(msg.taskIx_);
+                const auto *schedTask = schedule->vertexTask(msg.taskIx_);
                 if (schedTask) {
                     task.name_ = schedTask->name();
                     task.color_ = VERTEX_TASK_COLOR;
