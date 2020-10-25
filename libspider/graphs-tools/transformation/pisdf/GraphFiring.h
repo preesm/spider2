@@ -170,7 +170,7 @@ namespace spider {
              */
             const GraphFiring *getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const;
 
-            spider::Fifo getEdgeAlloc(const pisdf::Edge *edge, u32 producerFiring) const;
+            size_t getEdgeAlloc(const pisdf::Edge *edge) const;
 
             /* === Setter(s) === */
 
@@ -181,7 +181,7 @@ namespace spider {
              */
             void setParamValue(size_t ix, int64_t value);
 
-            void registerEdgeAlloc(spider::Fifo value, const pisdf::Edge *edge, u32 producerFiring);
+            void registerEdgeAlloc(size_t value, const pisdf::Edge *edge);
 
         private:
             struct EdgeRate {
@@ -193,7 +193,7 @@ namespace spider {
             spider::unique_ptr<u32> brv_;                         /* == BRV of this firing of the graph == */
             spider::unique_ptr<u32 *> taskIxRegister_;
             spider::unique_ptr<EdgeRate> rates_;
-            spider::unique_ptr<Fifo *> edgeAllocAddress_;
+            spider::unique_ptr<size_t> edgeAllocAddress_;
             const GraphHandler *parent_;
             u32 firing_{ };
             u32 dynamicParamCount_{ };

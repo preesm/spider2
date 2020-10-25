@@ -58,28 +58,31 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(pisdf::GraphHandler *graphHandler) override;
+            spider::vector<pisdf::VertexFiring> schedule(pisdf::GraphHandler *graphHandler) override;
 
         private:
 
             /* == Private method(s) === */
 
-            inline spider::vector<srdag::Vertex *> schedule(const srdag::Graph *) final { return { }; }
-
             /**
              * @brief Recursively add vertices into the unscheduledVertices_ vector.
              * @param graphHandler  Top level graph handler;
+             * @param result        Resulting vector of scheduled tasks;
              */
-            void evaluate(pisdf::GraphHandler *graphHandler);
+            void evaluate(pisdf::GraphHandler *graphHandler, spider::vector<pisdf::VertexFiring> &result);
 
             /**
              * @brief Evaluate if a vertex is schedulable for a given firing.
+             * @param handler Pointer to the GraphFiring handler.
              * @param vertex  Pointer to the vertex.
              * @param firing  Firing of the vertex.
-             * @param handler Pointer to the GraphFiring handler.
+             * @param result  Resulting vector of scheduled tasks;
              * @return true if schedulable, false else.
              */
-            bool evaluate(const pisdf::Vertex *vertex, u32 firing, pisdf::GraphFiring *handler);
+            bool evaluate(pisdf::GraphFiring *handler,
+                          const pisdf::Vertex *vertex,
+                          u32 firing,
+                          spider::vector<pisdf::VertexFiring> &result);
         };
     }
 }

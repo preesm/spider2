@@ -77,8 +77,6 @@ namespace spider {
 
             /* === Private method(s) === */
 
-            inline void schedule(pisdf::GraphHandler *) override { }
-
             /**
              * @brief Reset unscheduled task from previous schedule iteration.
              */

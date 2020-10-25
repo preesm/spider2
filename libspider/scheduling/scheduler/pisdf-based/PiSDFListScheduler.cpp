@@ -56,7 +56,8 @@ spider::sched::PiSDFListScheduler::PiSDFListScheduler() :
 
 }
 
-void spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
+spider::vector<spider::pisdf::VertexFiring>
+spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
     tasks_.clear();
     /* == Reset previous non-schedulable tasks == */
@@ -74,11 +75,12 @@ void spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandl
     /* == Update last schedulable vertex == */
     const auto lastSchedulable = sortedTaskVector_.size() - nonSchedulableTaskCount;
     /* == Create the list of tasks to be scheduled == */
+    auto result = factory::vector<pisdf::VertexFiring>(lastSchedulable, StackID::SCHEDULE);
     for (size_t k = 0; k < lastSchedulable; ++k) {
         auto &task = sortedTaskVector_[k];
-//        tasks_.emplace_back(
-//                make<PiSDFTask, StackID::SCHEDULE>(task.handler_, task.vertex_, task.firing_, task.depCount_,
-//                                                   task.mergedFifoCount_));
+        result[k].handler_ = task.handler_;
+        result[k].vertex_ = task.vertex_;
+        result[k].firing_ = task.firing_;
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
     /* == Remove scheduled vertices == */
@@ -89,6 +91,7 @@ void spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandl
     while (sortedTaskVector_.size() != nonSchedulableTaskCount) {
         sortedTaskVector_.pop_back();
     }
+    return result;
 }
 
 void spider::sched::PiSDFListScheduler::clear() {

@@ -66,8 +66,6 @@ namespace spider {
 
             /* === Private method(s) === */
 
-            inline void schedule(pisdf::GraphHandler *) override { }
-
             /**
              * @brief Evaluate if a vertex is schedulable for a given firing.
              * @param vertex  Pointer to the vertex.

@@ -51,6 +51,14 @@ namespace spider {
 
     namespace pisdf {
         class GraphHandler;
+
+        class GraphFiring;
+
+        struct VertexFiring {
+            pisdf::GraphFiring *handler_;
+            const pisdf::Vertex *vertex_;
+            u32 firing_;
+        };
     }
 
     namespace sched {
@@ -69,13 +77,13 @@ namespace spider {
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graph  Graph to use to perform the update.
              */
-            virtual spider::vector<srdag::Vertex *> schedule(const srdag::Graph *graph) = 0;
+            inline virtual spider::vector<srdag::Vertex *> schedule(const srdag::Graph *) { return { }; }
 
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
-             * @param
+             * @param graphHandler Handler of the top graph.
              */
-            virtual void schedule(pisdf::GraphHandler *graphHandler) = 0;
+            inline virtual spider::vector<pisdf::VertexFiring> schedule(pisdf::GraphHandler *) { return { }; }
 
             /**
              * @brief Clears scheduler resources.

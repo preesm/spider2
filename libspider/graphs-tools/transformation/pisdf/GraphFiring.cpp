@@ -48,8 +48,8 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
-                                         const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                                         u32 firing) :
+                                        const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                                        u32 firing) :
         params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
         parent_{ parent },
         firing_{ firing },
@@ -62,7 +62,7 @@ spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
     taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::TRANSFO>(graph->vertexCount(), nullptr));
     subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
     rates_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
-    edgeAllocAddress_ = spider::make_unique(make_n<Fifo *, StackID::SCHEDULE>(graph->edgeCount(), nullptr));
+    edgeAllocAddress_ = spider::make_unique(make_n<size_t, StackID::SCHEDULE>(graph->edgeCount(), SIZE_MAX));
     /* == copy parameters == */
     params_.reserve(params.size());
     dynamicParamCount_ = 0;
@@ -74,9 +74,6 @@ spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
 
 spider::pisdf::GraphFiring::~GraphFiring() {
     for (auto &ptr : make_handle(taskIxRegister_.get(), parent_->graph()->vertexCount())) {
-        deallocate(ptr);
-    }
-    for (auto &ptr : make_handle(edgeAllocAddress_.get(), parent_->graph()->edgeCount())) {
         deallocate(ptr);
     }
     for (auto &child : subgraphHandlers()) {
@@ -112,10 +109,7 @@ void spider::pisdf::GraphFiring::resolveBRV() {
             std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + rvValue, UINT32_MAX);
         }
     }
-    for (const auto &edge : parent_->graph()->edges()) {
-        deallocate(edgeAllocAddress_.get()[edge->ix()]);
-        edgeAllocAddress_.get()[edge->ix()] = spider::make_n<Fifo, StackID::SCHEDULE>(getRV(edge->source()), Fifo{ });
-    }
+    std::fill(edgeAllocAddress_.get(), edgeAllocAddress_.get() + parent_->graph()->edgeCount(), SIZE_MAX);
     /* == creates subgraph handlers == */
     createOrUpdateSubgraphHandlers();
     /* == Save the rates == */
@@ -153,10 +147,7 @@ void spider::pisdf::GraphFiring::apply(const GraphFiring *srcFiring) {
             std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + rvValue, UINT32_MAX);
         }
     }
-    for (const auto &edge : parent_->graph()->edges()) {
-        deallocate(edgeAllocAddress_.get()[edge->ix()]);
-        edgeAllocAddress_.get()[edge->ix()] = spider::make_n<Fifo, StackID::SCHEDULE>(getRV(edge->source()), Fifo{ });
-    }
+    std::fill(edgeAllocAddress_.get(), edgeAllocAddress_.get() + parent_->graph()->edgeCount(), SIZE_MAX);
     /* == creates subgraph handlers == */
     createOrUpdateSubgraphHandlers();
     /* == Copy rates == */
@@ -260,6 +251,14 @@ void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     }
 }
 
+size_t spider::pisdf::GraphFiring::getEdgeAlloc(const pisdf::Edge *edge) const {
+    return edgeAllocAddress_.get()[edge->ix()];
+}
+
+void spider::pisdf::GraphFiring::registerEdgeAlloc(size_t value, const pisdf::Edge *edge) {
+    edgeAllocAddress_.get()[edge->ix()] = value;
+}
+
 /* === Private method(s) implementation === */
 
 std::shared_ptr<spider::pisdf::Param>
@@ -295,12 +294,4 @@ void spider::pisdf::GraphFiring::createOrUpdateSubgraphHandlers() {
             currentGraphHandler->resolveFirings();
         }
     }
-}
-
-spider::Fifo spider::pisdf::GraphFiring::getEdgeAlloc(const pisdf::Edge *edge, u32 producerFiring) const {
-    return edgeAllocAddress_.get()[edge->ix()][producerFiring];
-}
-
-void spider::pisdf::GraphFiring::registerEdgeAlloc(Fifo value, const pisdf::Edge *edge, u32 producerFiring) {
-    edgeAllocAddress_.get()[edge->ix()][producerFiring] = value;
 }

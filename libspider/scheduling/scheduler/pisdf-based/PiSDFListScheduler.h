@@ -59,7 +59,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(pisdf::GraphHandler *graphHandler) override;
+            spider::vector<pisdf::VertexFiring> schedule(pisdf::GraphHandler *graphHandler) override;
 
             void clear() override;
 
@@ -85,8 +85,6 @@ namespace spider {
             spider::vector<ListTask> sortedTaskVector_;
 
             /* == Private method(s) === */
-
-            inline spider::vector<srdag::Vertex *> schedule(const srdag::Graph *) final { return { }; }
 
             /**
              * @brief Reset unscheduled task from previous schedule iteration.
