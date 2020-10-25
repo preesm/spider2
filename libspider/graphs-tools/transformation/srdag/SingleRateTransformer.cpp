@@ -435,7 +435,7 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *e
         auto *srEdge = job_.srdagInstance_->outputEdge(sink->ix());
         if (isInterfaceTransparent(job_, output)) {
             sinkVector.emplace_back(srEdge->sinkRateValue(), srEdge->sinkPortIx(), srEdge->sink());
-            srdag_->removeEdge(srEdge);
+//            srdag_->removeEdge(srEdge);
         } else {
             auto *tail = srdag_->createTailVertex(job_.srdagInstance_->name() + "::" + job_.srdagInstance_->name(), 1);
             srEdge->setSource(tail, 0);
@@ -482,7 +482,7 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge 
         auto *srEdge = job_.srdagInstance_->inputEdge(source->ix());
         if (isInterfaceTransparent(job_, input)) {
             sourceVector.emplace_back(srEdge->sourceRateValue(), srEdge->sourcePortIx(), srEdge->source());
-            srdag_->removeEdge(srEdge);
+//            srdag_->removeEdge(srEdge);
         } else {
             auto *repeat = srdag_->createRepeatVertex(job_.srdagInstance_->name() + "::" + job_.srdagInstance_->name());
             srEdge->setSink(repeat, 0);
