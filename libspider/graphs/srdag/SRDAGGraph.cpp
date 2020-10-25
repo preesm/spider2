@@ -123,6 +123,22 @@ void spider::srdag::Graph::removeEdge(spider::srdag::Edge *edge) {
     out_of_order_erase(edgeVector_, ix);
 }
 
+spider::srdag::Edge *
+spider::srdag::Graph::createEdge(srdag::Vertex *source, size_t srcIx, srdag::Vertex *sink, size_t snkIx, i64 rate) {
+    srdag::Edge *edge;
+    if (source && source->outputEdge(srcIx)) {
+        edge = source->outputEdge(srcIx);
+        edge->setSink(sink, snkIx);
+    } else if (sink && sink->inputEdge(snkIx)) {
+        edge = sink->inputEdge(snkIx);
+        edge->setSource(source, srcIx);
+    } else {
+        edge = make<srdag::Edge, StackID::TRANSFO>(source, srcIx, sink, snkIx, rate);
+        addEdge(edge);
+    }
+    return edge;
+}
+
 spider::srdag::Vertex *spider::srdag::Graph::createDuplicateVertex(std::string name, size_t edgeOUTCount) {
     auto *vertex = make<pisdf::Vertex, StackID::TRANSFO>(pisdf::VertexType::DUPLICATE, std::move(name), 1u);
     auto *runtimeInfo = vertex->runtimeInformation();
@@ -220,22 +236,6 @@ spider::srdag::Vertex *spider::srdag::Graph::createEndVertex(std::string name) {
     auto *srVertex = make<srdag::Vertex, StackID::TRANSFO>(vertex, 0, 1);
     addVertex(srVertex);
     return srVertex;
-}
-
-spider::srdag::Edge *
-spider::srdag::Graph::createEdge(srdag::Vertex *source, size_t srcIx, srdag::Vertex *sink, size_t snkIx, i64 rate) {
-    srdag::Edge *edge;
-    if (source && source->outputEdge(srcIx)) {
-        edge = source->outputEdge(srcIx);
-        edge->setSink(sink, snkIx);
-    } else if (sink && sink->inputEdge(snkIx)) {
-        edge = sink->inputEdge(snkIx);
-        edge->setSource(source, srcIx);
-    } else {
-        edge = make<srdag::Edge, StackID::TRANSFO>(source, srcIx, sink, snkIx, rate);
-        addEdge(edge);
-    }
-    return edge;
 }
 
 #ifndef _NO_BUILD_GRAPH_EXPORTER

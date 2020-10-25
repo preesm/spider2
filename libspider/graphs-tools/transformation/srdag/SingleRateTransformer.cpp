@@ -138,6 +138,17 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     for (const auto &vertex : delayVertexToRemove) {
         srdag_->removeVertex(vertex);
     }
+    auto it = std::begin(srdag_->edges());
+    while (it != std::end(srdag_->edges())) {
+        auto *edge = it->get();
+        if (!edge->source() && !edge->sink()) {
+            auto dist = std::distance(std::begin(srdag_->edges()), it);
+            srdag_->removeEdge(edge);
+            it = std::next(std::begin(srdag_->edges()), dist);
+        } else {
+            it++;
+        }
+    }
     return futureJobs;
 }
 
@@ -435,7 +446,6 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *e
         auto *srEdge = job_.srdagInstance_->outputEdge(sink->ix());
         if (isInterfaceTransparent(job_, output)) {
             sinkVector.emplace_back(srEdge->sinkRateValue(), srEdge->sinkPortIx(), srEdge->sink());
-//            srdag_->removeEdge(srEdge);
         } else {
             auto *tail = srdag_->createTailVertex(job_.srdagInstance_->name() + "::" + job_.srdagInstance_->name(), 1);
             srEdge->setSource(tail, 0);
@@ -482,7 +492,6 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge 
         auto *srEdge = job_.srdagInstance_->inputEdge(source->ix());
         if (isInterfaceTransparent(job_, input)) {
             sourceVector.emplace_back(srEdge->sourceRateValue(), srEdge->sourcePortIx(), srEdge->source());
-//            srdag_->removeEdge(srEdge);
         } else {
             auto *repeat = srdag_->createRepeatVertex(job_.srdagInstance_->name() + "::" + job_.srdagInstance_->name());
             srEdge->setSink(repeat, 0);
@@ -545,8 +554,6 @@ void spider::srdag::SingleRateTransformer::populateFromDelayVertex(vector<Transf
         portIx = edge->sourcePortIx();
     }
     vector.emplace_back(rate, static_cast<uint32_t>(portIx), vertex);
-    /* == Remove the Edge == */
-    srdag_->removeEdge(edge);
 }
 
 #endif
