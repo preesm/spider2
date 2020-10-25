@@ -129,6 +129,10 @@ size_t spider::sched::SRDAGTask::dependencyCount() const {
     return vertex_->inputEdgeCount();
 }
 
+size_t spider::sched::SRDAGTask::successorCount() const {
+    return vertex_->outputEdgeCount();
+}
+
 /* === Private method(s) === */
 
 u32 spider::sched::SRDAGTask::getOutputParamsCount() const {
@@ -141,45 +145,6 @@ u32 spider::sched::SRDAGTask::getKernelIx() const {
 
 spider::unique_ptr<i64> spider::sched::SRDAGTask::buildInputParams() const {
     return srdag::buildVertexRuntimeInputParameters(vertex_);
-}
-
-bool spider::sched::SRDAGTask::updateNotificationFlags(bool *flags, const Schedule *schedule) const {
-    auto oneTrue = false;
-    for (const auto *edge : vertex_->outputEdges()) {
-        auto *sink = edge->sink();
-        auto *sinkTask = schedule->task(sink->scheduleTaskIx());
-        if (sinkTask->state() == TaskState::SKIPPED) {
-            sinkTask->updateNotificationFlags(flags, schedule);
-        }
-        auto &currentFlag = flags[sinkTask->mappedLRT()->virtualIx()];
-        if (!currentFlag) {
-            currentFlag = true;
-            for (const auto *inEdge : sink->inputEdges()) {
-                const auto *source = inEdge->source();
-                auto *sourceTask = schedule->task(source->scheduleTaskIx());
-                if (sourceTask && (sourceTask->mappedLRT() == mappedLRT()) && (sourceTask->jobExecIx() > jobExecIx())) {
-                    currentFlag = false;
-                    break;
-                }
-            }
-        }
-        oneTrue |= currentFlag;
-    }
-    return oneTrue;
-}
-
-bool spider::sched::SRDAGTask::shouldBroadCast(const Schedule *schedule) const {
-    const auto &outputEdges = vertex_->outputEdges();
-    return std::any_of(std::begin(outputEdges), std::end(outputEdges),
-                       [schedule](const srdag::Edge *edge) {
-                           const auto *sink = edge->sink();
-                           if (sink) {
-                               const auto *sinkTask = schedule->task(sink->scheduleTaskIx());
-                               return !sinkTask || (sinkTask->state() != TaskState::READY &&
-                                                    sinkTask->state() != TaskState::SKIPPED);
-                           }
-                           return false;
-                       });
 }
 
 std::shared_ptr<spider::JobFifos> spider::sched::SRDAGTask::buildJobFifos(const Schedule *schedule) const {

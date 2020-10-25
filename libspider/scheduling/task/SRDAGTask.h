@@ -85,6 +85,8 @@ namespace spider {
 
             size_t dependencyCount() const final;
 
+            size_t successorCount() const final;
+
             inline srdag::Vertex *vertex() const { return vertex_; }
 
             /* === Setter(s) === */
@@ -101,10 +103,6 @@ namespace spider {
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
-
-            bool updateNotificationFlags(bool *flags, const Schedule *schedule) const final;
-
-            bool shouldBroadCast(const Schedule *schedule) const final;
 
             std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final;
 

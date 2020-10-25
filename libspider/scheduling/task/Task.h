@@ -107,15 +107,6 @@ namespace spider {
             inline virtual void receiveParams(const spider::array<i64> &/*values*/) { }
 
             /**
-             * @brief Based on current state of the mapping / scheduling, fill the boolean array "flags" with
-             *        true if given LRT is to be notified, false else.
-             * @param flags    Array of boolean, should be EXACTLY of size archi::platform()->LRTCount();
-             * @param schedule Pointer to the schedule.
-             * @return True if at least one LRT will be notified by this task.
-             */
-            virtual bool updateNotificationFlags(bool *flags, const Schedule *schedule) const = 0;
-
-            /**
              * @brief Insert a synchronization tasks before this task.
              *        Only used to set the allocated address of the sync task.
              * @param sndTask  Pointer to the send task.
@@ -194,6 +185,8 @@ namespace spider {
              * @return number of dependencies.
              */
             virtual size_t dependencyCount() const = 0;
+
+            virtual size_t successorCount() const = 0;
 
             /**
              * @brief Get the start time of the vertexTask.
@@ -302,13 +295,6 @@ namespace spider {
             inline virtual spider::unique_ptr<i64> buildInputParams() const { return spider::unique_ptr<i64>(); }
 
             /**
-             * @brief Check whether or not this job should broadcast its job stamp.
-             * @param schedule  Schedule to which the vertexTask is associated.
-             * @return true if should broadcast, false else.
-             */
-            virtual bool shouldBroadCast(const Schedule *schedule) const = 0;
-
-            /**
              * @brief Build the FIFOs needed by the task execution.
              * @param schedule Pointer to the schedule.
              * @return @refitem std::shared_ptr of @refitem JobFifos
@@ -340,6 +326,22 @@ namespace spider {
              * @return array of constraints if any, empty array else.
              */
             spider::array<SyncInfo> buildExecConstraints(const Schedule *schedule) const;
+
+            /**
+             * @brief Based on current state of the mapping / scheduling, fill the boolean array "flags" with
+             *        true if given LRT is to be notified, false else.
+             * @param flags    Array of boolean, should be EXACTLY of size archi::platform()->LRTCount();
+             * @param schedule Pointer to the schedule.
+             * @return True if at least one LRT will be notified by this task.
+             */
+            bool updateNotificationFlags(bool *flags, const Schedule *schedule) const;
+
+            /**
+             * @brief Check whether or not this job should broadcast its job stamp.
+             * @param schedule  Schedule to which the vertexTask is associated.
+             * @return true if should broadcast, false else.
+             */
+            bool shouldBroadCast(const Schedule *schedule) const;
         };
     }
 }

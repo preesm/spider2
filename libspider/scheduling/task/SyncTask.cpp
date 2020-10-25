@@ -95,31 +95,6 @@ spider::unique_ptr<i64> spider::sched::SyncTask::buildInputParams() const {
     return make_unique(params);
 }
 
-bool spider::sched::SyncTask::updateNotificationFlags(bool *flags, const Schedule *schedule) const {
-    auto oneTrue = false;
-    if (successor_->state() == TaskState::SKIPPED) {
-        successor_->updateNotificationFlags(flags, schedule);
-    }
-    auto &currentFlag = flags[successor_->mappedLRT()->virtualIx()];
-    if (!currentFlag) {
-        currentFlag = true;
-        for (size_t ix = 0; ix < successor_->dependencyCount(); ++ix) {
-            auto *sourceTask = successor_->previousTask(ix, schedule);
-            if (sourceTask && (sourceTask->mappedLRT() == mappedLRT()) && (sourceTask->jobExecIx() > jobExecIx())) {
-                currentFlag = false;
-                break;
-            }
-        }
-    }
-    oneTrue |= currentFlag;
-    return oneTrue;
-}
-
-bool spider::sched::SyncTask::shouldBroadCast(const Schedule *) const {
-    return !successor_ || (successor_->state() != TaskState::READY &&
-                           successor_->state() != TaskState::SKIPPED);
-}
-
 std::shared_ptr<spider::JobFifos> spider::sched::SyncTask::buildJobFifos(const Schedule *) const {
     auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(1, 1);
     /* == Create input fifo == */

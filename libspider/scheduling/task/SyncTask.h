@@ -80,6 +80,8 @@ namespace spider {
 
             inline size_t dependencyCount() const final { return 1u; }
 
+            inline size_t successorCount() const final { return 1u; }
+
             inline SyncType syncType() const { return type_; }
 
             inline size_t size() const { return size_; }
@@ -131,10 +133,6 @@ namespace spider {
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
-
-            bool updateNotificationFlags(bool *flags, const Schedule *schedule) const final;
-
-            bool shouldBroadCast(const Schedule *schedule) const final;
 
             std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final;
         };

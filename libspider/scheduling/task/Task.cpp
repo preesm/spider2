@@ -125,7 +125,8 @@ spider::array<spider::SyncInfo> spider::sched::Task::buildExecConstraints(const 
             const auto sourceLRTIx = source->mappedLRT()->virtualIx();
             const auto currentDepIxOnLRT = shouldNotifyArray[sourceLRTIx];
             const auto gotConstraintOnLRT = currentDepIxOnLRT != SIZE_MAX;
-            if (!gotConstraintOnLRT || (source->jobExecIx_ > this->previousTask(currentDepIxOnLRT, schedule)->jobExecIx_)) {
+            if (!gotConstraintOnLRT ||
+                (source->jobExecIx_ > this->previousTask(currentDepIxOnLRT, schedule)->jobExecIx_)) {
                 numberOfConstraints += !gotConstraintOnLRT;
                 shouldNotifyArray[sourceLRTIx] = ix;
             }
@@ -152,4 +153,37 @@ spider::array<spider::SyncInfo> spider::sched::Task::buildExecConstraints(const 
         }
     }
     return result;
+}
+
+bool spider::sched::Task::updateNotificationFlags(bool *flags, const Schedule *schedule) const {
+    auto oneTrue = false;
+    for (size_t iOut = 0; iOut < this->successorCount(); ++iOut) {
+        const auto *sinkTask = this->nextTask(iOut, schedule);
+        if (sinkTask->state() == TaskState::SKIPPED) {
+            sinkTask->updateNotificationFlags(flags, schedule);
+        }
+        auto &currentFlag = flags[sinkTask->mappedLRT()->virtualIx()];
+        if (!currentFlag) {
+            currentFlag = true;
+            for (size_t ix = 0; ix < sinkTask->dependencyCount(); ++ix) {
+                auto *sourceTask = sinkTask->previousTask(ix, schedule);
+                if (sourceTask && (sourceTask->mappedLRT() == mappedLRT()) && (sourceTask->jobExecIx() > jobExecIx())) {
+                    currentFlag = false;
+                    break;
+                }
+            }
+        }
+        oneTrue |= currentFlag;
+    }
+    return oneTrue;
+}
+
+bool spider::sched::Task::shouldBroadCast(const Schedule *schedule) const {
+    for (size_t iOut = 0; iOut < this->successorCount(); ++iOut) {
+        const auto *sinkTask = this->nextTask(iOut, schedule);
+        if (!sinkTask || (sinkTask->state() != TaskState::READY && sinkTask->state() != TaskState::SKIPPED)) {
+            return true;
+        }
+    }
+    return false;
 }
