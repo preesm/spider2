@@ -89,10 +89,7 @@ namespace spider {
                                            const Task *task,
                                            ufast64 minStartTime);
 
-//            static void mapCommunications(sched::Graph *graph,
-//                                          sched::Vertex *vertex,
-//                                          const Cluster *cluster,
-//                                          Schedule *schedule);
+            static void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
         };
     }
 }

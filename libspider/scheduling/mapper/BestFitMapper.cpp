@@ -37,11 +37,9 @@
 
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/SyncTask.h>
 #include <archi/Platform.h>
 #include <archi/MemoryBus.h>
-#include <graphs/sched/SchedVertex.h>
-#include <graphs/sched/SchedEdge.h>
-#include <graphs/sched/SyncSchedVertex.h>
 
 /* === Static function === */
 
@@ -127,58 +125,58 @@ const spider::PE *spider::sched::BestFitMapper::findBestFitPE(const Cluster *clu
     return foundPE;
 }
 
-//void spider::sched::BestFitMapper::mapCommunications(sched::Graph *graph,
-//                                                     sched::Vertex *vertex,
-//                                                     const Cluster *cluster,
-//                                                     Schedule *schedule) {
-//    for (auto *edge : vertex->inputEdges()) {
-//        const auto *source = edge->source();
-//        if (!source) {
-//            continue;
-//        }
-//        const auto *prevCluster = source->mappedPe()->cluster();
-//        if (prevCluster != cluster) {
-//            /* == Insert send on source cluster == */
-//            const auto *sndBus = archi::platform()->getClusterToClusterMemoryBus(prevCluster, cluster);
-//            /* == Create the com task == */
-//            auto *sndVertex = spider::make<sched::SyncVertex, StackID::SCHEDULE>(SyncType::SEND, sndBus);
-//            /* == Search for the first PE able to run the send task == */
-//            auto minStartTime = source->endTime();
-//            auto *mappedPe = findBestFitPE(prevCluster, schedule->stats(), sndVertex, minStartTime);
-//            if (!mappedPe) {
-//                throwSpiderException("could not find any processing element to map communication vertexTask.");
-//            }
-//            /* == Set job information and update schedule == */
-//            auto mappedPeIx{ mappedPe->virtualIx() };
-//            auto mappingSt{ std::max(schedule->stats().endTime(mappedPeIx), minStartTime) };
-//            auto mappingEt{ mappingSt + sndVertex->timingOnPE(nullptr) };
-//            schedule->updateTaskAndSetReady(sndVertex, mappedPe, mappingSt, mappingEt);
-//            /* == Insert receive on mapped cluster == */
-//            const auto *rcvBus = archi::platform()->getClusterToClusterMemoryBus(cluster, prevCluster);
-//            auto *rcvVertex = spider::make<sched::SyncVertex, StackID::SCHEDULE>(SyncType::RECEIVE, rcvBus);
-//            /* == Search for the first PE able to run the send task == */
-//            minStartTime = sndVertex->endTime();
-//            mappedPe = findBestFitPE(cluster, schedule->stats(), rcvVertex, minStartTime);
-//            if (!mappedPe) {
-//                throwSpiderException("could not find any processing element to map communication vertexTask.");
-//            }
-//            /* == Set job information and update schedule == */
-//            mappedPeIx = mappedPe->virtualIx();
-//            mappingSt = std::max(schedule->stats().endTime(mappedPeIx), minStartTime);
-//            mappingEt = mappingSt + sndVertex->timingOnPE(nullptr);
-//            schedule->updateTaskAndSetReady(rcvVertex, mappedPe, mappingSt, mappingEt);
-//            /* == Re-route dependency of the original vertex to the recvTask == */
-//            const auto currentStartTime = vertex->startTime();
-//            if (rcvVertex->endTime() > currentStartTime) {
-//                const auto offset = rcvVertex->endTime() - currentStartTime;
-//                vertex->setStartTime(currentStartTime + offset);
-//                vertex->setEndTime(vertex->endTime() + offset);
-//            }
-//            graph->createEdge(sndVertex, 0, rcvVertex, 0, edge->getAlloc());
-//            graph->createEdge(rcvVertex, 0, vertex, edge->sinkPortIx(), edge->getAlloc());
-//            edge->setSink(sndVertex, 0);
-//            graph->addVertex(sndVertex);
-//            graph->addVertex(rcvVertex);
-//        }
-//    }
-//}
+void spider::sched::BestFitMapper::mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule) {
+    for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
+        auto *srcTask = task->previousTask(ix, schedule);
+        if (!srcTask) {
+            continue;
+        }
+        const auto *prevCluster = srcTask->mappedPe()->cluster();
+        if (prevCluster != cluster) {
+            /* == Insert send on source cluster == */
+            const auto *sndBus = archi::platform()->getClusterToClusterMemoryBus(prevCluster, cluster);
+            /* == Create the com task == */
+            auto *sndTask = spider::make<SyncTask, StackID::SCHEDULE>(SyncType::SEND, sndBus);
+            /* == Search for the first PE able to run the send task == */
+            auto minStartTime = srcTask->endTime();
+            auto *mappedPe = findBestFitPE(prevCluster, schedule->stats(), sndTask, minStartTime);
+            if (!mappedPe) {
+                throwSpiderException("could not find any processing element to map communication vertexTask.");
+            }
+            /* == Set job information and update schedule == */
+            auto mappedPeIx{ mappedPe->virtualIx() };
+            auto mappingSt{ std::max(schedule->stats().endTime(mappedPeIx), minStartTime) };
+            auto mappingEt{ mappingSt + sndTask->timingOnPE(nullptr) };
+            schedule->addTask(sndTask);
+            schedule->updateTaskAndSetReady(sndTask, mappedPe, mappingSt, mappingEt);
+            /* == Insert receive on mapped cluster == */
+            const auto *rcvBus = archi::platform()->getClusterToClusterMemoryBus(cluster, prevCluster);
+            auto *rcvTask = spider::make<SyncTask, StackID::SCHEDULE>(SyncType::RECEIVE, rcvBus);
+            /* == Search for the first PE able to run the send task == */
+            minStartTime = sndTask->endTime();
+            mappedPe = findBestFitPE(cluster, schedule->stats(), rcvTask, minStartTime);
+            if (!mappedPe) {
+                throwSpiderException("could not find any processing element to map communication vertexTask.");
+            }
+            /* == Set job information and update schedule == */
+            mappedPeIx = mappedPe->virtualIx();
+            mappingSt = std::max(schedule->stats().endTime(mappedPeIx), minStartTime);
+            mappingEt = mappingSt + rcvTask->timingOnPE(nullptr);
+            schedule->addTask(rcvTask);
+            schedule->updateTaskAndSetReady(rcvTask, mappedPe, mappingSt, mappingEt);
+            /* == Re-route dependency of the original vertex to the recvTask == */
+            const auto currentStartTime = task->startTime();
+            if (rcvTask->endTime() > currentStartTime) {
+                const auto offset = rcvTask->endTime() - currentStartTime;
+                task->setStartTime(currentStartTime + offset);
+                task->setEndTime(task->endTime() + offset);
+            }
+            /* == Set dependencies == */
+            sndTask->setPredecessor(srcTask);
+            sndTask->setSuccessor(rcvTask);
+            rcvTask->setPredecessor(sndTask);
+            rcvTask->setSuccessor(task);
+            task->insertSyncTasks(sndTask, rcvTask, ix, schedule);
+        }
+    }
+}

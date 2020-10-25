@@ -45,6 +45,8 @@ namespace spider {
 
     namespace srdag {
         class Vertex;
+
+        class Edge;
     }
 
     namespace sched {
@@ -57,9 +59,13 @@ namespace spider {
 
             ~SRDAGTask() noexcept override = default;
 
-            /* === Virtual method(s) === */
+            /* === Method(s) === */
 
             void receiveParams(const spider::array<i64> &values) final;
+
+            void insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *schedule) final;
+
+            /* === Getter(s) === */
 
             i64 inputRate(size_t ix) const final;
 
@@ -79,17 +85,11 @@ namespace spider {
 
             size_t dependencyCount() const final;
 
-            void setIx(u32 ix) noexcept final;
-
-            /* === Getter(s) === */
-
             inline srdag::Vertex *vertex() const { return vertex_; }
 
             /* === Setter(s) === */
 
-        protected:
-
-            bool updateNotificationFlags(bool *flags, const Schedule *schedule) const final;
+            void setIx(u32 ix) noexcept final;
 
         private:
             srdag::Vertex *vertex_ = nullptr;
@@ -102,9 +102,13 @@ namespace spider {
 
             spider::unique_ptr<i64> buildInputParams() const final;
 
+            bool updateNotificationFlags(bool *flags, const Schedule *schedule) const final;
+
             bool shouldBroadCast(const Schedule *schedule) const final;
 
             std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final;
+
+            static Fifo buildInputFifo(const srdag::Edge *edge, const Schedule *schedule);
 
             void buildDefaultOutFifos(spider::Fifo *outputFifos, const Schedule *schedule) const;
 

@@ -36,16 +36,17 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExternInterface.h>
 #include <scheduling/task/SRDAGTask.h>
+#include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <api/runtime-api.h>
-#include <runtime/common/Fifo.h>
+#include <graphs/pisdf/ExternInterface.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
 #include <graphs/srdag/SRDAGVertex.h>
 #include <graphs-tools/helper/srdag-helper.h>
+#include <runtime/common/Fifo.h>
+#include <api/runtime-api.h>
 
 /* === Static function === */
 
@@ -70,6 +71,15 @@ void spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
                                     param->value());
         }
     }
+}
+
+void spider::sched::SRDAGTask::insertSyncTasks(SyncTask *sndTask,
+                                               SyncTask *rcvTask,
+                                               size_t ix,
+                                               const Schedule *schedule) {
+    const auto fifo = buildInputFifo(vertex_->inputEdge(ix), schedule);
+    sndTask->setAlloc(fifo);
+    rcvTask->setAlloc(fifo);
 }
 
 i64 spider::sched::SRDAGTask::inputRate(size_t ix) const {
@@ -176,27 +186,7 @@ std::shared_ptr<spider::JobFifos> spider::sched::SRDAGTask::buildJobFifos(const 
     auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(vertex_->inputEdgeCount(), vertex_->outputEdgeCount());
     /* == Allocate input fifos == */
     for (const auto *edge : vertex_->inputEdges()) {
-        Fifo fifo{ };
-        fifo.virtualAddress_ = edge->allocatedAddress();
-        fifo.size_ = static_cast<u32>(edge->rate());
-        fifo.offset_ = 0;
-        fifo.count_ = 0;
-        const auto *source = edge->source();
-        const auto *sourceTask = schedule->task(source->scheduleTaskIx());
-        if (sourceTask && sourceTask->state() == TaskState::SKIPPED) {
-            fifo.attribute_ = FifoAttribute::RW_AUTO;
-        }
-        if (source->subtype() == pisdf::VertexType::EXTERN_IN) {
-            fifo.attribute_ = FifoAttribute::RW_EXT;
-        } else if (source->subtype() == pisdf::VertexType::FORK) {
-            for (size_t ix = 0; ix < edge->sourcePortIx(); ++ix) {
-                fifo.offset_ += static_cast<u32>(source->outputEdge(ix)->rate());
-            }
-        }
-        if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {
-            fifo.attribute_ = FifoAttribute::RW_OWN;
-        }
-        fifos->setInputFifo(edge->sinkPortIx(), fifo);
+        fifos->setInputFifo(edge->sinkPortIx(), buildInputFifo(edge, schedule));
     }
     /* == Allocate output fifos == */
     switch (vertex_->subtype()) {
@@ -214,6 +204,30 @@ std::shared_ptr<spider::JobFifos> spider::sched::SRDAGTask::buildJobFifos(const 
             break;
     }
     return fifos;
+}
+
+spider::Fifo spider::sched::SRDAGTask::buildInputFifo(const srdag::Edge *edge, const Schedule *schedule) {
+    Fifo fifo{ };
+    fifo.virtualAddress_ = edge->allocatedAddress();
+    fifo.size_ = static_cast<u32>(edge->rate());
+    fifo.offset_ = 0;
+    fifo.count_ = 0;
+    const auto *source = edge->source();
+    const auto *sourceTask = schedule->task(source->scheduleTaskIx());
+    if (sourceTask && sourceTask->state() == TaskState::SKIPPED) {
+        fifo.attribute_ = FifoAttribute::RW_AUTO;
+    }
+    if (source->subtype() == pisdf::VertexType::EXTERN_IN) {
+        fifo.attribute_ = FifoAttribute::RW_EXT;
+    } else if (source->subtype() == pisdf::VertexType::FORK) {
+        for (size_t ix = 0; ix < edge->sourcePortIx(); ++ix) {
+            fifo.offset_ += static_cast<u32>(source->outputEdge(ix)->rate());
+        }
+    }
+    if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {
+        fifo.attribute_ = FifoAttribute::RW_OWN;
+    }
+    return fifo;
 }
 
 void spider::sched::SRDAGTask::buildDefaultOutFifos(Fifo *outputFifos, const Schedule *schedule) const {
