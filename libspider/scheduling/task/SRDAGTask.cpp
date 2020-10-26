@@ -111,8 +111,11 @@ std::string spider::sched::SRDAGTask::name() const {
     return vertex_->name();
 }
 
+u32 spider::sched::SRDAGTask::ix() const noexcept {
+    return static_cast<u32>(vertex_->scheduleTaskIx());
+}
+
 void spider::sched::SRDAGTask::setIx(u32 ix) noexcept {
-    Task::setIx(ix);
     vertex_->setScheduleTaskIx(ix);
 }
 

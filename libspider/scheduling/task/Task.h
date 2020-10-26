@@ -86,15 +86,6 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
-             *        on a given PE.
-             * @param mappedPE  PE on which the vertexTask is currently mapped.
-             * @param schedule  Schedule to which the vertexTask is associated.
-             * @return pair containing the communication cost as first and the total size of data to send as second.
-             */
-            std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE, const Schedule *schedule) const;
-
-            /**
              * @brief Send the execution job associated with this vertex to its mapped LRT and set state as RUNNING.
              * @param schedule  Schedule to which the vertexTask is associated.
              */
@@ -186,6 +177,11 @@ namespace spider {
              */
             virtual size_t dependencyCount() const = 0;
 
+
+            /**
+             * @brief Get the number of consumer dependencies for this task.
+             * @return number of dependencies.
+             */
             virtual size_t successorCount() const = 0;
 
             /**
@@ -204,13 +200,13 @@ namespace spider {
              * @brief Returns the PE on which the vertexTask is mapped.
              * @return pointer to the PE onto which the vertexTask is mapped, nullptr else
              */
-            inline const PE *mappedPe() const { return mappedPE_; }
+            const PE *mappedPe() const;
 
             /**
              * @brief Returns the LRT attached to the PE on which the vertexTask is mapped.
              * @return pointer to the LRT, nullptr else
              */
-            inline const PE *mappedLRT() const { return mappedPE_->attachedLRT(); }
+            inline const PE *mappedLRT() const { return mappedPe()->attachedLRT(); }
 
             /**
              * @brief Returns the state of the vertexTask.
@@ -222,7 +218,7 @@ namespace spider {
              * @brief Returns the ix of the vertexTask in the schedule.
              * @return ix of the vertexTask in the schedule, -1 else.
              */
-            inline u32 ix() const noexcept { return ix_; }
+            inline virtual u32 ix() const noexcept { return UINT32_MAX; }
 
             /**
              * @brief Returns the executable job index value of the vertexTask in the job queue of the mapped PE.
@@ -251,7 +247,7 @@ namespace spider {
             * @remark This method will overwrite current values.
             * @param mappedPE  Lrt ix inside spider.
             */
-            inline void setMappedPE(const PE *pe) { mappedPE_ = pe; }
+            inline void setMappedPE(const PE *pe) { mappedPEIx_ = static_cast<u32>(pe->virtualIx()); }
 
             /**
              * @brief Set the state of the job.
@@ -272,7 +268,7 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            virtual inline void setIx(u32 ix) noexcept { ix_ = ix; }
+            virtual void setIx(u32 ix) noexcept = 0;
 
         protected:
 
@@ -302,10 +298,9 @@ namespace spider {
             virtual std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const = 0;
 
         private:
-            const PE *mappedPE_{ nullptr };                 /*!< Mapping PE of the vertexTask */
             u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the vertexTask */
             u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
-            u32 ix_{ UINT32_MAX };                          /*!< Index of the vertexTask in the schedule */
+            u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */
             u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
             TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */
 
@@ -335,13 +330,6 @@ namespace spider {
              * @return True if at least one LRT will be notified by this task.
              */
             bool updateNotificationFlags(bool *flags, const Schedule *schedule) const;
-
-            /**
-             * @brief Check whether or not this job should broadcast its job stamp.
-             * @param schedule  Schedule to which the vertexTask is associated.
-             * @return true if should broadcast, false else.
-             */
-            bool shouldBroadCast(const Schedule *schedule) const;
         };
     }
 }

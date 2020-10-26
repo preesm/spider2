@@ -76,6 +76,8 @@ namespace spider {
 
             inline std::string name() const final { return type_ == SyncType::SEND ? "send" : "receive"; }
 
+            inline u32 ix() const noexcept final { return ix_; }
+
             u64 timingOnPE(const PE *) const final;
 
             inline size_t dependencyCount() const final { return 1u; }
@@ -120,12 +122,15 @@ namespace spider {
              */
             inline void setAlloc(Fifo alloc) { alloc_ = alloc; }
 
+            inline void setIx(u32 ix) noexcept final { ix_ = ix; }
+
         private:
             Fifo alloc_{ };                   /*!< Allocated input fifo. */
             Task *successor_{ nullptr };      /*!< Successor task */
             Task *dependency_{ nullptr };     /*!< Successor task */
             const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
             size_t size_{ 0U };               /*!< Data size (in bytes) to send / receive. */
+            u32 ix_ = UINT32_MAX;
             SyncType type_;
 
             /* === Private method(s) === */

@@ -45,24 +45,8 @@
 
 /* === Method(s) implementation === */
 
-std::pair<ufast64, ufast64> spider::sched::Task::computeCommunicationCost(const PE *mappedPE,
-                                                                          const Schedule *schedule) const {
-    const auto *platform = archi::platform();
-    ufast64 externDataToReceive = 0u;
-    /* == Compute communication cost == */
-    ufast64 communicationCost = 0;
-    for (size_t ix = 0; ix < this->dependencyCount(); ++ix) {
-        const auto *source = this->previousTask(ix, schedule);
-        const auto rate = static_cast<ufast64>(this->inputRate(ix));
-        if (rate && source && source->state() != TaskState::NOT_RUNNABLE) {
-            const auto *mappedPESource = source->mappedPe();
-            communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
-            if (mappedPE->cluster() != mappedPESource->cluster()) {
-                externDataToReceive += rate;
-            }
-        }
-    }
-    return { communicationCost, externDataToReceive };
+const spider::PE *spider::sched::Task::mappedPe() const {
+    return archi::platform()->peFromVirtualIx(mappedPEIx_);
 }
 
 void spider::sched::Task::send(const Schedule *schedule) {
@@ -73,7 +57,7 @@ void spider::sched::Task::send(const Schedule *schedule) {
     /* == Set core properties == */
     message.nParamsOut_ = this->getOutputParamsCount();
     message.kernelIx_ = this->getKernelIx();
-    message.taskIx_ = ix_;
+    message.taskIx_ = this->ix();
     message.ix_ = jobExecIx_;
     /* == Set the synchronization flags == */
     message.synchronizationFlags_ = this->buildJobNotificationFlags(schedule);
@@ -96,59 +80,51 @@ void spider::sched::Task::send(const Schedule *schedule) {
 /* === Private method(s) === */
 
 spider::unique_ptr<bool> spider::sched::Task::buildJobNotificationFlags(const Schedule *schedule) const {
-    /* == Check if task are not ready == */
-    const auto shouldBroadcast = this->shouldBroadCast(schedule);
-    if (!shouldBroadcast) {
-        /* == Update values == */
-        const auto lrtCount{ archi::platform()->LRTCount() };
-        auto flags = spider::make_n<bool, StackID::RUNTIME>(lrtCount, false);
-        if (this->updateNotificationFlags(flags, schedule)) {
-            return make_unique(flags);
-        } else {
-            deallocate(flags);
-            return spider::unique_ptr<bool>();
-        }
+    auto flags = spider::make_n<bool, StackID::RUNTIME>(archi::platform()->LRTCount(), false);
+    if (updateNotificationFlags(flags, schedule)) {
+        return make_unique(flags);
     } else {
-        /* == broadcast to every LRT == */
-        return make_unique(spider::make_n<bool, StackID::RUNTIME>(archi::platform()->LRTCount(), true));
+        deallocate(flags);
+        return spider::unique_ptr<bool>();
     }
 }
 
 spider::array<spider::SyncInfo> spider::sched::Task::buildExecConstraints(const Schedule *schedule) const {
     /* == Get the number of actual execution constraints == */
-    auto shouldNotifyArray = array<size_t>(archi::platform()->LRTCount(), SIZE_MAX, StackID::RUNTIME);
+    using constraint_t = std::pair<size_t, const Task *>;
+    const auto lrtCount = archi::platform()->LRTCount();
+    auto constraintsArray = array<constraint_t>(lrtCount, { SIZE_MAX, nullptr }, StackID::RUNTIME);
     size_t numberOfConstraints{ 0u };
     for (size_t ix = 0; ix < this->dependencyCount(); ++ix) {
-        const auto *source = this->previousTask(ix, schedule);
-        if (source && (source->mappedLRT() != mappedLRT())) {
+        const auto *srcTask = this->previousTask(ix, schedule);
+        if (srcTask && (srcTask->mappedLRT() != mappedLRT())) {
             // TODO: handle SKIPPED source
-            const auto sourceLRTIx = source->mappedLRT()->virtualIx();
-            const auto currentDepIxOnLRT = shouldNotifyArray[sourceLRTIx];
+            const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
+            const auto &currentConstraint = constraintsArray[srcLRTIx];
+            const auto currentDepIxOnLRT = currentConstraint.first;
             const auto gotConstraintOnLRT = currentDepIxOnLRT != SIZE_MAX;
-            if (!gotConstraintOnLRT ||
-                (source->jobExecIx_ > this->previousTask(currentDepIxOnLRT, schedule)->jobExecIx_)) {
+            if (!gotConstraintOnLRT || (srcTask->jobExecIx_ > currentConstraint.second->jobExecIx_)) {
                 numberOfConstraints += !gotConstraintOnLRT;
-                shouldNotifyArray[sourceLRTIx] = ix;
+                constraintsArray[srcLRTIx].first = ix;
+                constraintsArray[srcLRTIx].second = srcTask;
             }
         }
-
     }
     /* == Now build the actual array of synchronization info == */
     auto result = array<SyncInfo>(numberOfConstraints, StackID::RUNTIME);
-    if (!numberOfConstraints) {
-        return result;
-    }
-    auto resultIt = std::begin(result);
-    for (const auto depIx : shouldNotifyArray) {
-        if (depIx != SIZE_MAX) {
-            auto *dependency = this->previousTask(depIx, schedule);
-            /* == Set this dependency as a synchronization constraint == */
-            resultIt->lrtToWait_ = dependency->mappedLRT()->virtualIx();
-            resultIt->jobToWait_ = dependency->jobExecIx();
-            /* == Update iterator == */
-            if ((++resultIt) == std::end(result)) {
-                /* == shortcut to avoid useless other checks == */
-                return result;
+    if (numberOfConstraints) {
+        auto resultIt = std::begin(result);
+        for (const auto &constraint : constraintsArray) {
+            if (constraint.first != SIZE_MAX) {
+                const auto *dependency = constraint.second;
+                /* == Set this dependency as a synchronization constraint == */
+                resultIt->lrtToWait_ = dependency->mappedLRT()->virtualIx();
+                resultIt->jobToWait_ = dependency->jobExecIx();
+                /* == Update iterator == */
+                if ((++resultIt) == std::end(result)) {
+                    /* == shortcut to avoid useless other checks == */
+                    break;
+                }
             }
         }
     }
@@ -157,9 +133,15 @@ spider::array<spider::SyncInfo> spider::sched::Task::buildExecConstraints(const 
 
 bool spider::sched::Task::updateNotificationFlags(bool *flags, const Schedule *schedule) const {
     auto oneTrue = false;
+    auto shouldBroadcast = false;
     for (size_t iOut = 0; iOut < this->successorCount(); ++iOut) {
         const auto *sinkTask = this->nextTask(iOut, schedule);
-        if (sinkTask->state() == TaskState::SKIPPED) {
+        /* == Check if task are not ready == */
+        if (!sinkTask || (sinkTask->state() != TaskState::READY &&
+                          sinkTask->state() != TaskState::SKIPPED)) {
+            shouldBroadcast = true;
+            break;
+        } else if (sinkTask->state() == TaskState::SKIPPED) {
             sinkTask->updateNotificationFlags(flags, schedule);
         }
         auto &currentFlag = flags[sinkTask->mappedLRT()->virtualIx()];
@@ -175,15 +157,11 @@ bool spider::sched::Task::updateNotificationFlags(bool *flags, const Schedule *s
         }
         oneTrue |= currentFlag;
     }
-    return oneTrue;
-}
-
-bool spider::sched::Task::shouldBroadCast(const Schedule *schedule) const {
-    for (size_t iOut = 0; iOut < this->successorCount(); ++iOut) {
-        const auto *sinkTask = this->nextTask(iOut, schedule);
-        if (!sinkTask || (sinkTask->state() != TaskState::READY && sinkTask->state() != TaskState::SKIPPED)) {
-            return true;
-        }
+    if (shouldBroadcast) {
+        /* == broadcast to every LRT == */
+        std::fill(flags, flags + archi::platform()->LRTCount(), true);
+        return true;
+    } else {
+        return oneTrue;
     }
-    return false;
 }

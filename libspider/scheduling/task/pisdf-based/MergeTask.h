@@ -32,13 +32,14 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_PISDFTASK_H
-#define SPIDER2_PISDFTASK_H
+#ifndef SPIDER2_MERGETASK_H
+#define SPIDER2_MERGETASK_H
 
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
 #include <graphs-tools/numerical/detail/DependencyIterator.h>
+#include <runtime/special-kernels/specialKernels.h>
 
 namespace spider {
 
@@ -54,82 +55,63 @@ namespace spider {
 
         /* === Class definition === */
 
-        class PiSDFTask final : public Task {
+        class MergeTask final : public Task {
         public:
-            explicit PiSDFTask(pisdf::GraphFiring *handler,
-                               const pisdf::Vertex *vertex,
-                               u32 firing);
+            MergeTask(const pisdf::DependencyIterator &dependencies,
+                      i32 depCount,
+                      Task *successor,
+                      const Schedule *schedule);
 
-            ~PiSDFTask() noexcept override = default;
+            ~MergeTask() noexcept final = default;
 
             /* === Method(s) === */
 
-            spider::vector<pisdf::DependencyIterator> computeAllDependencies() const;
-
-            void receiveParams(const spider::array<i64> &values) final;
-
-            void insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *schedule) final;
-
             /* === Getter(s) === */
 
-            i64 inputRate(size_t ix) const final;
+            inline i64 inputRate(size_t) const final { return fifos_->inputFifo(0).size_; }
 
-            i64 outputRate(size_t ix) const final;
+            inline i64 outputRate(size_t) const final { return fifos_->outputFifo(0).size_; }
 
             Task *previousTask(size_t ix, const Schedule *schedule) const final;
 
-            Task *nextTask(size_t ix, const Schedule *schedule) const final;
+            Task *nextTask(size_t, const Schedule *schedule) const final;
 
-            u32 color() const final;
+            inline u32 color() const final {
+                /* == Studio Purple == */
+                return 0x8e44ad;
+            }
 
-            std::string name() const final;
+            inline std::string name() const final { return "merge"; }
 
-            u32 ix() const noexcept final;
+            inline u32 ix() const noexcept final { return ix_; }
 
-            bool isMappableOnPE(const PE *pe) const final;
+            u64 timingOnPE(const PE *) const final;
 
-            u64 timingOnPE(const PE *pe) const final;
+            inline size_t dependencyCount() const final { return depInCount_; }
 
-            size_t dependencyCount() const final;
-
-            size_t successorCount() const final;
-
-            const pisdf::Vertex *vertex() const;
+            inline size_t successorCount() const final { return 1u; }
 
             /* === Setter(s) === */
 
-            void setIx(u32 ix) noexcept final;
+            inline void setIx(u32 ix) noexcept final { ix_ = ix; }
 
         private:
             std::shared_ptr<JobFifos> fifos_;
             spider::unique_ptr<u32> inputs_;
-            spider::unique_ptr<u32> outputs_;
-            pisdf::GraphFiring *handler_ = nullptr;
-            u32 vertexIx_ = UINT32_MAX;
-            u32 firing_ = UINT32_MAX;
+            u32 successorIx_ = UINT32_MAX;
             u32 depInCount_ = 0;
-            u32 depOutCount_ = 0;
+            u32 ix_ = 0;
 
             /* === Private method(s) === */
 
-            u32 getOutputParamsCount() const final;
-
-            u32 getKernelIx() const final;
+            inline u32 getKernelIx() const final { return rt::JOIN_KERNEL_IX; }
 
             spider::unique_ptr<i64> buildInputParams() const final;
 
-            std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final;
+            inline std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final { return fifos_; }
 
-            Fifo buildInputFifo(const pisdf::Edge *edge, const Schedule *schedule) const;
-
-            void buildDefaultOutFifos(spider::Fifo *outputFifos, const Schedule *schedule) const;
-
-            void buildExternINOutFifos(spider::Fifo *outputFifos, const Schedule *schedule) const;
-
-            void buildForkOutFifos(spider::Fifo *outputFifos, Fifo inputFifo, const Schedule *schedule) const;
-
-            void buildDupOutFifos(spider::Fifo *outputFifos, Fifo inputFifo, const Schedule *schedule) const;
         };
     }
 }
-#endif //SPIDER2_PISDFTASK_H
+
+#endif //SPIDER2_MERGETASK_H

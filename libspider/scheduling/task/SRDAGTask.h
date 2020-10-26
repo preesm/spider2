@@ -79,6 +79,8 @@ namespace spider {
 
             std::string name() const final;
 
+            u32 ix() const noexcept final;
+
             bool isMappableOnPE(const PE *pe) const final;
 
             u64 timingOnPE(const PE *pe) const final;
