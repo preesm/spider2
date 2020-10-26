@@ -69,6 +69,14 @@ namespace spider {
                 return infos_.size();
             }
 
+            inline size_t total() const {
+                size_t count = 0;
+                for (const auto &dep : infos_) {
+                    count += (dep.rate_ >= 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
+                }
+                return count;
+            }
+
             inline iterator begin() {
                 return infos_.data();
             }
