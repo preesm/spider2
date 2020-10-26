@@ -44,7 +44,6 @@
 #include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGVertex.h>
 #include <graphs/srdag/SRDAGEdge.h>
-#include <graphs/sched/SRDAGSchedVertex.h>
 
 #endif
 
@@ -52,12 +51,12 @@
 #include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/Task.h>
-#include <graphs/sched/SchedGraph.h>
-#include <graphs/sched/SpecialSchedVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/numerical/dependencies.h>
+#include <scheduling/task/pisdf-based/PiSDFTask.h>
+#include <scheduling/task/pisdf-based/MergeTask.h>
 #include <api/archi-api.h>
-#include <archi/Platform.h>
 #include <archi/PE.h>
 #include <common/Time.h>
 
@@ -101,32 +100,61 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graph);
-    /* == Add vertices to the sched::Graph and allocate memory == */
-    const auto currentTaskCount = schedule_->taskCount();
-    for (auto *vertex : result) {
-        auto *task = spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex);
-        schedule_->addTask(task);
-        for (auto *edge : vertex->outputEdges()) {
-            if (vertex->subtype() == pisdf::VertexType::FORK ||
-                vertex->subtype() == pisdf::VertexType::DUPLICATE) {
-                edge->setAlloc(vertex->inputEdge(0)->allocatedAddress());
-            } else if (vertex->subtype() != pisdf::VertexType::EXTERN_IN) {
-                auto fifo = allocator_->allocate(static_cast<size_t>(edge->rate()));
-                edge->setAlloc(fifo.virtualAddress_);
+    mapper_->setStartTime(computeMinStartTime());
+    if (executionPolicy_ == ExecutionPolicy::JIT) {
+        for (auto *vertex : result) {
+            /* == Create and allocate the task == */
+            auto *task = spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex);
+            /* == Map the task == */
+            const auto currentTaskCount = schedule_->taskCount();
+            mapper_->map(task, schedule_.get());
+            /* == Allocate the task == */
+            allocator_->allocate(vertex);
+            /* == Add the task == */
+            if (schedule_->taskCount() > currentTaskCount) {
+                /* == We added synchronization == */
+                for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
+                    auto *syncTask = schedule_->task(i);
+                    syncTask->send(schedule_.get());
+                }
             }
+            schedule_->addTask(task);
+            /* == Send the task == */
+            task->send(schedule_.get());
         }
+    } else if (executionPolicy_ == ExecutionPolicy::DELAYED) {
+        const auto currentTaskCount = schedule_->taskCount();
+        for (auto *vertex : result) {
+            /* == Create and allocate the task == */
+            auto *task = spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex);
+            /* == Map the task == */
+            mapper_->map(task, schedule_.get());
+            /* == Allocate the task == */
+            allocator_->allocate(vertex);
+            /* == Add the task == */
+            schedule_->addTask(task);
+        }
+        for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
+            /* == Send the task == */
+            auto *task = schedule_->task(i);
+            task->send(schedule_.get());
+        }
+    } else {
+        throwSpiderException("unexpected execution policy.");
     }
-    /* == Map and execute the scheduled tasks == */
-    applyExecPolicy(currentTaskCount);
 }
 
 #endif
 
 void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
-    scheduler_->schedule(graphHandler);
-    /* == Map and execute the scheduled tasks == */
-    applyExecPolicy();
+    const auto result = scheduler_->schedule(graphHandler);
+    mapper_->setStartTime(computeMinStartTime());
+    if (executionPolicy_ == ExecutionPolicy::JIT) {
+    } else if (executionPolicy_ == ExecutionPolicy::DELAYED) {
+    } else {
+        throwSpiderException("unexpected execution policy.");
+    }
 }
 
 void spider::sched::ResourcesAllocator::clear() {
@@ -210,37 +238,4 @@ ufast64 spider::sched::ResourcesAllocator::computeMinStartTime() const {
         minStartTime = std::min(minStartTime, schedule_->stats().endTime(pe->virtualIx()));
     }
     return minStartTime;
-}
-
-void spider::sched::ResourcesAllocator::applyExecPolicy(size_t vertexOffset) {
-    mapper_->setStartTime(computeMinStartTime());
-    switch (executionPolicy_) {
-        case ExecutionPolicy::JIT:
-            /* == Map and send tasks == */
-            for (auto k = vertexOffset; k < schedule_->taskCount(); ++k) {
-                /* == Map the task == */
-                auto *task = schedule_->task(k);
-                mapper_->map(task, schedule_.get());
-                /* == Send the task == */
-                task->send(schedule_.get());
-            }
-            break;
-        case ExecutionPolicy::DELAYED: {
-            /* == Map every tasks == */
-            for (auto k = vertexOffset; k < schedule_->taskCount(); ++k) {
-                /* == Map the task == */
-                auto *task = schedule_->task(k);
-                mapper_->map(task, schedule_.get());
-            }
-            /* == Send every tasks == */
-            for (auto k = vertexOffset; k < schedule_->taskCount(); ++k) {
-                /* == Send the task == */
-                auto *task = schedule_->task(k);
-                task->send(schedule_.get());
-            }
-        }
-            break;
-        default:
-            throwSpiderException("unsupported execution policy.");
-    }
 }

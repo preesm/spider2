@@ -38,11 +38,22 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
-#include <api/global-api.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
+
+    namespace srdag {
+        class Vertex;
+    }
+
+    namespace pisdf {
+        class Vertex;
+
+        class GraphFiring;
+
+        class Graph;
+    }
 
     namespace sched {
 
@@ -54,7 +65,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class FifoAllocator {
+        class FifoAllocator final {
         public:
             struct FifoAllocatorTraits {
                 bool jitAllocator_;
@@ -67,21 +78,22 @@ namespace spider {
 
             FifoAllocator() : FifoAllocator({ true, true }) { }
 
-            virtual ~FifoAllocator() noexcept = default;
+            ~FifoAllocator() noexcept = default;
 
             /* === Method(s) === */
 
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            inline virtual void allocate(sched::PiSDFTask *) { }
+
+#ifndef _NO_BUILD_LEGACY_RT
 
             /**
              * @brief Allocate Fifos of a given task.
              * @param task Pointer to the task.
              */
-            inline virtual void allocate(sched::SRDAGTask *) { }
+            void allocate(srdag::Vertex *vertex);
+
+#endif
+
+            void allocate(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
 
             /**
              * @brief Allocate a new fifo with given size.
@@ -105,7 +117,7 @@ namespace spider {
              * @brief Reserve memory for permanent delays.
              * @param graph pointer to the graph.
              */
-            virtual void allocatePersistentDelays(pisdf::Graph *graph);
+            void allocatePersistentDelays(pisdf::Graph *graph);
 
             /* === Getter(s) === */
 
@@ -113,7 +125,7 @@ namespace spider {
              * @brief Get the type of the FifoAllocator
              * @return @refitem FifoAllocatorType
              */
-            virtual FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
+            inline FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
 
             /* === Setter(s) === */
 

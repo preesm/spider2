@@ -129,15 +129,6 @@ namespace spider {
             static Mapper *allocateMapper(MappingPolicy policy);
 
             /**
-             * @brief Apply the @refitem ExecutionPolicy of the ResourceAllocator.
-             * @details - Just-In-Time (JIT) execution policy: In this execution policy,
-             *            tasks are sent to their mapped LRT as soon as they are mapped.
-             *          - Delayed execution policy: In this execution policy, tasks are
-             *            sent to their mapped LRT after EVERY tasks have been mapped.
-             */
-            void applyExecPolicy(size_t vertexOffset = 0);
-
-            /**
              * @brief Compute the minimum start time for the mapper.
              * @return minimum start time.
              */

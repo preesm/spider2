@@ -36,14 +36,68 @@
 /* === Include(s) === */
 
 #include <scheduling/memory/FifoAllocator.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <archi/MemoryInterface.h>
 #include <api/archi-api.h>
-#include <graphs/pisdf/Graph.h>
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+#include <graphs/srdag/SRDAGVertex.h>
+#include <graphs/srdag/SRDAGEdge.h>
+
+#endif
 
 /* === Function(s) definition === */
 
 void spider::sched::FifoAllocator::clear() noexcept {
     virtualMemoryAddress_ = reservedMemory_;
+}
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+void spider::sched::FifoAllocator::allocate(srdag::Vertex *vertex) {
+    for (auto *edge : vertex->outputEdges()) {
+        if (vertex->subtype() == pisdf::VertexType::FORK ||
+            vertex->subtype() == pisdf::VertexType::DUPLICATE) {
+            edge->setAlloc(vertex->inputEdge(0)->allocatedAddress());
+        } else if (vertex->subtype() != pisdf::VertexType::EXTERN_IN) {
+            auto fifo = allocate(static_cast<size_t>(edge->rate()));
+            edge->setAlloc(fifo.virtualAddress_);
+        }
+    }
+}
+
+#endif
+
+void spider::sched::FifoAllocator::allocate(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex) {
+    for (auto *edge : vertex->outputEdges()) {
+        if (handler->getEdgeAlloc(edge) == SIZE_MAX) {
+            if (vertex->subtype() == pisdf::VertexType::FORK ||
+                vertex->subtype() == pisdf::VertexType::DUPLICATE) {
+                handler->registerEdgeAlloc(handler->getEdgeAlloc(vertex->inputEdge(0)), edge);
+            } else if (vertex->subtype() != pisdf::VertexType::EXTERN_IN) {
+                const auto size = static_cast<size_t>(handler->getSourceRate(edge));
+                auto fifo = allocate(size * handler->getRV(vertex));
+                handler->registerEdgeAlloc(fifo.virtualAddress_, edge);
+            }
+        }
+    }
+}
+
+spider::Fifo spider::sched::FifoAllocator::allocate(size_t size) {
+    Fifo fifo{ };
+    fifo.size_ = static_cast<u32>(size);
+    fifo.offset_ = 0;
+    fifo.count_ = size ? 1 : 0;
+    fifo.virtualAddress_ = virtualMemoryAddress_;
+    fifo.attribute_ = FifoAttribute::RW_OWN;
+    if (log::enabled<log::MEMORY>()) {
+        log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size,
+                                virtualMemoryAddress_);
+    }
+    virtualMemoryAddress_ += size;
+    return fifo;
 }
 
 void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph) {
@@ -65,18 +119,3 @@ void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph)
 }
 
 /* === Protected method(s) === */
-
-spider::Fifo spider::sched::FifoAllocator::allocate(size_t size) {
-    Fifo fifo{ };
-    fifo.size_ = static_cast<u32>(size);
-    fifo.offset_ = 0;
-    fifo.count_ = size ? 1 : 0;
-    fifo.virtualAddress_ = virtualMemoryAddress_;
-    fifo.attribute_ = FifoAttribute::RW_OWN;
-    if (log::enabled<log::MEMORY>()) {
-        log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size,
-                                virtualMemoryAddress_);
-    }
-    virtualMemoryAddress_ += size;
-    return fifo;
-}
