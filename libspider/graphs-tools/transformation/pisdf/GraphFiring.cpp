@@ -255,6 +255,14 @@ size_t spider::pisdf::GraphFiring::getEdgeAlloc(const pisdf::Edge *edge) const {
     return edgeAllocAddress_.get()[edge->ix()];
 }
 
+const spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) const {
+    return parent_->graph()->vertex(ix);
+}
+
+spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) {
+    return parent_->graph()->vertex(ix);
+}
+
 void spider::pisdf::GraphFiring::registerEdgeAlloc(size_t value, const pisdf::Edge *edge) {
     edgeAllocAddress_.get()[edge->ix()] = value;
 }

@@ -170,6 +170,10 @@ namespace spider {
              */
             const GraphFiring *getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const;
 
+            const pisdf::Vertex *vertex(size_t ix) const;
+
+            pisdf::Vertex *vertex(size_t ix);
+
             size_t getEdgeAlloc(const pisdf::Edge *edge) const;
 
             /* === Setter(s) === */
