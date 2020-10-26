@@ -56,8 +56,10 @@ namespace spider {
 
         struct VertexFiring {
             pisdf::GraphFiring *handler_;
-            const pisdf::Vertex *vertex_;
+            u32 vertexIx_;
             u32 firing_;
+            u32 depCount_;
+            u32 mergedFifoCount_;
         };
     }
 

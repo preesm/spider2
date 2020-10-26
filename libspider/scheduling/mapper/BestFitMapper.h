@@ -60,6 +60,8 @@ namespace spider {
 
             void map(sched::Task *task, Schedule *schedule) override;
 
+            void map(sched::PiSDFTask *task, Schedule *schedule) override;
+
             /* === Getter(s) === */
 
             /* === Setter(s) === */
@@ -74,7 +76,14 @@ namespace spider {
                 bool needToAddCommunication{ false };
             };
 
+            using StartTimeFct = ufast64 (*)(const Task *, const Schedule *);
+            using ComCostFct = std::pair<ufast64, ufast64>(*)(const Task *, const PE *mappedPE, const Schedule *);
+            using MapSyncFct = void (*)(Task *, const Cluster *cluster, Schedule *);
+
             /* === Private method(s) === */
+
+            template<class ...Args>
+            void mapImpl(Task *task, Schedule *schedule, Args &&... args);
 
             /**
              * @brief Find which PE is the best fit inside a given cluster.
@@ -90,6 +99,14 @@ namespace spider {
                                            ufast64 minStartTime);
 
             static void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
+
+            static void mapCommunications(Task *task,
+                                          const Cluster *cluster,
+                                          Schedule *schedule,
+                                          const spider::vector<pisdf::DependencyIterator> &dependencies);
+
+            static void
+            mapCommunications(Task *task, Task *srcTask, size_t depIx, const Cluster *cluster, Schedule *schedule);
         };
     }
 }

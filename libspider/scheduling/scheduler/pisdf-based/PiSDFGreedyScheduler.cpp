@@ -105,7 +105,7 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
         }
         if (schedulable) {
             handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
-            result.push_back({ handler, vertex, firing });
+            result.push_back({ handler, static_cast<u32>(vertex->ix()), firing, depCount, mergedFifoCount });
         }
     }
     return schedulable;

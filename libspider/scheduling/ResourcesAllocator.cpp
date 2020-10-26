@@ -150,6 +150,12 @@ void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandle
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graphHandler);
     mapper_->setStartTime(computeMinStartTime());
+
+    for (auto &r : result) {
+        const auto *vertex = r.handler_->vertex(r.vertexIx_);
+        auto *task = spider::make<sched::PiSDFTask, StackID::SCHEDULE>(r.handler_, vertex,  r.firing_);
+        mapper_->map(task, schedule_.get());
+    }
     if (executionPolicy_ == ExecutionPolicy::JIT) {
     } else if (executionPolicy_ == ExecutionPolicy::DELAYED) {
     } else {

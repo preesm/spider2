@@ -37,6 +37,11 @@
 
 #include <scheduling/mapper/Mapper.h>
 #include <scheduling/task/Task.h>
+#include <scheduling/schedule/Schedule.h>
+#include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <archi/Platform.h>
+#include <api/archi-api.h>
 
 /* === Static function === */
 
@@ -51,4 +56,73 @@ ufast64 spider::sched::Mapper::computeStartTime(const Task *task, const Schedule
         }
     }
     return minTime;
+}
+
+ufast64 spider::sched::Mapper::computeStartTime(const Task *task,
+                                                const Schedule *schedule,
+                                                const spider::vector<pisdf::DependencyIterator> &dependencies) const {
+    auto minTime = startTime_;
+    if (!task) {
+        return minTime;
+    }
+    for (const auto &depIt : dependencies) {
+        for (const auto &dep : depIt) {
+            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                const auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+                minTime = std::max(minTime, srcTask ? srcTask->endTime() : ufast64{ 0 });
+            }
+        }
+    }
+    return minTime;
+}
+
+std::pair<ufast64, ufast64> spider::sched::Mapper::computeCommunicationCost(const Task *task,
+                                                                            const PE *mappedPE,
+                                                                            const Schedule *schedule) {
+    /* == Compute communication cost == */
+    ufast64 externDataToReceive = 0u;
+    ufast64 communicationCost = 0;
+    for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
+        const auto *srcTask = task->previousTask(ix, schedule);
+        const auto rate = static_cast<ufast64>(task->inputRate(ix));
+        updateCommunicationCost(mappedPE, srcTask, rate, communicationCost, externDataToReceive);
+    }
+    return { communicationCost, externDataToReceive };
+}
+
+std::pair<ufast64, ufast64>
+spider::sched::Mapper::computeCommunicationCost(const Task *,
+                                                const spider::PE *mappedPE,
+                                                const Schedule *schedule,
+                                                const spider::vector<pisdf::DependencyIterator> &dependencies) {
+    /* == Compute communication cost == */
+    ufast64 externDataToReceive = 0u;
+    ufast64 communicationCost = 0;
+    for (const auto &depIt : dependencies) {
+        for (const auto &dep : depIt) {
+            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
+                const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
+                const auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+                const auto rate = (dep.rate_ > 0) * (memoryEnd - memoryStart + 1);
+                updateCommunicationCost(mappedPE, srcTask, rate, communicationCost, externDataToReceive);
+            }
+        }
+    }
+    return { communicationCost, externDataToReceive };
+}
+
+void spider::sched::Mapper::updateCommunicationCost(const spider::PE *mappedPE,
+                                                    const Task *srcTask,
+                                                    ufast64 rate,
+                                                    ufast64 &communicationCost,
+                                                    ufast64 &externDataToReceive) {
+    const auto *platform = archi::platform();
+    if (rate && srcTask && srcTask->state() != TaskState::NOT_RUNNABLE) {
+        const auto *mappedPESource = srcTask->mappedPe();
+        communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
+        if (mappedPE->cluster() != mappedPESource->cluster()) {
+            externDataToReceive += rate;
+        }
+    }
 }

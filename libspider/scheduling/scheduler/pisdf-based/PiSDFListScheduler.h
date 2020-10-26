@@ -76,6 +76,8 @@ namespace spider {
                 pisdf::GraphFiring *handler_;
                 i32 level_;
                 u32 firing_;
+                u32 depCount_;
+                u32 mergedFifoCount_;
             };
 
             /* === Members === */
