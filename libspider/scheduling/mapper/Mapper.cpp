@@ -38,7 +38,6 @@
 #include <scheduling/mapper/Mapper.h>
 #include <scheduling/task/Task.h>
 #include <scheduling/schedule/Schedule.h>
-#include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <archi/Platform.h>
 #include <api/archi-api.h>

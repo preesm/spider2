@@ -59,6 +59,7 @@
 #include <api/archi-api.h>
 #include <archi/PE.h>
 #include <common/Time.h>
+#include <scheduling/launcher/TaskLauncher.h>
 
 /* === Static function === */
 
@@ -100,6 +101,7 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graph);
+    const auto launcher = TaskLauncher{ schedule_.get() };
     mapper_->setStartTime(computeMinStartTime());
     if (executionPolicy_ == ExecutionPolicy::JIT) {
         for (auto *vertex : result) {
@@ -115,12 +117,12 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
                 /* == We added synchronization == */
                 for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
                     auto *syncTask = schedule_->task(i);
-                    syncTask->send(schedule_.get());
+                    syncTask->visit(&launcher);
                 }
             }
             schedule_->addTask(task);
             /* == Send the task == */
-            task->send(schedule_.get());
+            task->visit(&launcher);
         }
     } else if (executionPolicy_ == ExecutionPolicy::DELAYED) {
         const auto currentTaskCount = schedule_->taskCount();
@@ -137,7 +139,7 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
         for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
             /* == Send the task == */
             auto *task = schedule_->task(i);
-            task->send(schedule_.get());
+            task->visit(&launcher);
         }
     } else {
         throwSpiderException("unexpected execution policy.");
@@ -149,6 +151,7 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
 void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graphHandler);
+    const auto launcher = TaskLauncher{ schedule_.get() };
     mapper_->setStartTime(computeMinStartTime());
     if (executionPolicy_ == ExecutionPolicy::JIT) {
         for (auto &schedVertex : result) {
@@ -165,12 +168,12 @@ void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandle
                 /* == We added synchronization == */
                 for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
                     auto *syncTask = schedule_->task(i);
-                    syncTask->send(schedule_.get());
+                    syncTask->visit(&launcher);
                 }
             }
             schedule_->addTask(task);
             /* == Send the task == */
-            task->send(schedule_.get());
+            task->visit(&launcher);
         }
     } else if (executionPolicy_ == ExecutionPolicy::DELAYED) {
         const auto currentTaskCount = schedule_->taskCount();
@@ -189,7 +192,7 @@ void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandle
         for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
             /* == Send the task == */
             auto *task = schedule_->task(i);
-            task->send(schedule_.get());
+            task->visit(&launcher);
         }
     } else {
         throwSpiderException("unexpected execution policy.");

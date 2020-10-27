@@ -64,11 +64,19 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<pisdf::DependencyIterator> computeAllDependencies() const;
+            void visit(const sched::TaskLauncher *launcher) final;
 
             void receiveParams(const spider::array<i64> &values) final;
 
             void insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *schedule) final;
+
+            spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
+
+            spider::vector<pisdf::DependencyIterator> computeConsDependencies() const;
+
+            std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule,
+                                                    const spider::vector<pisdf::DependencyIterator> &execDeps,
+                                                    const spider::vector<pisdf::DependencyIterator> &consDeps) const;
 
             /* === Getter(s) === */
 
@@ -89,7 +97,6 @@ namespace spider {
             void setIx(u32 ix) noexcept final;
 
         private:
-            std::shared_ptr<JobFifos> fifos_;
             pisdf::GraphFiring *handler_ = nullptr;
             u32 vertexIx_ = UINT32_MAX;
             u32 firing_ = UINT32_MAX;
@@ -101,8 +108,6 @@ namespace spider {
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
-
-            std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final;
 
             Fifo buildInputFifo(const pisdf::Edge *edge, const Schedule *schedule) const;
 

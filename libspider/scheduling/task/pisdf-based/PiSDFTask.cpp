@@ -38,6 +38,7 @@
 #include <scheduling/task/pisdf-based/PiSDFTask.h>
 #include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/launcher/TaskLauncher.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Vertex.h>
@@ -63,14 +64,8 @@ spider::sched::PiSDFTask::PiSDFTask(pisdf::GraphFiring *handler,
     vertexIx_ = static_cast<u32>(vertex->ix());
 }
 
-spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeAllDependencies() const {
-    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
-    const auto *vertex = this->vertex();
-    spider::reserve(result, vertex->inputEdgeCount());
-    for (const auto *edge : vertex->inputEdges()) {
-        result.emplace_back(pisdf::computeExecDependency(vertex, firing_, edge->sinkPortIx(), handler_));
-    }
-    return result;
+void spider::sched::PiSDFTask::visit(const TaskLauncher *launcher) {
+    launcher->visit(this);
 }
 
 void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
@@ -90,9 +85,33 @@ void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
 }
 
 void spider::sched::PiSDFTask::insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *) {
-    const auto fifo = fifos_->inputFifo(ix);
-    sndTask->setAlloc(fifo);
-    rcvTask->setAlloc(fifo);
+//    const auto fifo = fifos_->inputFifo(ix);
+//    sndTask->setAlloc(fifo);
+//    rcvTask->setAlloc(fifo);
+}
+
+spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeExecDependencies() const {
+    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
+    const auto *vertex = this->vertex();
+    if (vertex->inputEdgeCount()) {
+        spider::reserve(result, vertex->inputEdgeCount());
+        for (const auto *edge : vertex->inputEdges()) {
+            result.emplace_back(pisdf::computeExecDependency(vertex, firing_, edge->sinkPortIx(), handler_));
+        }
+    }
+    return result;
+}
+
+spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeConsDependencies() const {
+    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
+    const auto *vertex = this->vertex();
+    if (vertex->outputEdgeCount()) {
+        spider::reserve(result, vertex->outputEdgeCount());
+        for (const auto *edge : vertex->outputEdges()) {
+            result.emplace_back(pisdf::computeConsDependency(vertex, firing_, edge->sourcePortIx(), handler_));
+        }
+    }
+    return result;
 }
 
 u32 spider::sched::PiSDFTask::color() const {
@@ -141,8 +160,12 @@ spider::unique_ptr<i64> spider::sched::PiSDFTask::buildInputParams() const {
     return pisdf::buildVertexRuntimeInputParameters(vertex(), handler_->getParams());
 }
 
-std::shared_ptr<spider::JobFifos> spider::sched::PiSDFTask::buildJobFifos(const Schedule *) const {
-//    const auto *vertex = this->vertex();
+
+std::shared_ptr<spider::JobFifos>
+spider::sched::PiSDFTask::buildJobFifos(const Schedule *schedule,
+                                        const spider::vector<pisdf::DependencyIterator> &execDeps,
+                                        const spider::vector<pisdf::DependencyIterator> &consDeps) const {
+    const auto *vertex = this->vertex();
 //    auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(vertex->inputEdgeCount(), vertex->outputEdgeCount());
 //    /* == Allocate input fifos == */
 //    for (const auto *edge : vertex->inputEdges()) {
@@ -163,7 +186,8 @@ std::shared_ptr<spider::JobFifos> spider::sched::PiSDFTask::buildJobFifos(const 
 //            buildDefaultOutFifos(fifos->outputFifos().data(), schedule);
 //            break;
 //    }
-    return fifos_;
+//    return fifos_;
+    return std::shared_ptr<JobFifos>();
 }
 
 spider::Fifo spider::sched::PiSDFTask::buildInputFifo(const pisdf::Edge *edge, const Schedule *schedule) const {

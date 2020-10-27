@@ -36,12 +36,9 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/BestFitMapper.h>
-#include <scheduling/schedule/Schedule.h>
-#include <scheduling/task/SyncTask.h>
 #include <scheduling/task/pisdf-based/PiSDFTask.h>
-#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <scheduling/schedule/Schedule.h>
 #include <archi/Platform.h>
-#include <archi/MemoryBus.h>
 
 /* === Static function === */
 
@@ -68,7 +65,7 @@ void spider::sched::BestFitMapper::map(PiSDFTask *task, Schedule *schedule) {
     }
     task->setState(TaskState::PENDING);
     /* == Map pisdf task with dependencies == */
-    mapImpl(task, schedule, task->computeAllDependencies());
+    mapImpl(task, schedule, task->computeExecDependencies());
 }
 
 /* === Private method(s) implementation === */

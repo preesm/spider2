@@ -58,6 +58,8 @@ namespace spider {
 
         class Schedule;
 
+        class TaskLauncher;
+
         enum class TaskState : u8 {
             NOT_SCHEDULABLE = 0,
             NOT_RUNNABLE,
@@ -85,11 +87,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            /**
-             * @brief Send the execution job associated with this vertex to its mapped LRT and set state as RUNNING.
-             * @param schedule  Schedule to which the vertexTask is associated.
-             */
-            void send(const Schedule *schedule);
+            virtual void visit(const sched::TaskLauncher *launcher);
 
             /**
              * @brief Update output params based on received values.
@@ -270,8 +268,6 @@ namespace spider {
              */
             virtual void setIx(u32 ix) noexcept = 0;
 
-        protected:
-
             /**
              * @brief Get the number of output parameters of this task (default is 0).
              * @return number of output parameters.
@@ -295,7 +291,9 @@ namespace spider {
              * @param schedule Pointer to the schedule.
              * @return @refitem std::shared_ptr of @refitem JobFifos
              */
-            virtual std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const = 0;
+            inline virtual std::shared_ptr<JobFifos> buildJobFifos(const Schedule */*schedule*/) const {
+                return std::shared_ptr<JobFifos>();
+            }
 
         private:
             u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the vertexTask */
@@ -303,33 +301,6 @@ namespace spider {
             u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */
             u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
             TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */
-
-            /* === Private method(s) === */
-
-            /**
-             * @brief Build the notification flags for this task.
-             * @param schedule  Pointer to the schedule.
-             * @return array of only true booleans if this task need to broadcast its job stamp,
-             *         empty array if no notifications are required,
-             *         array with corresponding flags for each LRT else.
-             */
-            spider::unique_ptr<bool> buildJobNotificationFlags(const Schedule *schedule) const;
-
-            /**
-             * @brief Build execution constraints for this task (needed job + lrt).
-             * @param schedule Pointer to the schedule.
-             * @return array of constraints if any, empty array else.
-             */
-            spider::array<SyncInfo> buildExecConstraints(const Schedule *schedule) const;
-
-            /**
-             * @brief Based on current state of the mapping / scheduling, fill the boolean array "flags" with
-             *        true if given LRT is to be notified, false else.
-             * @param flags    Array of boolean, should be EXACTLY of size archi::platform()->LRTCount();
-             * @param schedule Pointer to the schedule.
-             * @return True if at least one LRT will be notified by this task.
-             */
-            bool updateNotificationFlags(bool *flags, const Schedule *schedule) const;
         };
     }
 }
