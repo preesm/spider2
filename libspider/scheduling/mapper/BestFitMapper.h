@@ -38,7 +38,6 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/Mapper.h>
-#include <scheduling/schedule/ScheduleStats.h>
 
 namespace spider {
 
@@ -93,20 +92,8 @@ namespace spider {
              * @param task          Pointer to the vertexTask.
              * @return best fit PE found, nullptr if no fit was found.
              */
-            static const PE *findBestFitPE(const Cluster *cluster,
-                                           const Stats &stats,
-                                           const Task *task,
-                                           ufast64 minStartTime);
-
-            static void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
-
-            static void mapCommunications(Task *task,
-                                          const Cluster *cluster,
-                                          Schedule *schedule,
-                                          const spider::vector<pisdf::DependencyIterator> &dependencies);
-
-            static void
-            mapCommunications(Task *task, Task *srcTask, size_t depIx, const Cluster *cluster, Schedule *schedule);
+            const PE *
+            findPE(const Cluster *cluster, const Stats &stats, const Task *task, ufast64 minStartTime) const final;
         };
     }
 }

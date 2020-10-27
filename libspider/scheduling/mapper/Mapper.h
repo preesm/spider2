@@ -37,17 +37,15 @@
 
 /* === Include(s) === */
 
+#include <utility>
 #include <common/Types.h>
 #include <containers/vector.h>
-#include <utility>
+#include <scheduling/schedule/ScheduleStats.h>
+#include <graphs-tools/numerical/dependencies.h>
 
 namespace spider {
 
     class PE;
-
-    namespace pisdf {
-        class DependencyIterator;
-    }
 
     namespace sched {
 
@@ -89,6 +87,17 @@ namespace spider {
             ufast64 startTime_{ 0U };
 
             /* === Protected method(s) === */
+
+            /**
+             * @brief Find which PE is the best fit inside a given cluster.
+             * @param cluster       Cluster to go through.
+             * @param stats         Schedule information about current usage of PEs.
+             * @param minStartTime  Lower bound for start time.
+             * @param task          Pointer to the vertexTask.
+             * @return best fit PE found, nullptr if no fit was found.
+             */
+            virtual const PE *
+            findPE(const Cluster *cluster, const Stats &stats, const Task *task, ufast64 minStartTime) const = 0;
 
             /**
              * @brief Compute the minimum start time possible for a given task.
@@ -139,6 +148,20 @@ namespace spider {
                                                 ufast64 rate,
                                                 ufast64 &communicationCost,
                                                 ufast64 &externDataToReceive);
+
+
+            void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule) const;
+
+            void mapCommunications(Task *task,
+                                   const Cluster *cluster,
+                                   Schedule *schedule,
+                                   const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+
+            void mapCommunications(Task *task,
+                                   Task *srcTask,
+                                   size_t depIx,
+                                   const Cluster *cluster,
+                                   Schedule *schedule) const;
 
         };
     }
