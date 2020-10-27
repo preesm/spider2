@@ -117,14 +117,14 @@ namespace spider {
              * @param ix  Index of the input fifo.
              * @return rate of the fifo.
              */
-            virtual i64 inputRate(size_t ix) const = 0;
+            virtual inline i64 inputRate(size_t /*ix*/) const { return 0; }
 
             /**
              * @brief Get the output rate for the fifo of index ix.
              * @param ix  Index of the output fifo.
              * @return rate of the fifo.
              */
-            virtual i64 outputRate(size_t ix) const = 0;
+            virtual inline i64 outputRate(size_t /*ix*/) const { return 0; }
 
             /**
              * @brief Get the previous Task of a given index.
@@ -133,7 +133,7 @@ namespace spider {
              * @return pointer to the previous Task, nullptr else.
              * @throws @refitem spider::Exception if index out of bound (only in debug)
              */
-            virtual Task *previousTask(size_t ix, const Schedule *schedule) const = 0;
+            virtual inline Task *previousTask(size_t /*ix*/, const Schedule */*schedule*/) const { return nullptr; }
 
             /**
              * @brief Get the next Task of a given index.
@@ -142,7 +142,7 @@ namespace spider {
              * @return pointer to the next Task, nullptr else.
              * @throws @refitem spider::Exception if index out of bound (only in debug)
              */
-            virtual Task *nextTask(size_t ix, const Schedule *schedule) const = 0;
+            virtual inline Task *nextTask(size_t /*ix*/, const Schedule */*schedule*/) const { return nullptr; }
 
             /**
              * @brief Return a color value for the vertexTask.
@@ -175,14 +175,14 @@ namespace spider {
              * @brief Get the number of execution dependencies for this task.
              * @return number of dependencies.
              */
-            virtual size_t dependencyCount() const = 0;
+            virtual inline size_t dependencyCount() const { return 0; }
 
 
             /**
              * @brief Get the number of consumer dependencies for this task.
              * @return number of dependencies.
              */
-            virtual size_t successorCount() const = 0;
+            virtual inline size_t successorCount() const { return 0; }
 
             /**
              * @brief Get the start time of the vertexTask.

@@ -36,7 +36,6 @@
 /* === Include(s) === */
 
 #include <scheduling/task/pisdf-based/PiSDFTask.h>
-#include <scheduling/task/pisdf-based/MergeTask.h>
 #include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs/pisdf/ExternInterface.h>
@@ -45,9 +44,9 @@
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
+#include <graphs-tools/numerical/dependencies.h>
 #include <runtime/common/Fifo.h>
 #include <api/runtime-api.h>
-#include <graphs-tools/numerical/dependencies.h>
 
 /* === Static function === */
 
@@ -55,30 +54,13 @@
 
 spider::sched::PiSDFTask::PiSDFTask(pisdf::GraphFiring *handler,
                                     const pisdf::Vertex *vertex,
-                                    u32 firing) :
-        Task(),
-        handler_{ handler },
-        firing_{ firing } {
+                                    u32 firing) : Task(),
+                                                  handler_{ handler },
+                                                  firing_{ firing } {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    for (const auto *edge : vertex->outputEdges()) {
-        const auto count = pisdf::computeConsDependencyCount(vertex, firing, edge->sourcePortIx(), handler);
-        depOutCount_ += static_cast<u32>((count >= 0) * count);
-    }
     vertexIx_ = static_cast<u32>(vertex->ix());
-//    depIx = 0;
-//    outputs_ = spider::make_unique(spider::make_n<u32, StackID::SCHEDULE>(depOutCount_, UINT32_MAX));
-//    for (const auto *edge : vertex->outputEdges()) {
-//        const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
-//        for (const auto &dep : deps) {
-//            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-//                const auto *snkTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
-//                outputs_.get()[depIx] = snkTask ? snkTask->ix() : UINT32_MAX;
-//                depIx++;
-//            }
-//        }
-//    }
 }
 
 spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeAllDependencies() const {
@@ -113,32 +95,6 @@ void spider::sched::PiSDFTask::insertSyncTasks(SyncTask *sndTask, SyncTask *rcvT
     rcvTask->setAlloc(fifo);
 }
 
-i64 spider::sched::PiSDFTask::inputRate(size_t ix) const {
-    return fifos_->inputFifo(ix).size_;
-}
-
-i64 spider::sched::PiSDFTask::outputRate(size_t ix) const {
-    return fifos_->outputFifo(ix).size_;
-}
-
-spider::sched::Task *spider::sched::PiSDFTask::previousTask(size_t ix, const Schedule *schedule) const {
-#ifndef NDEBUG
-    if (ix >= depInCount_) {
-        throwSpiderException("invalid dependency index.");
-    }
-#endif
-    return schedule->task(inputs_.get()[ix]);
-}
-
-spider::sched::Task *spider::sched::PiSDFTask::nextTask(size_t ix, const Schedule *schedule) const {
-#ifndef NDEBUG
-    if (ix >= depOutCount_) {
-        throwSpiderException("invalid dependency index.");
-    }
-#endif
-    return schedule->task(outputs_.get()[ix]);
-}
-
 u32 spider::sched::PiSDFTask::color() const {
     const auto *vertex = this->vertex();
     const u32 red = static_cast<u8>((reinterpret_cast<uintptr_t>(vertex) >> 3u) * 50 + 100);
@@ -165,14 +121,6 @@ bool spider::sched::PiSDFTask::isMappableOnPE(const spider::PE *pe) const {
 
 u64 spider::sched::PiSDFTask::timingOnPE(const spider::PE *pe) const {
     return static_cast<u64>(vertex()->runtimeInformation()->timingOnPE(pe, handler_->getParams()));
-}
-
-size_t spider::sched::PiSDFTask::dependencyCount() const {
-    return depInCount_;
-}
-
-size_t spider::sched::PiSDFTask::successorCount() const {
-    return depOutCount_;
 }
 
 const spider::pisdf::Vertex *spider::sched::PiSDFTask::vertex() const {

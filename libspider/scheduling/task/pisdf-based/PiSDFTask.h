@@ -72,14 +72,6 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            i64 inputRate(size_t ix) const final;
-
-            i64 outputRate(size_t ix) const final;
-
-            Task *previousTask(size_t ix, const Schedule *schedule) const final;
-
-            Task *nextTask(size_t ix, const Schedule *schedule) const final;
-
             u32 color() const final;
 
             std::string name() const final;
@@ -90,10 +82,6 @@ namespace spider {
 
             u64 timingOnPE(const PE *pe) const final;
 
-            size_t dependencyCount() const final;
-
-            size_t successorCount() const final;
-
             const pisdf::Vertex *vertex() const;
 
             /* === Setter(s) === */
@@ -102,13 +90,9 @@ namespace spider {
 
         private:
             std::shared_ptr<JobFifos> fifos_;
-            spider::unique_ptr<u32> inputs_;
-            spider::unique_ptr<u32> outputs_;
             pisdf::GraphFiring *handler_ = nullptr;
             u32 vertexIx_ = UINT32_MAX;
             u32 firing_ = UINT32_MAX;
-            u32 depInCount_ = 0;
-            u32 depOutCount_ = 0;
 
             /* === Private method(s) === */
 
