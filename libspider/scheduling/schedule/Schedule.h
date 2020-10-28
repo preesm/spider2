@@ -39,7 +39,6 @@
 
 #include <containers/vector.h>
 #include <memory/unique_ptr.h>
-#include <graphs/sched/SchedGraph.h>
 #include <scheduling/schedule/ScheduleStats.h>
 #include <scheduling/task/Task.h>
 
