@@ -62,7 +62,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Ver
     }
 #endif
     const auto *edge = vertex->inputEdge(edgeIx);
-    const auto snkRate = handler->getSinkRate(edge);
+    const auto snkRate = handler->getSnkRate(edge);
     if (!snkRate) {
         return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
     }
@@ -84,7 +84,7 @@ i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
     }
 #endif
     const auto *edge = vertex->inputEdge(edgeIx);
-    const auto snkRate = handler->getSinkRate(edge);
+    const auto snkRate = handler->getSnkRate(edge);
     if (!snkRate) {
         return 0;
     }
@@ -102,7 +102,7 @@ spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Ver
     }
 #endif
     const auto *edge = vertex->outputEdge(edgeIx);
-    const auto srcRate = handler->getSourceRate(edge);
+    const auto srcRate = handler->getSrcRate(edge);
     if (!srcRate) {
         return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
     }
@@ -124,7 +124,7 @@ i32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
     }
 #endif
     const auto *edge = vertex->outputEdge(edgeIx);
-    const auto srcRate = handler->getSourceRate(edge);
+    const auto srcRate = handler->getSrcRate(edge);
     if (!srcRate) {
         return 0;
     }

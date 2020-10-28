@@ -180,7 +180,7 @@ spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
-int64_t spider::pisdf::GraphFiring::getSourceRate(const pisdf::Edge *edge) const {
+int64_t spider::pisdf::GraphFiring::getSrcRate(const pisdf::Edge *edge) const {
 #ifndef NDEBUG
     if (edge->graph() != parent_->graph()) {
         throwSpiderException("edge does not belong to this graph.");
@@ -190,7 +190,7 @@ int64_t spider::pisdf::GraphFiring::getSourceRate(const pisdf::Edge *edge) const
     return rates_.get()[edge->ix()].srcRate_;
 }
 
-int64_t spider::pisdf::GraphFiring::getSinkRate(const pisdf::Edge *edge) const {
+int64_t spider::pisdf::GraphFiring::getSnkRate(const pisdf::Edge *edge) const {
 #ifndef NDEBUG
     if (edge->graph() != parent_->graph()) {
         throwSpiderException("edge does not belong to this graph.");
@@ -251,7 +251,7 @@ void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     }
 }
 
-size_t spider::pisdf::GraphFiring::getEdgeAlloc(const pisdf::Edge *edge) const {
+size_t spider::pisdf::GraphFiring::getEdgeAddress(const pisdf::Edge *edge) const {
     return edgeAllocAddress_.get()[edge->ix()];
 }
 
@@ -263,7 +263,7 @@ spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) {
     return parent_->graph()->vertex(ix);
 }
 
-void spider::pisdf::GraphFiring::registerEdgeAlloc(size_t value, const pisdf::Edge *edge) {
+void spider::pisdf::GraphFiring::setEdgeAddress(size_t value, const pisdf::Edge *edge) {
     edgeAllocAddress_.get()[edge->ix()] = value;
 }
 

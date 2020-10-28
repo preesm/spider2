@@ -81,8 +81,6 @@ spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
         result[k].handler_ = task.handler_;
         result[k].vertexIx_ = static_cast<u32>(task.vertex_->ix());
         result[k].firing_ = task.firing_;
-        result[k].depCount_ = task.depCount_;
-        result[k].mergedFifoCount_ = task.mergedFifoCount_;
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
     /* == Remove scheduled vertices == */
@@ -138,7 +136,7 @@ void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
                                                        pisdf::GraphFiring *handler) {
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
-        sortedTaskVector_.push_back({ vertex, handler, -1, firing, 0, 0 });
+        sortedTaskVector_.push_back({ vertex, handler, -1, firing });
         handler->registerTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }
@@ -172,10 +170,8 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) 
         const auto *platform = archi::platform();
         i32 level = 0;
         for (const auto *edge : vertex->inputEdges()) {
-            const auto current = listTask.depCount_;
             auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
             for (const auto &dep : deps) {
-                listTask.depCount_ += (dep.firingEnd_ - dep.firingStart_ + 1u);
                 const auto *source = dep.vertex_;
                 if (source && dep.rate_ > 0) {
                     const auto *sourceRTInfo = source->runtimeInformation();
@@ -209,7 +205,6 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) 
                     }
                 }
             }
-            listTask.mergedFifoCount_ += ((current + 1) < listTask.depCount_);
         }
         listTask.level_ = level;
     }

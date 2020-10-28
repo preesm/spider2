@@ -51,15 +51,13 @@
 #include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
 #include <scheduling/memory/FifoAllocator.h>
+#include <scheduling/launcher/TaskLauncher.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
-#include <graphs-tools/numerical/dependencies.h>
-#include <scheduling/task/pisdf-based/PiSDFTask.h>
-#include <scheduling/task/pisdf-based/MergeTask.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <api/archi-api.h>
 #include <archi/PE.h>
 #include <common/Time.h>
-#include <scheduling/launcher/TaskLauncher.h>
 
 /* === Static function === */
 

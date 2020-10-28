@@ -36,7 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/BestFitMapper.h>
-#include <scheduling/task/pisdf-based/PiSDFTask.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>

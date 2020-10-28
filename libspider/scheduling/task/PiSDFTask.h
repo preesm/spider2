@@ -88,6 +88,10 @@ namespace spider {
 
             const pisdf::Vertex *vertex() const;
 
+            inline pisdf::GraphFiring *handler() const { return handler_; }
+
+            inline u32 firing() const { return firing_; }
+
             /* === Setter(s) === */
 
             void setIx(u32 ix) noexcept final;

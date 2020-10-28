@@ -39,6 +39,7 @@
 
 #include <runtime/common/Fifo.h>
 #include <scheduling/memory/JobFifos.h>
+#include <graphs-tools/numerical/dependencies.h>
 
 namespace spider {
 
@@ -127,6 +128,10 @@ namespace spider {
 
             spider::unique_ptr<JobFifos> buildJobFifos(SyncTask *task) const;
 
+            spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task,
+                                                       const spider::vector<pisdf::DependencyIterator> &execDeps,
+                                                       const spider::vector<pisdf::DependencyIterator> &consDeps);
+
             /* === Getter(s) === */
 
             /**
@@ -161,6 +166,23 @@ namespace spider {
             static Fifo buildOutputFifo(const srdag::Edge *edge);
 
 #endif
+
+            static Fifo buildInputFifo(const pisdf::Edge *edge,
+                                       u32 size,
+                                       u32 offset,
+                                       u32 firing,
+                                       const pisdf::GraphFiring *handler);
+
+            static Fifo buildOutputFifo(const JobFifos *fifos,
+                                        const pisdf::Edge *edge,
+                                        const pisdf::GraphFiring *handler,
+                                        const pisdf::DependencyIterator &depIt,
+                                        u32 firing);
+
+            Fifo buildMergeFifo(Fifo *fifos,
+                                const PiSDFTask *task,
+                                const pisdf::Edge *edge,
+                                const pisdf::DependencyIterator &depIt);
         };
     }
 }

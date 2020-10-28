@@ -62,9 +62,8 @@ namespace spider {
 
         class TaskLauncher {
         public:
-            explicit TaskLauncher(const Schedule *schedule,
-                                  const FifoAllocator *allocator) : schedule_{ schedule },
-                                                                    allocator_{ allocator } {
+            explicit TaskLauncher(const Schedule *schedule, FifoAllocator *allocator) : schedule_{ schedule },
+                                                                                        allocator_{ allocator } {
 
             }
 
@@ -83,7 +82,7 @@ namespace spider {
         private:
             using constraint_t = std::pair<size_t, const Task *>;
             const Schedule *schedule_ = nullptr;
-            const FifoAllocator *allocator_ = nullptr;
+            FifoAllocator *allocator_ = nullptr;
 
             /* === Private method(s) === */
 

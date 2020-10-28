@@ -36,7 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/launcher/TaskLauncher.h>
-#include <scheduling/task/pisdf-based/PiSDFTask.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/task/SyncTask.h>
 #include <scheduling/task/SRDAGTask.h>
 #include <scheduling/schedule/Schedule.h>
@@ -88,7 +88,7 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
     auto constraintsArray = buildConstraintsArray(task, constraintCount, execDeps);
     message.execConstraints_ = buildExecConstraints(std::move(constraintsArray), constraintCount);
     /* == Set Fifos == */
-//    message.fifos_ = task->buildFifos(schedule_, execDeps, consDeps);
+    message.fifos_ = allocator_->buildJobFifos(task, execDeps, consDeps);
     /* == Send the job == */
     sendTask(task, message);
 }

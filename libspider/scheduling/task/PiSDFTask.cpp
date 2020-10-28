@@ -35,7 +35,7 @@
 
 /* === Include(s) === */
 
-#include <scheduling/task/pisdf-based/PiSDFTask.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/launcher/TaskLauncher.h>

@@ -100,9 +100,9 @@ namespace spider {
              */
             void clear();
 
-            int64_t getSourceRate(const pisdf::Edge *edge) const;
+            int64_t getSrcRate(const pisdf::Edge *edge) const;
 
-            int64_t getSinkRate(const pisdf::Edge *edge) const;
+            int64_t getSnkRate(const pisdf::Edge *edge) const;
 
             /* === Getter(s) === */
 
@@ -174,7 +174,7 @@ namespace spider {
 
             pisdf::Vertex *vertex(size_t ix);
 
-            size_t getEdgeAlloc(const pisdf::Edge *edge) const;
+            size_t getEdgeAddress(const pisdf::Edge *edge) const;
 
             /* === Setter(s) === */
 
@@ -185,7 +185,7 @@ namespace spider {
              */
             void setParamValue(size_t ix, int64_t value);
 
-            void registerEdgeAlloc(size_t value, const pisdf::Edge *edge);
+            void setEdgeAddress(size_t value, const pisdf::Edge *edge);
 
         private:
             struct EdgeRate {

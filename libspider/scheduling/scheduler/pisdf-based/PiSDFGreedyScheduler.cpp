@@ -84,9 +84,7 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
         u32 depCount{ };
-        u32 mergedFifoCount{ };
         for (const auto *edge : vertex->inputEdges()) {
-            const auto current = depCount;
             const auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
             for (const auto &dep : deps) {
                 depCount += (dep.firingEnd_ - dep.firingStart_ + 1u);
@@ -101,11 +99,10 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                     }
                 }
             }
-            mergedFifoCount += ((current + 1) < depCount);
         }
         if (schedulable) {
             handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
-            result.push_back({ handler, static_cast<u32>(vertex->ix()), firing, depCount, mergedFifoCount });
+            result.push_back({ handler, static_cast<u32>(vertex->ix()), firing });
         }
     }
     return schedulable;
