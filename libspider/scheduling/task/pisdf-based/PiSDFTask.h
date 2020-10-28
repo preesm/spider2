@@ -64,7 +64,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void visit(const sched::TaskLauncher *launcher) final;
+            void visit(sched::TaskLauncher *launcher) final;
 
             void receiveParams(const spider::array<i64> &values) final;
 
@@ -73,10 +73,6 @@ namespace spider {
             spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
 
             spider::vector<pisdf::DependencyIterator> computeConsDependencies() const;
-
-            std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule,
-                                                    const spider::vector<pisdf::DependencyIterator> &execDeps,
-                                                    const spider::vector<pisdf::DependencyIterator> &consDeps) const;
 
             /* === Getter(s) === */
 
@@ -108,16 +104,6 @@ namespace spider {
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
-
-            Fifo buildInputFifo(const pisdf::Edge *edge, const Schedule *schedule) const;
-
-            void buildDefaultOutFifos(spider::Fifo *outputFifos, const Schedule *schedule) const;
-
-            void buildExternINOutFifos(spider::Fifo *outputFifos, const Schedule *schedule) const;
-
-            void buildForkOutFifos(spider::Fifo *outputFifos, Fifo inputFifo, const Schedule *schedule) const;
-
-            void buildDupOutFifos(spider::Fifo *outputFifos, Fifo inputFifo, const Schedule *schedule) const;
         };
     }
 }

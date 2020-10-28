@@ -39,6 +39,7 @@
 #include <scheduling/task/SRDAGTask.h>
 #include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/launcher/TaskLauncher.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
@@ -57,6 +58,10 @@ spider::sched::SRDAGTask::SRDAGTask(srdag::Vertex *vertex) : Task(), vertex_{ ve
     }
 }
 
+void spider::sched::SRDAGTask::visit(TaskLauncher *launcher) {
+    launcher->visit(this);
+}
+
 void spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
     if (vertex_->subtype() != pisdf::VertexType::CONFIG) {
         throwSpiderException("Only config vertices can update parameter values.");
@@ -72,13 +77,10 @@ void spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
     }
 }
 
-void spider::sched::SRDAGTask::insertSyncTasks(SyncTask *sndTask,
-                                               SyncTask *rcvTask,
-                                               size_t ix,
-                                               const Schedule *schedule) {
-    const auto fifo = buildInputFifo(vertex_->inputEdge(ix), schedule);
-    sndTask->setAlloc(fifo);
-    rcvTask->setAlloc(fifo);
+void spider::sched::SRDAGTask::insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *) {
+    const auto *inputEdge = vertex_->inputEdge(ix);
+    sndTask->setAlloc(inputEdge->address(), inputEdge->offset());
+    rcvTask->setAlloc(inputEdge->address(), inputEdge->offset());
 }
 
 i64 spider::sched::SRDAGTask::inputRate(size_t ix) const {
@@ -147,106 +149,6 @@ u32 spider::sched::SRDAGTask::getKernelIx() const {
 
 spider::unique_ptr<i64> spider::sched::SRDAGTask::buildInputParams() const {
     return srdag::buildVertexRuntimeInputParameters(vertex_);
-}
-
-std::shared_ptr<spider::JobFifos> spider::sched::SRDAGTask::buildJobFifos(const Schedule *schedule) const {
-    auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(vertex_->inputEdgeCount(), vertex_->outputEdgeCount());
-    /* == Allocate input fifos == */
-    for (const auto *edge : vertex_->inputEdges()) {
-        fifos->setInputFifo(edge->sinkPortIx(), buildInputFifo(edge, schedule));
-    }
-    /* == Allocate output fifos == */
-    switch (vertex_->subtype()) {
-        case pisdf::VertexType::FORK:
-            buildForkOutFifos(fifos->outputFifos().data(), fifos->inputFifo(0), schedule);
-            break;
-        case pisdf::VertexType::DUPLICATE:
-            buildDupOutFifos(fifos->outputFifos().data(), fifos->inputFifo(0), schedule);
-            break;
-        case pisdf::VertexType::EXTERN_IN:
-            buildExternINOutFifos(fifos->outputFifos().data(), schedule);
-            break;
-        default:
-            buildDefaultOutFifos(fifos->outputFifos().data(), schedule);
-            break;
-    }
-    return fifos;
-}
-
-spider::Fifo spider::sched::SRDAGTask::buildInputFifo(const srdag::Edge *edge, const Schedule *schedule) {
-    Fifo fifo{ };
-    fifo.virtualAddress_ = edge->allocatedAddress();
-    fifo.size_ = static_cast<u32>(edge->rate());
-    fifo.offset_ = 0;
-    fifo.count_ = 0;
-    const auto *source = edge->source();
-    const auto *sourceTask = schedule->task(source->scheduleTaskIx());
-    if (sourceTask && sourceTask->state() == TaskState::SKIPPED) {
-        fifo.attribute_ = FifoAttribute::RW_AUTO;
-    }
-    if (source->subtype() == pisdf::VertexType::EXTERN_IN) {
-        fifo.attribute_ = FifoAttribute::RW_EXT;
-    } else if (source->subtype() == pisdf::VertexType::FORK) {
-        for (size_t ix = 0; ix < edge->sourcePortIx(); ++ix) {
-            fifo.offset_ += static_cast<u32>(source->outputEdge(ix)->rate());
-        }
-    }
-    if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {
-        fifo.attribute_ = FifoAttribute::RW_OWN;
-    }
-    return fifo;
-}
-
-void spider::sched::SRDAGTask::buildDefaultOutFifos(Fifo *outputFifos, const Schedule *schedule) const {
-    for (const auto *edge : vertex_->outputEdges()) {
-        auto &fifo = outputFifos[edge->sourcePortIx()];
-        fifo.virtualAddress_ = edge->allocatedAddress();
-        fifo.size_ = static_cast<u32>(edge->rate());
-        fifo.offset_ = 0;
-        fifo.count_ = fifo.size_ ? 1 : 0;
-        const auto *sink = edge->sink();
-        const auto *sinkTask = schedule->task(sink->scheduleTaskIx());
-        if (sinkTask && sinkTask->state() == TaskState::SKIPPED) {
-            fifo.attribute_ = FifoAttribute::RW_AUTO;
-        } else if (sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
-            const auto *reference = sink->reference()->convertTo<pisdf::ExternInterface>();
-            fifo.virtualAddress_ = reference->bufferIndex();
-            fifo.attribute_ = FifoAttribute::RW_EXT;
-        } else {
-            fifo.attribute_ = FifoAttribute::RW_OWN;
-        }
-    }
-}
-
-void spider::sched::SRDAGTask::buildExternINOutFifos(Fifo *outputFifos, const Schedule *) const {
-    auto &fifo = outputFifos[0];
-    fifo.virtualAddress_ = vertex_->reference()->convertTo<pisdf::ExternInterface>()->bufferIndex();
-    fifo.size_ = static_cast<u32>(vertex_->outputEdge(0)->rate());
-    fifo.offset_ = 0;
-    fifo.count_ = fifo.size_ ? 1 : 0;
-    fifo.attribute_ = FifoAttribute::RW_ONLY;
-}
-
-void spider::sched::SRDAGTask::buildForkOutFifos(Fifo *outputFifos, Fifo inputFifo, const Schedule *) const {
-    u32 offset = 0;
-    for (const auto *edge : vertex_->outputEdges()) {
-        auto &fifo = outputFifos[edge->sourcePortIx()];
-        fifo.virtualAddress_ = edge->allocatedAddress();
-        fifo.size_ = static_cast<u32>(edge->rate());
-        fifo.offset_ = inputFifo.offset_ + offset;
-        fifo.count_ = fifo.size_ ? 1 : 0;
-        fifo.attribute_ = FifoAttribute::RW_ONLY;
-        offset += fifo.size_;
-    }
-}
-
-void spider::sched::SRDAGTask::buildDupOutFifos(Fifo *outputFifos, Fifo inputFifo, const Schedule *) const {
-    for (const auto *edge : vertex_->outputEdges()) {
-        auto &fifo = outputFifos[edge->sourcePortIx()];
-        fifo = inputFifo;
-        fifo.count_ = fifo.size_ ? 1 : 0;
-        fifo.attribute_ = FifoAttribute::RW_ONLY;
-    }
 }
 
 #endif

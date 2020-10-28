@@ -87,7 +87,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            virtual void visit(const sched::TaskLauncher *launcher);
+            virtual void visit(sched::TaskLauncher *launcher);
 
             /**
              * @brief Update output params based on received values.

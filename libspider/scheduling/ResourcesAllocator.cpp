@@ -101,7 +101,7 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graph);
-    const auto launcher = TaskLauncher{ schedule_.get() };
+    auto launcher = TaskLauncher{ schedule_.get(), allocator_.get() };
     mapper_->setStartTime(computeMinStartTime());
     if (executionPolicy_ == ExecutionPolicy::JIT) {
         for (auto *vertex : result) {
@@ -151,7 +151,7 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
 void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
     const auto result = scheduler_->schedule(graphHandler);
-    const auto launcher = TaskLauncher{ schedule_.get() };
+    auto launcher = TaskLauncher{ schedule_.get(), allocator_.get() };
     mapper_->setStartTime(computeMinStartTime());
     if (executionPolicy_ == ExecutionPolicy::JIT) {
         for (auto &schedVertex : result) {

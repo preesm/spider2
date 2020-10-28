@@ -57,7 +57,7 @@ namespace spider {
         if (!fifo.size_) {
             return nullptr;
         }
-        return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.virtualAddress_), fifo.offset_);
+        return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.address_), fifo.offset_);
     }
 
     static void *readBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
@@ -65,7 +65,7 @@ namespace spider {
         if (!fifo.size_) {
             return nullptr;
         }
-        return cast_buffer_woffset(memoryInterface->read(fifo.virtualAddress_, fifo.count_), fifo.offset_);
+        return cast_buffer_woffset(memoryInterface->read(fifo.address_, fifo.count_), fifo.offset_);
     }
 
     static void *readRepeatBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
@@ -89,7 +89,7 @@ namespace spider {
 
     static void *readMergedBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto mergedFifo = *(it++);
-        auto *mergedBuffer = memoryInterface->allocate(mergedFifo.virtualAddress_, mergedFifo.size_, mergedFifo.count_);
+        auto *mergedBuffer = memoryInterface->allocate(mergedFifo.address_, mergedFifo.size_, mergedFifo.count_);
 #ifndef NDEBUG
         if (!mergedBuffer) {
             throwNullptrException();
@@ -108,7 +108,7 @@ namespace spider {
 
     static void *readRepeatBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto repeatFifo = *(it++);
-        auto *repeatBuffer = memoryInterface->allocate(repeatFifo.virtualAddress_, repeatFifo.size_, repeatFifo.count_);
+        auto *repeatBuffer = memoryInterface->allocate(repeatFifo.address_, repeatFifo.size_, repeatFifo.count_);
 #ifndef NDEBUG
         if (!repeatBuffer) {
             throwNullptrException();
@@ -137,7 +137,7 @@ namespace spider {
 
     static void *allocBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto fifo = *(it++);
-        return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_, fifo.count_);
+        return memoryInterface->allocate(fifo.address_, fifo.size_, fifo.count_);
     }
 
     /* === Static array of allocate functions === */

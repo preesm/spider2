@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
+#include <scheduling/memory/JobFifos.h>
 
 namespace spider {
 
@@ -45,6 +46,8 @@ namespace spider {
 
     namespace srdag {
         class Vertex;
+
+        class Edge;
     }
 
     namespace pisdf {
@@ -60,6 +63,8 @@ namespace spider {
         class PiSDFTask;
 
         class SRDAGTask;
+
+        class SyncTask;
 
         class Schedule;
 
@@ -82,6 +87,11 @@ namespace spider {
 
             /* === Method(s) === */
 
+            /**
+             * @brief Clears the allocator.
+             */
+            virtual void clear() noexcept;
+
 
 #ifndef _NO_BUILD_LEGACY_RT
 
@@ -93,31 +103,29 @@ namespace spider {
 
 #endif
 
+
             void allocate(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
 
             /**
-             * @brief Allocate a new fifo with given size.
-             * @remark The allocated fifo has the following attributes:
-             *         virtualAddress_ -> determined by the allocator
-             *         size_t          -> given size
-             *         offset_         -> 0 (it's a new fifo)
-             *         count_          -> 1 if size > 0, 0 else
-             *         attribute_      -> @refitem FifoAttribute::RW_OWN
+             * @brief Allocate size bytes.
              * @param size Size to allocate.
-             * @return new @refitem Fifo
+             * @return address of allocated buffer
              */
-            Fifo allocate(size_t size);
-
-            /**
-             * @brief Clears the allocator.
-             */
-            virtual void clear() noexcept;
+            size_t allocate(size_t size);
 
             /**
              * @brief Reserve memory for permanent delays.
              * @param graph pointer to the graph.
              */
             void allocatePersistentDelays(pisdf::Graph *graph);
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+            spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *task) const;
+
+#endif
+
+            spider::unique_ptr<JobFifos> buildJobFifos(SyncTask *task) const;
 
             /* === Getter(s) === */
 
@@ -143,6 +151,16 @@ namespace spider {
             size_t virtualMemoryAddress_ = 0;
 
             explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
+
+        private:
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+            static Fifo buildInputFifo(const srdag::Edge *edge);
+
+            static Fifo buildOutputFifo(const srdag::Edge *edge);
+
+#endif
         };
     }
 }

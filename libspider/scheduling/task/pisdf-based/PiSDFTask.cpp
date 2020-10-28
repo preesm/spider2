@@ -42,6 +42,7 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Param.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
@@ -64,7 +65,7 @@ spider::sched::PiSDFTask::PiSDFTask(pisdf::GraphFiring *handler,
     vertexIx_ = static_cast<u32>(vertex->ix());
 }
 
-void spider::sched::PiSDFTask::visit(const TaskLauncher *launcher) {
+void spider::sched::PiSDFTask::visit(TaskLauncher *launcher) {
     launcher->visit(this);
 }
 
@@ -159,164 +160,3 @@ u32 spider::sched::PiSDFTask::getKernelIx() const {
 spider::unique_ptr<i64> spider::sched::PiSDFTask::buildInputParams() const {
     return pisdf::buildVertexRuntimeInputParameters(vertex(), handler_->getParams());
 }
-
-
-std::shared_ptr<spider::JobFifos>
-spider::sched::PiSDFTask::buildJobFifos(const Schedule *schedule,
-                                        const spider::vector<pisdf::DependencyIterator> &execDeps,
-                                        const spider::vector<pisdf::DependencyIterator> &consDeps) const {
-    const auto *vertex = this->vertex();
-//    auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(vertex->inputEdgeCount(), vertex->outputEdgeCount());
-//    /* == Allocate input fifos == */
-//    for (const auto *edge : vertex->inputEdges()) {
-//        fifos->setInputFifo(edge->sinkPortIx(), buildInputFifo(edge, schedule));
-//    }
-//    /* == Allocate output fifos == */
-//    switch (vertex->subtype()) {
-//        case pisdf::VertexType::FORK:
-//            buildForkOutFifos(fifos->outputFifos().data(), fifos->inputFifo(0), schedule);
-//            break;
-//        case pisdf::VertexType::DUPLICATE:
-//            buildDupOutFifos(fifos->outputFifos().data(), fifos->inputFifo(0), schedule);
-//            break;
-//        case pisdf::VertexType::EXTERN_IN:
-//            buildExternINOutFifos(fifos->outputFifos().data(), schedule);
-//            break;
-//        default:
-//            buildDefaultOutFifos(fifos->outputFifos().data(), schedule);
-//            break;
-//    }
-//    return fifos_;
-    return std::shared_ptr<JobFifos>();
-}
-
-spider::Fifo spider::sched::PiSDFTask::buildInputFifo(const pisdf::Edge *edge, const Schedule *schedule) const {
-//    i32 count = 0;
-//    const auto deps = spider::pisdf::computeExecDependency(vertex_, firing_, edge->sinkPortIx(), handler_, &count);
-//    if (count > 1) {
-//        /* == Allocating a merged edge == */
-//        const auto *mergeTask = static_cast<MergeTask *>(previousTask(edge->sinkPortIx(), schedule));
-//        Fifo fifo{ };
-//        fifo.virtualAddress_ = mergeTask->outputAlloc();
-//        fifo.size_ = static_cast<u32>(mergeTask->outputRate(0));
-//        fifo.offset_ = 0;
-//        fifo.count_ = 0;
-//        fifo.attribute_ = FifoAttribute::RW_OWN;
-//        return fifo;
-//    } else {
-//        const auto &dep = *(deps.begin());
-//        Fifo fifo{ };
-//        if (dep.vertex_) {
-//            const auto *srcVertex = dep.vertex_;
-//            const auto *srcEdge = srcVertex->outputEdge(dep.edgeIx_);
-//            fifo.virtualAddress_ = dep.handler_->getEdgeAlloc(srcEdge);
-//            fifo.virtualAddress_ += static_cast<size_t>(dep.firingStart_ * dep.handler_->getSourceRate(srcEdge));
-//            fifo.size_ = (dep.rate_ > 0) * (dep.memoryEnd_ - dep.memoryStart_ + 1u);
-//            fifo.offset_ += dep.memoryStart_;
-//            fifo.count_ = 0U;
-//            const auto *sourceTask = schedule->task(dep.handler_->getTaskIx(srcVertex, dep.firingStart_));
-//            if (sourceTask && (sourceTask->state() == TaskState::SKIPPED ||
-//                               sourceTask->state() == TaskState::RUNNING)) {
-//                fifo.attribute_ = FifoAttribute::RW_AUTO;
-//            }
-//            if (srcVertex->subtype() == pisdf::VertexType::EXTERN_IN) {
-//                fifo.attribute_ = FifoAttribute::RW_EXT;
-//            } else if (srcVertex->subtype() == pisdf::VertexType::FORK) {
-//                for (size_t ix = 0; ix < dep.edgeIx_; ++ix) {
-//                    const auto *outEdge = srcVertex->outputEdge(ix);
-//                    fifo.offset_ += static_cast<u32>(dep.handler_->getSourceRate(outEdge));
-//                }
-//            }
-//            if ((fifo.attribute_ != FifoAttribute::RW_EXT) && (fifo.attribute_ != FifoAttribute::RW_AUTO)) {
-//                fifo.attribute_ = FifoAttribute::RW_OWN;
-//            }
-//        }
-//        return fifo;
-//    }
-}
-
-void spider::sched::PiSDFTask::buildDefaultOutFifos(Fifo *outputFifos, const Schedule *) const {
-//    for (const auto *edge : vertex_->outputEdges()) {
-//        auto &fifo = outputFifos[edge->sourcePortIx()];
-//        const auto *sink = edge->sink();
-//        const auto rate = static_cast<u32>(handler_->getSourceRate(edge));
-//        if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
-//            fifo.size_ = rate;
-//            fifo.offset_ = 0;
-//            fifo.count_ = fifo.size_ ? 1 : 0;
-//            fifo.virtualAddress_ = sink->convertTo<pisdf::ExternInterface>()->bufferIndex();
-//            fifo.attribute_ = FifoAttribute::RW_EXT;
-//        } else {
-//            fifo.virtualAddress_ = handler_->getEdgeAlloc(edge);
-//            fifo.virtualAddress_ += static_cast<size_t>(firing_ * handler_->getSourceRate(edge));
-//            fifo.size_ = static_cast<u32>(handler_->getSourceRate(edge));
-//            fifo.offset_ = 0;
-//            fifo.count_ = fifo.size_ ? 1 : 0;
-//            fifo.attribute_ = FifoAttribute::RW_OWN;
-//            auto consCount = pisdf::computeConsDependencyCount(vertex_, firing_, edge->sourcePortIx(), handler_);
-//            if (!consCount) {
-//                /* == Dynamic case, the FIFO will be automatically managed == */
-//                fifo.count_ = -1;
-//                fifo.attribute_ = FifoAttribute::RW_AUTO;
-//            } else if (consCount < 0) {
-//                fifo.attribute_ = FifoAttribute::W_SINK;
-//            } else {
-//                fifo.count_ = consCount;
-//            }
-//        }
-//    }
-}
-
-void spider::sched::PiSDFTask::buildExternINOutFifos(Fifo *outputFifos, const Schedule *) const {
-//    auto &fifo = outputFifos[0];
-//    fifo.virtualAddress_ = vertex_->convertTo<pisdf::ExternInterface>()->bufferIndex();
-//    fifo.size_ = static_cast<u32>(handler_->getSourceRate(vertex_->outputEdge(0)));
-//    fifo.offset_ = 0;
-//    fifo.count_ = fifo.size_ ? 1 : 0;
-//    fifo.attribute_ = FifoAttribute::RW_ONLY;
-}
-
-void spider::sched::PiSDFTask::buildForkOutFifos(Fifo *outputFifos, Fifo inputFifo, const Schedule *) const {
-//    u32 offset = 0;
-//    for (const auto *edge : vertex_->outputEdges()) {
-//        auto &fifo = outputFifos[edge->sourcePortIx()];
-//        fifo.virtualAddress_ = handler_->getEdgeAlloc(edge);
-//        fifo.virtualAddress_ += static_cast<size_t>(firing_ * handler_->getSourceRate(edge));
-//        fifo.size_ = static_cast<u32>(handler_->getSourceRate(edge));
-//        fifo.offset_ = inputFifo.offset_ + offset;
-//        fifo.count_ = fifo.size_ ? 1 : 0;
-//        fifo.attribute_ = FifoAttribute::RW_ONLY;
-//        auto consCount = pisdf::computeConsDependencyCount(vertex_, firing_, edge->sourcePortIx(), handler_);
-//        if (!consCount) {
-//            /* == Dynamic case, the FIFO will be automatically managed == */
-//            fifo.count_ = -1;
-//            fifo.attribute_ = FifoAttribute::RW_AUTO;
-//        } else if (consCount < 0) {
-//            fifo.attribute_ = FifoAttribute::W_SINK;
-//        } else {
-//            fifo.count_ = consCount;
-//        }
-//        offset += fifo.size_;
-//    }
-}
-
-void spider::sched::PiSDFTask::buildDupOutFifos(Fifo *outputFifos, Fifo inputFifo, const Schedule *) const {
-//    for (const auto *edge : vertex_->outputEdges()) {
-//        auto &fifo = outputFifos[edge->sourcePortIx()];
-//        fifo = inputFifo;
-//        fifo.count_ = fifo.size_ ? 1 : 0;
-//        auto consCount = pisdf::computeConsDependencyCount(vertex_, firing_, edge->sourcePortIx(), handler_);
-//        if (!consCount) {
-//            /* == Dynamic case, the FIFO will be automatically managed == */
-//            fifo.count_ = -1;
-//            fifo.attribute_ = FifoAttribute::RW_AUTO;
-//        } else if (consCount < 0) {
-//            fifo.attribute_ = FifoAttribute::W_SINK;
-//        } else {
-//            fifo.count_ = consCount;
-//        }
-//        fifo.attribute_ = FifoAttribute::RW_ONLY;
-//    }
-}
-
-

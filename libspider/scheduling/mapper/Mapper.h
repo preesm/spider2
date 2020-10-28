@@ -69,12 +69,18 @@ namespace spider {
 
             /**
              * @brief Map a vertexTask onto available resources.
-             * @param task     pointer to the vertexTask to map.
+             * @param task     pointer to the task to map.
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
             virtual void map(sched::Task *task, Schedule *schedule) = 0;
 
+            /**
+             * @brief Map a vertexTask onto available resources.
+             * @param task     pointer to the task to map.
+             * @param schedule pointer to the schedule to update.
+             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
+             */
             virtual void map(sched::PiSDFTask *task, Schedule *schedule) = 0;
 
             /* === Getter(s) === */

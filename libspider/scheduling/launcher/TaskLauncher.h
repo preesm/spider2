@@ -56,29 +56,38 @@ namespace spider {
 
         class Schedule;
 
+        class FifoAllocator;
+
         /* === Class definition === */
 
         class TaskLauncher {
         public:
-            explicit TaskLauncher(const Schedule *schedule) : schedule_{ schedule } { }
+            explicit TaskLauncher(const Schedule *schedule,
+                                  const FifoAllocator *allocator) : schedule_{ schedule },
+                                                                    allocator_{ allocator } {
+
+            }
 
             ~TaskLauncher() = default;
 
             /* === Method(s) === */
 
-            void visit(sched::Task *task) const;
+            inline void visit(sched::Task *) { }
 
-            void visit(sched::SRDAGTask *task) const;
+            void visit(sched::SRDAGTask *task);
 
-            void visit(sched::SyncTask *task) const;
+            void visit(sched::SyncTask *task);
 
-            void visit(sched::PiSDFTask *task) const;
+            void visit(sched::PiSDFTask *task);
 
         private:
             using constraint_t = std::pair<size_t, const Task *>;
             const Schedule *schedule_ = nullptr;
+            const FifoAllocator *allocator_ = nullptr;
 
             /* === Private method(s) === */
+
+            void fillTaskMessage(Task *task, JobMessage &message);
 
             static void sendTask(Task *task, JobMessage &message);
 
@@ -99,14 +108,7 @@ namespace spider {
              * @return array of constraints if any, empty array else.
              */
             static spider::array<SyncInfo> buildExecConstraints(spider::array<constraint_t> constraintsArray,
-                                                         size_t constraintsCount) ;
-
-            /**
-             * @brief Build the FIFOs needed by the task execution.
-             * @param task Pointer to the task.
-             * @return @refitem std::shared_ptr of @refitem JobFifos
-             */
-            std::shared_ptr<JobFifos> buildJobFifos(const Task *task) const;
+                                                                size_t constraintsCount);
 
             /**
              * @brief Build the array of execution constraints for this task.

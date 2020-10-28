@@ -41,7 +41,6 @@
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <scheduling/schedule/Schedule.h>
-#include <graphs/sched/SchedGraph.h>
 
 /* === Method(s) implementation === */
 

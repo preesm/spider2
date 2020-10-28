@@ -49,6 +49,11 @@ namespace spider {
 
         /* === Class definition === */
 
+        struct EdgeAlloc {
+            size_t address_ = SIZE_MAX;
+            u32 offset_ = 0;
+        };
+
         class Edge {
         public:
 
@@ -118,7 +123,9 @@ namespace spider {
              * @brief Get the allocated virtual address of this edge.
              * @return virtual memory address.
              */
-            inline size_t allocatedAddress() const { return alloc_; }
+            inline size_t address() const { return alloc_.address_; }
+
+            inline u32 offset() const { return alloc_.offset_; }
 
             /* === Setter(s) === */
 
@@ -153,18 +160,20 @@ namespace spider {
 
             /**
              * @brief Set the virtual address of this edge.
-             * @param alloc Address to set.
+             * @param address Address to set.
              */
-            inline void setAlloc(size_t alloc) { alloc_ = alloc; }
+            inline void setAddress(size_t address) { alloc_.address_ = address; }
+
+            inline void setOffset(u32 offset) { alloc_.offset_ = offset; }
 
         private:
             srdag::Vertex *source_ = nullptr;
             srdag::Vertex *sink_ = nullptr;
             i64 rate_ = 0;
-            size_t alloc_ = SIZE_MAX;
             size_t srcPortIx_ = SIZE_MAX;  /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX;  /* = Index of the Edge in the sink inputEdgeArray = */
             size_t ix_ = SIZE_MAX;         /* = Index of the Edge in the Graph (used for add and remove) = */
+            EdgeAlloc alloc_{ };
         };
 
 

@@ -36,6 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/task/SyncTask.h>
+#include <scheduling/launcher/TaskLauncher.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <archi/PE.h>
 #include <archi/Platform.h>
@@ -51,6 +52,10 @@ spider::sched::SyncTask::SyncTask(SyncType type, const MemoryBus *bus) : Task(),
 }
 
 /* === Virtual method(s) === */
+
+void spider::sched::SyncTask::visit(TaskLauncher *launcher) {
+    launcher->visit(this);
+}
 
 u64 spider::sched::SyncTask::timingOnPE(const spider::PE *) const {
     if (!bus_) {
@@ -83,32 +88,14 @@ spider::unique_ptr<i64> spider::sched::SyncTask::buildInputParams() const {
         params[0u] = static_cast<i64>(fstLRT->cluster()->ix());
         params[1u] = static_cast<i64>(sndLRT->cluster()->ix());
         params[2u] = static_cast<i64>(size_);
-        params[3u] = 0;
+        params[4u] = 0;
     } else {
         const auto *fstLRT = dependency_->mappedLRT();
         const auto *sndLRT = mappedLRT();
         params[0u] = static_cast<i64>(fstLRT->cluster()->ix());
         params[1u] = static_cast<i64>(sndLRT->cluster()->ix());
         params[2u] = static_cast<i64>(size_);
-        params[3u] = static_cast<i64>(alloc_.size_);
+        params[3u] = static_cast<i64>(allocAddress_);
     }
     return make_unique(params);
-}
-
-std::shared_ptr<spider::JobFifos> spider::sched::SyncTask::buildJobFifos(const Schedule *) const {
-    auto fifos = spider::make_shared<JobFifos, StackID::RUNTIME>(1, 1);
-    /* == Create input fifo == */
-    auto inputFifo = alloc_;
-    inputFifo.count_ = 0;
-    inputFifo.attribute_ = FifoAttribute::RW_OWN;
-    fifos->setInputFifo(0, inputFifo);
-    /* == Set output fifo == */
-    auto outputFifo = alloc_;
-    outputFifo.count_ = outputFifo.size_ ? 1 : 0;
-    if (type_ == RECEIVE) {
-        /* == The receive task should allocate memory in the other memory interface == */
-        outputFifo.attribute_ = FifoAttribute::RW_OWN;
-    }
-    fifos->setOutputFifo(0, outputFifo);
-    return fifos;
 }

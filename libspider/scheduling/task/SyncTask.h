@@ -58,6 +58,10 @@ namespace spider {
 
             ~SyncTask() noexcept final = default;
 
+            /* === Method(s) === */
+
+            void visit(TaskLauncher *launcher) final;
+
             /* === Getter(s) === */
 
             inline i64 inputRate(size_t) const final { return static_cast<i64>(size_); }
@@ -87,6 +91,10 @@ namespace spider {
             inline SyncType syncType() const { return type_; }
 
             inline size_t size() const { return size_; }
+
+            inline size_t getAllocAddress() const { return allocAddress_; }
+
+            inline u32 getAllocOffset() const { return allocOffset_; }
 
             /* === Setter(s) === */
 
@@ -120,16 +128,20 @@ namespace spider {
              * @brief Set allocated address of the sync task.
              * @param alloc Virtual address to be used for the fifos.
              */
-            inline void setAlloc(Fifo alloc) { alloc_ = alloc; }
+            inline void setAlloc(size_t address, u32 offset) {
+                allocAddress_ = address;
+                allocOffset_ = offset;
+            }
 
             inline void setIx(u32 ix) noexcept final { ix_ = ix; }
 
         private:
-            Fifo alloc_{ };                   /*!< Allocated input fifo. */
             Task *successor_{ nullptr };      /*!< Successor task */
             Task *dependency_{ nullptr };     /*!< Successor task */
             const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
             size_t size_{ 0U };               /*!< Data size (in bytes) to send / receive. */
+            size_t allocAddress_ = SIZE_MAX;  /*!< Address of the allocated fifo */
+            u32 allocOffset_ = 0;
             u32 ix_ = UINT32_MAX;
             SyncType type_;
 
@@ -138,8 +150,6 @@ namespace spider {
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
-
-            std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final;
         };
     }
 }

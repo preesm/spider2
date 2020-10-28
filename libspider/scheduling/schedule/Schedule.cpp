@@ -36,7 +36,6 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/Schedule.h>
-#include <graphs/sched/SchedVertex.h>
 
 /* === Static function === */
 

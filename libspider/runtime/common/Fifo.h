@@ -62,20 +62,20 @@ namespace spider {
     /* === Class definition === */
 
     struct Fifo {
-        size_t virtualAddress_;   /* = Virtual address of the Fifo = */
+        size_t address_;   /* = Virtual address of the Fifo = */
         u32 size_;                /* = Size of the Fifo = */
         u32 offset_;              /* = Offset in the address = */
         i32 count_;               /* = Number of use of this FIFO = */
         FifoAttribute attribute_; /* = Attribute of the Fifo = */
 
-        Fifo() : virtualAddress_{ SIZE_MAX },
+        Fifo() : address_{ SIZE_MAX },
                  size_{ 0u },
                  offset_{ 0u },
                  count_{ 0u },
                  attribute_{ FifoAttribute::RW_OWN } { }
 
         Fifo(size_t address, u32 size, u32 offset, i32 count, spider::FifoAttribute attribute) :
-                virtualAddress_{ address }, size_{ size }, offset_{ offset }, count_{ count }, attribute_{ attribute } {
+                address_{ address }, size_{ size }, offset_{ offset }, count_{ count }, attribute_{ attribute } {
         }
     };
 

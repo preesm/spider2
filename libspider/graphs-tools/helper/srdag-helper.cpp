@@ -246,7 +246,7 @@ namespace spider {
             auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
             const auto *reference = vertex->reference()->convertTo<spider::pisdf::ExternInterface>();
             const auto *inputEdge = vertex->inputEdge(0);
-            result.get()[0] = static_cast<i64>(reference->bufferIndex());
+            result.get()[0] = static_cast<i64>(reference->address());
             result.get()[1] = inputEdge->sinkRateValue();
             return result;
         }

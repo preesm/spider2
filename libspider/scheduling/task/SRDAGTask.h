@@ -61,6 +61,8 @@ namespace spider {
 
             /* === Method(s) === */
 
+            void visit(TaskLauncher *launcher) final;
+
             void receiveParams(const spider::array<i64> &values) final;
 
             void insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *schedule) final;
@@ -105,18 +107,6 @@ namespace spider {
             u32 getKernelIx() const final;
 
             spider::unique_ptr<i64> buildInputParams() const final;
-
-            std::shared_ptr<JobFifos> buildJobFifos(const Schedule *schedule) const final;
-
-            static Fifo buildInputFifo(const srdag::Edge *edge, const Schedule *schedule);
-
-            void buildDefaultOutFifos(spider::Fifo *outputFifos, const Schedule *schedule) const;
-
-            void buildExternINOutFifos(spider::Fifo *outputFifos, const Schedule *schedule) const;
-
-            void buildForkOutFifos(spider::Fifo *outputFifos, Fifo inputFifo, const Schedule *schedule) const;
-
-            void buildDupOutFifos(spider::Fifo *outputFifos, Fifo inputFifo, const Schedule *schedule) const;
         };
     }
 }

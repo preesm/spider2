@@ -135,12 +135,12 @@
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Input Fifo(s):\n", ix());\
         for (auto &fifo : job.fifos_->inputFifos()) {\
             log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
-            fifo.virtualAddress_, fifo.offset_);\
+            fifo.address_, fifo.offset_);\
         }\
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Output Fifo(s):\n", ix());\
         for (auto &fifo : job.fifos_->outputFifos()) {\
             log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
-            fifo.virtualAddress_, fifo.offset_);\
+            fifo.address_, fifo.offset_);\
         }\
     }
 
@@ -267,14 +267,14 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     for (auto &fifo : job.fifos_->inputFifos()) {
         if (fifo.attribute_ == FifoAttribute::RW_OWN) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-            memoryInterface->deallocate(fifo.virtualAddress_, fifo.size_);
+            memoryInterface->deallocate(fifo.address_, fifo.size_);
         }
     }
     /* == Deallocate output buffers (only buffers to sinks) == */
     for (auto &fifo : job.fifos_->outputFifos()) {
         if (fifo.attribute_ == FifoAttribute::W_SINK) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-            memoryInterface->deallocate(fifo.virtualAddress_, fifo.size_);
+            memoryInterface->deallocate(fifo.address_, fifo.size_);
         }
     }
 

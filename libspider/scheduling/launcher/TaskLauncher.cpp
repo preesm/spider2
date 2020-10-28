@@ -40,6 +40,7 @@
 #include <scheduling/task/SyncTask.h>
 #include <scheduling/task/SRDAGTask.h>
 #include <scheduling/schedule/Schedule.h>
+#include <scheduling/memory/FifoAllocator.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <archi/Platform.h>
 #include <api/archi-api.h>
@@ -51,32 +52,27 @@
 
 /* === Method(s) implementation === */
 
-void spider::sched::TaskLauncher::visit(Task *task) const {
+void spider::sched::TaskLauncher::visit(SRDAGTask *task) {
     if (task->state() != TaskState::READY) {
         return;
     }
     JobMessage message{ };
-    /* == Set the synchronization flags == */
-    message.synchronizationFlags_ = buildJobNotificationFlags(task);
-    /* == Set the execution task constraints == */
-    size_t constraintCount;
-    auto constraintsArray = buildConstraintsArray(task, constraintCount);
-    message.execConstraints_ = buildExecConstraints(std::move(constraintsArray), constraintCount);
     /* == Set Fifos == */
-    message.fifos_ = task->buildJobFifos(schedule_);
-    /* == Send the job == */
-    sendTask(task, message);
+    message.fifos_ = allocator_->buildJobFifos(task);
+    fillTaskMessage(task, message);
 }
 
-void spider::sched::TaskLauncher::visit(SRDAGTask *task) const {
-    visit(static_cast<sched::Task *>(task));
+void spider::sched::TaskLauncher::visit(SyncTask *task) {
+    if (task->state() != TaskState::READY) {
+        return;
+    }
+    JobMessage message{ };
+    /* == Set Fifos == */
+    message.fifos_ = allocator_->buildJobFifos(task);
+    fillTaskMessage(task, message);
 }
 
-void spider::sched::TaskLauncher::visit(SyncTask *task) const {
-    visit(static_cast<sched::Task *>(task));
-}
-
-void spider::sched::TaskLauncher::visit(PiSDFTask *task) const {
+void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
     if (task->state() != TaskState::READY) {
         return;
     }
@@ -92,12 +88,23 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) const {
     auto constraintsArray = buildConstraintsArray(task, constraintCount, execDeps);
     message.execConstraints_ = buildExecConstraints(std::move(constraintsArray), constraintCount);
     /* == Set Fifos == */
-    message.fifos_ = task->buildJobFifos(schedule_, execDeps, consDeps);
+//    message.fifos_ = task->buildFifos(schedule_, execDeps, consDeps);
     /* == Send the job == */
     sendTask(task, message);
 }
 
 /* === Private method(s) implementation === */
+
+void spider::sched::TaskLauncher::fillTaskMessage(Task *task, JobMessage &message) {
+    /* == Set the synchronization flags == */
+    message.synchronizationFlags_ = buildJobNotificationFlags(task);
+    /* == Set the execution task constraints == */
+    size_t constraintCount;
+    auto constraintsArray = buildConstraintsArray(task, constraintCount);
+    message.execConstraints_ = buildExecConstraints(std::move(constraintsArray), constraintCount);
+    /* == Send the job == */
+    sendTask(task, message);
+}
 
 /* === Generic functions === */
 

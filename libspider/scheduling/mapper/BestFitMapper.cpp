@@ -39,6 +39,7 @@
 #include <scheduling/task/pisdf-based/PiSDFTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <archi/Platform.h>
+#include <archi/Cluster.h>
 
 /* === Static function === */
 

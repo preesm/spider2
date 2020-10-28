@@ -253,7 +253,7 @@ static spider::unique_ptr<i64> buildExternOutRuntimeInputParameters(const spider
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
     const auto *reference = vertex->convertTo<spider::pisdf::ExternInterface>();
     const auto *inputEdge = vertex->inputEdge(0);
-    result.get()[0] = static_cast<i64>(reference->bufferIndex());
+    result.get()[0] = static_cast<i64>(reference->address());
     result.get()[1] = inputEdge->sinkRateExpression().evaluate(params);
     return result;
 }

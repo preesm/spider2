@@ -49,6 +49,6 @@ const spider::PE *spider::sched::Task::mappedPe() const {
     return archi::platform()->peFromVirtualIx(mappedPEIx_);
 }
 
-void spider::sched::Task::visit(const TaskLauncher *launcher) {
+void spider::sched::Task::visit(TaskLauncher *launcher) {
     launcher->visit(this);
 }
