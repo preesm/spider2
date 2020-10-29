@@ -59,7 +59,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<pisdf::VertexFiring> schedule(pisdf::GraphHandler *graphHandler) override;
+            spider::vector<sched::PiSDFTask*> schedule(pisdf::GraphHandler *graphHandler) override;
 
             void clear() override;
 

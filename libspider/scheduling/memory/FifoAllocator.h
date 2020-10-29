@@ -100,12 +100,12 @@ namespace spider {
              * @brief Allocate Fifos of a given task.
              * @param task Pointer to the task.
              */
-            void allocate(srdag::Vertex *vertex);
+            void allocate(SRDAGTask *task);
 
 #endif
 
 
-            void allocate(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
+            void allocate(PiSDFTask *task);
 
             /**
              * @brief Allocate size bytes.
@@ -175,9 +175,13 @@ namespace spider {
 
             static Fifo buildOutputFifo(const JobFifos *fifos,
                                         const pisdf::Edge *edge,
-                                        const pisdf::GraphFiring *handler,
+                                        pisdf::GraphFiring *handler,
                                         const pisdf::DependencyIterator &depIt,
                                         u32 firing);
+
+            static i32 getFifoCount(const pisdf::DependencyIterator &depIt);
+
+            static size_t getFifoAddress(const pisdf::Edge *edge, u32 firing, const pisdf::GraphFiring *handler);
 
             Fifo buildMergeFifo(Fifo *fifos,
                                 const PiSDFTask *task,

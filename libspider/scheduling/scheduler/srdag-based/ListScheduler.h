@@ -60,7 +60,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<srdag::Vertex *> schedule(const srdag::Graph *graph) override;
+            spider::vector<SRDAGTask *> schedule(const srdag::Graph *graph) override;
 
             void clear() override;
 

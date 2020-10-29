@@ -69,6 +69,12 @@ namespace spider {
             /* === Method(s) === */
 
             /**
+             * @brief Reserve memory for task insertion.
+             * @param size Size to reserve.
+             */
+            void reserve(size_t size);
+
+            /**
              * @brief Clear schedule tasks.
              */
             void clear();
@@ -90,6 +96,11 @@ namespace spider {
              */
             void updateTaskAndSetReady(sched::Task *task, const PE *slave, u64 startTime, u64 endTime);
 
+            /**
+             * @brief Add a task to the schedule
+             * @remark Once added, memory of the task is handled by the schedule, DO NOT FREE it yourself.
+             * @param task  Pointer to the task.
+             */
             inline void addTask(sched::Task *task) {
                 task->setIx(static_cast<u32>(tasks_.size()));
                 tasks_.emplace_back(task);

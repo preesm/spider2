@@ -60,7 +60,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<srdag::Vertex *> schedule(const srdag::Graph *graph) override;
+            spider::vector<SRDAGTask *> schedule(const srdag::Graph *graph) override;
 
         private:
 
@@ -72,7 +72,7 @@ namespace spider {
              * @param result  Vector of scheduled graph.
              * @return true if schedulable, false else.
              */
-            bool evaluate(srdag::Vertex *vertex, spider::vector<srdag::Vertex *> &result);
+            bool evaluate(srdag::Vertex *vertex, spider::vector<SRDAGTask *> &result);
         };
     }
 }

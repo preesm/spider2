@@ -58,7 +58,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<pisdf::VertexFiring> schedule(pisdf::GraphHandler *graphHandler) override;
+            spider::vector<sched::PiSDFTask *> schedule(pisdf::GraphHandler *graphHandler) override;
 
         private:
 
@@ -69,7 +69,7 @@ namespace spider {
              * @param graphHandler  Top level graph handler;
              * @param result        Resulting vector of scheduled tasks;
              */
-            void evaluate(pisdf::GraphHandler *graphHandler, spider::vector<pisdf::VertexFiring> &result);
+            void evaluate(pisdf::GraphHandler *graphHandler, spider::vector<sched::PiSDFTask*> &result);
 
             /**
              * @brief Evaluate if a vertex is schedulable for a given firing.
@@ -82,7 +82,7 @@ namespace spider {
             bool evaluate(pisdf::GraphFiring *handler,
                           const pisdf::Vertex *vertex,
                           u32 firing,
-                          spider::vector<pisdf::VertexFiring> &result);
+                          spider::vector<sched::PiSDFTask*> &result);
         };
     }
 }

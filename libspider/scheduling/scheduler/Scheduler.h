@@ -63,6 +63,10 @@ namespace spider {
 
     namespace sched {
 
+        class PiSDFTask;
+
+        class SRDAGTask;
+
         /* === Class definition === */
 
         class Scheduler {
@@ -77,13 +81,13 @@ namespace spider {
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graph  Graph to use to perform the update.
              */
-            inline virtual spider::vector<srdag::Vertex *> schedule(const srdag::Graph *) { return { }; }
+            inline virtual spider::vector<SRDAGTask *> schedule(const srdag::Graph *) { return { }; }
 
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graphHandler Handler of the top graph.
              */
-            inline virtual spider::vector<pisdf::VertexFiring> schedule(pisdf::GraphHandler *) { return { }; }
+            inline virtual spider::vector<PiSDFTask *> schedule(pisdf::GraphHandler *) { return { }; }
 
             /**
              * @brief Clears scheduler resources.

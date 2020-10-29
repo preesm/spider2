@@ -102,6 +102,9 @@ namespace spider {
 
             /* === Private method(s) === */
 
+            template<class T>
+            void execute(const spider::vector<T> &tasks);
+
             /**
              * @brief Allocates the scheduler corresponding to the given policy.
              * @param policy  Scheduling policy to use.

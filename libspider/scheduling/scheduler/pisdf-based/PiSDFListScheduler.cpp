@@ -36,6 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
@@ -56,7 +57,7 @@ spider::sched::PiSDFListScheduler::PiSDFListScheduler() :
 
 }
 
-spider::vector<spider::pisdf::VertexFiring>
+spider::vector<spider::sched::PiSDFTask *>
 spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Reset previous non-schedulable tasks == */
     resetUnScheduledTasks();
@@ -73,12 +74,10 @@ spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Update last schedulable vertex == */
     const auto lastSchedulable = sortedTaskVector_.size() - nonSchedulableTaskCount;
     /* == Create the list of tasks to be scheduled == */
-    auto result = factory::vector<pisdf::VertexFiring>(lastSchedulable, StackID::SCHEDULE);
+    auto result = factory::vector<PiSDFTask *>(lastSchedulable, StackID::SCHEDULE);
     for (size_t k = 0; k < lastSchedulable; ++k) {
         auto &task = sortedTaskVector_[k];
-        result[k].handler_ = task.handler_;
-        result[k].vertexIx_ = static_cast<u32>(task.vertex_->ix());
-        result[k].firing_ = task.firing_;
+        result[k] = spider::make<PiSDFTask, StackID::SCHEDULE>(task.handler_, task.vertex_, task.firing_);
         task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
     /* == Remove scheduled vertices == */

@@ -36,6 +36,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/pisdf-based/PiSDFGreedyScheduler.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
@@ -46,10 +47,10 @@
 
 /* === Method(s) implementation === */
 
-spider::vector<spider::pisdf::VertexFiring>
+spider::vector<spider::sched::PiSDFTask *>
 spider::sched::PiSDFGreedyScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
-    auto result = factory::vector<pisdf::VertexFiring>(StackID::SCHEDULE);
+    auto result = factory::vector<sched::PiSDFTask *>(StackID::SCHEDULE);
     /* == Evaluate tasks == */
     evaluate(graphHandler, result);
     return result;
@@ -58,7 +59,7 @@ spider::sched::PiSDFGreedyScheduler::schedule(pisdf::GraphHandler *graphHandler)
 /* === Private method(s) implementation === */
 
 void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHandler,
-                                                   spider::vector<pisdf::VertexFiring> &result) {
+                                                   spider::vector<sched::PiSDFTask *> &result) {
     for (auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
@@ -79,7 +80,7 @@ void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHan
 bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                                                    const pisdf::Vertex *vertex,
                                                    u32 firing,
-                                                   spider::vector<pisdf::VertexFiring> &result) {
+                                                   spider::vector<sched::PiSDFTask *> &result) {
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
         u32 depCount{ };
@@ -99,7 +100,7 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
         }
         if (schedulable) {
             handler->registerTaskIx(vertex, firing, static_cast<u32>(result.size()));
-            result.push_back({ handler, static_cast<u32>(vertex->ix()), firing });
+            result.emplace_back(spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex, firing));
         }
     }
     return schedulable;
