@@ -84,6 +84,8 @@ namespace spider {
 
         T *get() const noexcept { return data_; }
 
+        T *get() noexcept { return data_; }
+
         T *release() {
             T *tmp = data_;
             data_ = nullptr;
@@ -112,7 +114,19 @@ namespace spider {
             return *get();
         };
 
+        T &operator[](size_t ix) const {
+            assert(data_ != nullptr);
+            return data_[ix];
+        }
+
+        T &operator[](size_t ix) {
+            assert(data_ != nullptr);
+            return data_[ix];
+        }
+
         T *operator->() const noexcept { return get(); };
+
+        T *operator->() noexcept { return get(); };
 
         explicit operator bool() const noexcept { return data_ != nullptr; }
 
