@@ -67,7 +67,7 @@ namespace spider {
 
         class Scheduler {
         public:
-            Scheduler();
+            Scheduler() = default;
 
             virtual ~Scheduler() noexcept = default;
 
@@ -88,20 +88,7 @@ namespace spider {
             /**
              * @brief Clears scheduler resources.
              */
-            virtual void clear();
-
-            /* === Getter(s) === */
-
-            /**
-             * @brief Get the list of scheduled tasks, obtained after the call to Scheduler::schedule method.
-             * @return const reference to a vector of pointer to Task.
-             */
-            inline spider::vector<spider::unique_ptr<Task>> &tasks() { return tasks_; }
-
-            /* === Setter(s) === */
-
-        protected:
-            spider::vector<spider::unique_ptr<Task>> tasks_;
+            inline virtual void clear() { }
         };
     }
 }

@@ -58,8 +58,6 @@ spider::sched::PiSDFListScheduler::PiSDFListScheduler() :
 
 spider::vector<spider::pisdf::VertexFiring>
 spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
-    /* == Reserve space for the new ListTasks == */
-    tasks_.clear();
     /* == Reset previous non-schedulable tasks == */
     resetUnScheduledTasks();
     /* == Creates ListTasks == */

@@ -45,7 +45,6 @@
 /* === Method(s) implementation === */
 
 spider::vector<spider::srdag::Vertex *> spider::sched::GreedyScheduler::schedule(const srdag::Graph *graph) {
-    tasks_.clear();
     auto result = factory::vector<srdag::Vertex *>(StackID::SCHEDULE);
     for (auto &vertex : graph->vertices()) {
         if (vertex->executable()) {

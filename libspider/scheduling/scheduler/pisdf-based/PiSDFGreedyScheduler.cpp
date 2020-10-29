@@ -49,7 +49,6 @@
 spider::vector<spider::pisdf::VertexFiring>
 spider::sched::PiSDFGreedyScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
-    tasks_.clear();
     auto result = factory::vector<pisdf::VertexFiring>(StackID::SCHEDULE);
     /* == Evaluate tasks == */
     evaluate(graphHandler, result);
@@ -94,14 +93,12 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                     return false;
                 }
                 for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                    if (dep.handler_->getTaskIx(dep.vertex_, k) == UINT32_MAX) {
-                        schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, result);
-                    }
+                    schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, result);
                 }
             }
         }
         if (schedulable) {
-            handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
+            handler->registerTaskIx(vertex, firing, static_cast<u32>(result.size()));
             result.push_back({ handler, static_cast<u32>(vertex->ix()), firing });
         }
     }

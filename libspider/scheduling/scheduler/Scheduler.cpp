@@ -42,12 +42,4 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::Scheduler::Scheduler() : tasks_{ factory::vector<spider::unique_ptr<Task>>(StackID::SCHEDULE) } {
-
-}
-
-void spider::sched::Scheduler::clear() {
-    tasks_.clear();
-}
-
 /* === Private method(s) implementation === */

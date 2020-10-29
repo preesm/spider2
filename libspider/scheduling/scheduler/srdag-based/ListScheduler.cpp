@@ -57,7 +57,6 @@ spider::sched::ListScheduler::ListScheduler() : Scheduler(),
 
 spider::vector<spider::srdag::Vertex *> spider::sched::ListScheduler::schedule(const srdag::Graph *graph) {
     /* == Reserve space for the new ListTasks == */
-    tasks_.clear();
     size_t count = 0;
     for (const auto &vertex : graph->vertices()) {
         count += vertex->scheduleTaskIx() == SIZE_MAX;
