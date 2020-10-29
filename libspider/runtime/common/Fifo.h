@@ -61,8 +61,13 @@ namespace spider {
 
     /* === Class definition === */
 
+    struct FifoAlloc {
+        size_t address_; /* = Virtual address of the Fifo = */
+        u32 offset_;     /* = Offset in the address = */
+    };
+
     struct Fifo {
-        size_t address_;   /* = Virtual address of the Fifo = */
+        size_t address_;          /* = Virtual address of the Fifo = */
         u32 size_;                /* = Size of the Fifo = */
         u32 offset_;              /* = Offset in the address = */
         i32 count_;               /* = Number of use of this FIFO = */

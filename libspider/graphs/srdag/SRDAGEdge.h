@@ -49,11 +49,6 @@ namespace spider {
 
         /* === Class definition === */
 
-        struct EdgeAlloc {
-            size_t address_ = SIZE_MAX;
-            u32 offset_ = 0;
-        };
-
         class Edge {
         public:
 
@@ -173,7 +168,7 @@ namespace spider {
             size_t srcPortIx_ = SIZE_MAX;  /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX;  /* = Index of the Edge in the sink inputEdgeArray = */
             size_t ix_ = SIZE_MAX;         /* = Index of the Edge in the Graph (used for add and remove) = */
-            EdgeAlloc alloc_{ };
+            FifoAlloc alloc_{ };
         };
 
 

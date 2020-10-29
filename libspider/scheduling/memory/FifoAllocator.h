@@ -46,8 +46,6 @@ namespace spider {
     /* === Forward declaration(s) === */
 
     namespace srdag {
-        class Vertex;
-
         class Edge;
     }
 

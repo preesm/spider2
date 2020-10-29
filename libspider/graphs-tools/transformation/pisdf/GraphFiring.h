@@ -125,12 +125,6 @@ namespace spider {
             spider::array_handle<GraphHandler *> subgraphHandlers();
 
             /**
-             * @brief Get the parameters of this graph firing.
-             * @return parameters vector.
-             */
-            const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const;
-
-            /**
              * @brief Get the firing value of this GraphFiring.
              * @return firing value.
              */
@@ -170,11 +164,19 @@ namespace spider {
              */
             const GraphFiring *getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const;
 
+            /**
+             * @brief Get the parameters of this graph firing.
+             * @return parameters vector.
+             */
+            const spider::vector<std::shared_ptr<pisdf::Param>> &getParams() const { return params_; }
+
             const pisdf::Vertex *vertex(size_t ix) const;
 
             pisdf::Vertex *vertex(size_t ix);
 
-            size_t getEdgeAddress(const pisdf::Edge *edge) const;
+            size_t getEdgeAddress(const pisdf::Edge *edge, u32 firing) const;
+
+            u32 getEdgeOffset(const pisdf::Edge *edge, u32 firing) const;
 
             /* === Setter(s) === */
 
@@ -185,7 +187,21 @@ namespace spider {
              */
             void setParamValue(size_t ix, int64_t value);
 
-            void setEdgeAddress(size_t value, const pisdf::Edge *edge);
+            /**
+             * @brief Set the allocated address of the edge.
+             * @param value    Value of the address.
+             * @param edge     Pointer to the edge.
+             * @param firing   Firing of the producer of the edge.
+             */
+            void setEdgeAddress(size_t value, const pisdf::Edge *edge, u32 firing);
+
+            /**
+             * @brief Set the allocated offset of the edge.
+             * @param value    Value of the offset.
+             * @param edge     Pointer to the edge.
+             * @param firing   Firing of the producer of the edge.
+             */
+            void setEdgeOffset(u32 value, const pisdf::Edge *edge, u32 firing);
 
         private:
             struct EdgeRate {
@@ -193,20 +209,22 @@ namespace spider {
                 int64_t snkRate_;
             };
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
-            spider::unique_ptr<GraphHandler *> subgraphHandlers_; /* == match between subgraphs and their handler == */
-            spider::unique_ptr<u32> brv_;                         /* == BRV of this firing of the graph == */
-            spider::unique_ptr<u32 *> taskIxRegister_;
-            spider::unique_ptr<EdgeRate> rates_;
-            spider::unique_ptr<size_t> edgeAllocAddress_;
-            const GraphHandler *parent_;
-            u32 firing_{ };
-            u32 dynamicParamCount_{ };
-            u32 paramResolvedCount_{ };
-            bool resolved_;
+            spider::unique_ptr<GraphHandler *> subgraphHandlers_;  /* == match between subgraphs and their handler == */
+            spider::unique_ptr<u32> brvArray_;                     /* == BRV of this firing of the graph == */
+            spider::unique_ptr<EdgeRate> ratesArray_;              /* == Array of resolved rates (trade some memory for runtime speed) == */
+            spider::unique_ptr<FifoAlloc *> edgeAllocArray_;         /* == Array of allocated information for every edges == */
+            spider::unique_ptr<u32 *> taskIxRegister_;             /* == Array of schedule task ix == */
+            const GraphHandler *parent_;                           /* == Parent handler == */
+            u32 firing_ = 0;                                       /* == Firing of this graph instance == */
+            u32 dynamicParamCount_ = 0;                            /* == Number of dynamic parameters == */
+            u32 paramResolvedCount_ = 0;                           /* == Number of resolved parameters == */
+            bool resolved_;                                        /* == Indicates that the graph has been resolved == */
 
             /* === private method(s) === */
 
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param);
+
+            void updateFromRV(const pisdf::Vertex *vertex, u32 rvValue);
 
             void createOrUpdateSubgraphHandlers();
         };
