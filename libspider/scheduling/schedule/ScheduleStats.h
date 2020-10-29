@@ -180,29 +180,29 @@ namespace spider {
     }
 
     uint64_t Stats::startTime(size_t ix) const {
-        return startTimeArray_.get()[ix];
+        return startTimeArray_[ix];
     }
 
     uint64_t Stats::endTime(size_t ix) const {
-        return endTimeArray_.get()[ix];
+        return endTimeArray_[ix];
     }
 
     uint64_t Stats::loadTime(size_t ix) const {
-        return loadTimeArray_.get()[ix];
+        return loadTimeArray_[ix];
     }
 
     uint64_t Stats::idleTime(size_t ix) const {
-        return idleTimeArray_.get()[ix];
+        return idleTimeArray_[ix];
     }
 
     uint64_t Stats::makespan(size_t ix) const {
         /* == Here, we use the at method on the first vector to check the validity of PE value then we use
          * random access operator on second vector due to it being faster. == */
-        return startTimeArray_.get()[ix] - endTimeArray_.get()[ix];
+        return startTimeArray_[ix] - endTimeArray_[ix];
     }
 
     size_t Stats::jobCount(size_t ix) const {
-        return jobCountArray_.get()[ix];
+        return jobCountArray_[ix];
     }
 
     uint64_t Stats::minStartTime() const {
@@ -214,29 +214,29 @@ namespace spider {
     }
 
     void Stats::updateStartTime(size_t ix, uint64_t time) {
-        auto &startTime = startTimeArray_.get()[ix];
+        auto &startTime = startTimeArray_[ix];
         startTime = time;
         minStartTime_ = std::min(startTime, minStartTime_);
     }
 
     void Stats::updateEndTime(size_t ix, uint64_t time) {
-        auto &endTime = endTimeArray_.get()[ix];
+        auto &endTime = endTimeArray_[ix];
         endTime = time;
         maxEndTime_ = std::max(endTime, maxEndTime_);
     }
 
     void Stats::updateLoadTime(size_t ix, uint64_t time) {
-        auto &loadTime = loadTimeArray_.get()[ix];
+        auto &loadTime = loadTimeArray_[ix];
         loadTime += time;
     }
 
     void Stats::updateIDLETime(size_t ix, uint64_t time) {
-        auto &idleTime = idleTimeArray_.get()[ix];
+        auto &idleTime = idleTimeArray_[ix];
         idleTime += time;
     }
 
     void Stats::updateJobCount(size_t ix, uint32_t incValue) {
-        auto &jobCount = jobCountArray_.get()[ix];
+        auto &jobCount = jobCountArray_[ix];
         jobCount += incValue;
     }
 }

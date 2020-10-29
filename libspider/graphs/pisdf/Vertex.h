@@ -203,7 +203,7 @@ namespace spider {
                     throwSpiderException("index out of bound");
                 }
 #endif
-                return inputEdgeArray_.get()[ix];
+                return inputEdgeArray_[ix];
             };
 
             /**
@@ -232,7 +232,7 @@ namespace spider {
                     throwSpiderException("index out of bound");
                 }
 #endif
-                return outputEdgeArray_.get()[ix];
+                return outputEdgeArray_[ix];
             };
 
             /**

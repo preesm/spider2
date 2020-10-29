@@ -62,7 +62,7 @@ spider::pisdf::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
     }
     const auto *parentGraph = graph->graph();
     for (u32 k = 0; k < repetitionCount; ++k) {
-        firings_.get()[k] = spider::make<GraphFiring>(this, params, k);
+        firings_[k] = spider::make<GraphFiring>(this, params, k);
     }
     if (static_ || (parentGraph && !parentGraph->configVertexCount())) {
         resolveFirings();
@@ -71,7 +71,7 @@ spider::pisdf::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
 
 spider::pisdf::GraphHandler::~GraphHandler() {
     for (u32 k = 0; k < repetitionCount_; ++k) {
-        destroy(firings_.get()[k]);
+        destroy(firings_[k]);
     }
 }
 
@@ -85,14 +85,14 @@ void spider::pisdf::GraphHandler::clear() {
 
 void spider::pisdf::GraphHandler::resolveFirings() {
     if (repetitionCount_ && !graph_->configVertexCount()) {
-        auto *firstFiring = firings_.get()[0u];
+        auto *firstFiring = firings_[0u];
         firstFiring->resolveBRV();
         for (u32 k = 1; k < repetitionCount_; ++k) {
-            firings_.get()[k]->apply(firstFiring);
+            firings_[k]->apply(firstFiring);
         }
     } else {
         for (u32 k = 0; k < repetitionCount_; ++k) {
-            firings_.get()[k]->resolveBRV();
+            firings_[k]->resolveBRV();
         }
     }
 }

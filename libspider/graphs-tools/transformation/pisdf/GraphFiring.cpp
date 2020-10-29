@@ -216,7 +216,7 @@ spider::pisdf::GraphFiring::getSubgraphGraphFiring(const pisdf::Graph *subgraph,
         throwSpiderException("subgraph does not belong to this graph.");
     }
 #endif
-    return subgraphHandlers_.get()[subgraph->subIx()]->firings()[firing];
+    return subgraphHandlers_[subgraph->subIx()]->firings()[firing];
 }
 
 const spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) const {
@@ -323,8 +323,8 @@ void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 r
 void spider::pisdf::GraphFiring::createOrUpdateSubgraphHandlers() {
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
         const auto ix = subgraph->ix();
-        const auto rvValue = brvArray_.get()[ix];
-        auto &currentGraphHandler = subgraphHandlers_.get()[subgraph->subIx()];
+        const auto rvValue = brvArray_[ix];
+        auto &currentGraphHandler = subgraphHandlers_[subgraph->subIx()];
         if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
             destroy(currentGraphHandler);
             currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
