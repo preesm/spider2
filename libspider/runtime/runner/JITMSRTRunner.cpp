@@ -134,12 +134,12 @@
         }\
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Input Fifo(s):\n", ix());\
         for (auto &fifo : job.fifos_->inputFifos()) {\
-            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
+            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %8zu -- address: %8zu -- offset: %8zu\n", ix(), fifo.size_,\
             fifo.address_, fifo.offset_);\
         }\
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Output Fifo(s):\n", ix());\
         for (auto &fifo : job.fifos_->outputFifos()) {\
-            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
+            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %8zu -- address: %8zu -- offset: %8zu\n", ix(), fifo.size_,\
             fifo.address_, fifo.offset_);\
         }\
     }
