@@ -71,10 +71,19 @@ namespace spider {
                 dep.handler_ = handler;
                 dep.rate_ = srcRate;
                 dep.edgeIx_ = static_cast<u32>(edge->sourcePortIx());
-                dep.memoryStart_ = static_cast<u32>((lowerCons - delayValue) % srcRate);
-                dep.memoryEnd_ = static_cast<u32>((upperCons - delayValue) % srcRate);
-                dep.firingStart_ = static_cast<u32>(math::floorDiv(lowerCons - delayValue, srcRate));
-                dep.firingEnd_ = static_cast<u32>(math::floorDiv(upperCons - delayValue, srcRate));
+                const auto delayedLowerCons = lowerCons - delayValue;
+                const auto startDiv = delayedLowerCons / srcRate;
+                const auto memStart = delayedLowerCons % srcRate;
+                const auto delayedUpperCons = upperCons - delayValue;
+                const auto endDiv = delayedUpperCons / srcRate;
+                const auto memEnd = delayedUpperCons % srcRate;
+                /* == floor div == */
+                const auto start = memStart ? startDiv - (delayedLowerCons < 0) : startDiv;
+                const auto end = memEnd ? endDiv - (delayedUpperCons < 0) : endDiv;
+                dep.memoryStart_ = static_cast<u32>(memStart);
+                dep.memoryEnd_ = static_cast<u32>(memEnd);
+                dep.firingStart_ = static_cast<u32>(start);
+                dep.firingEnd_ = static_cast<u32>(end);
                 return dep;
             }
 
@@ -92,10 +101,23 @@ namespace spider {
                 dep.handler_ = handler;
                 dep.rate_ = snkRate;
                 dep.edgeIx_ = static_cast<u32>(edge->sinkPortIx());
-                dep.memoryStart_ = static_cast<u32>((lowerProd + delayValue) % snkRate);
-                dep.memoryEnd_ = static_cast<u32>((upperProd + delayValue) % snkRate);
-                dep.firingStart_ = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
-                dep.firingEnd_ = static_cast<u32>(math::floorDiv(upperProd + delayValue, snkRate));
+                const auto delayedLowerProd = lowerProd + delayValue;
+                const auto startDiv = delayedLowerProd / snkRate;
+                const auto memStart = delayedLowerProd % snkRate;
+                const auto delayedUpperProd = upperProd + delayValue;
+                const auto endDiv = delayedUpperProd / snkRate;
+                const auto memEnd = delayedUpperProd % snkRate;
+                /* == floor div == */
+                const auto start = memStart ? startDiv - (delayedLowerProd < 0) : startDiv;
+                const auto end = memEnd ? endDiv - (delayedUpperProd < 0) : endDiv;
+                dep.memoryStart_ = static_cast<u32>(memStart);
+                dep.memoryEnd_ = static_cast<u32>(memEnd);
+                dep.firingStart_ = static_cast<u32>(start);
+                dep.firingEnd_ = static_cast<u32>(end);
+//                dep.memoryStart_ = static_cast<u32>((lowerProd + delayValue) % snkRate);
+//                dep.memoryEnd_ = static_cast<u32>((upperProd + delayValue) % snkRate);
+//                dep.firingStart_ = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
+//                dep.firingEnd_ = static_cast<u32>(math::floorDiv(upperProd + delayValue, snkRate));
                 return dep;
             }
         }

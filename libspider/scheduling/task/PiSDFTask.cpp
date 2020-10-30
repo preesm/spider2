@@ -42,6 +42,7 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
@@ -124,7 +125,17 @@ u32 spider::sched::PiSDFTask::color() const {
 }
 
 std::string spider::sched::PiSDFTask::name() const {
-    return vertex()->name();
+    std::string name{ };
+    const auto *vertex = this->vertex();
+    const auto *handler = handler_;
+    while (handler) {
+        const auto *graph = vertex->graph();
+        const auto firing = handler->firingValue();
+        name = graph->name() + std::string(":").append(std::to_string(firing)).append(":").append(name);
+        handler = handler->getParent()->handler();
+        vertex = graph;
+    }
+    return name.append(this->vertex()->name()).append(":").append(std::to_string(firing_));
 }
 
 u32 spider::sched::PiSDFTask::ix() const noexcept {

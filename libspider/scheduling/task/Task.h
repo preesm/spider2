@@ -73,7 +73,7 @@ namespace spider {
 
         class Task {
         public:
-            Task() = default;
+            Task();
 
             virtual ~Task() noexcept = default;
 
@@ -107,6 +107,12 @@ namespace spider {
                                                 SyncTask */*rcvTask*/,
                                                 size_t /*ix*/,
                                                 const Schedule */*schedule*/) { }
+
+            /**
+             * @brief Build the input parameters needed by the task execution.
+             * @return input parameters array (if any), empty array else.
+             */
+            inline virtual spider::unique_ptr<i64> buildInputParams() const { return spider::unique_ptr<i64>(); }
 
             /* === Getter(s) === */
 
@@ -224,6 +230,20 @@ namespace spider {
              */
             inline u32 jobExecIx() const noexcept { return jobExecIx_; }
 
+            /**
+             * @brief Get the number of output parameters of this task (default is 0).
+             * @return number of output parameters.
+             */
+            inline virtual u32 getOutputParamsCount() const { return 0; }
+
+            /**
+             * @brief Get the kernel identifier for the task execution.
+             * @return Kernel index, UINT32_MAX else.
+             */
+            inline virtual u32 getKernelIx() const { return UINT32_MAX; }
+
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const { return syncExecTaskIxArray_[lrtIx]; }
+
             /* === Setter(s) === */
 
             /**
@@ -245,7 +265,7 @@ namespace spider {
             * @remark This method will overwrite current values.
             * @param mappedPE  Lrt ix inside spider.
             */
-            inline void setMappedPE(const PE *pe) { mappedPEIx_ = static_cast<u32>(pe->virtualIx()); }
+            void setMappedPE(const PE *pe);
 
             /**
              * @brief Set the state of the job.
@@ -268,34 +288,14 @@ namespace spider {
              */
             virtual void setIx(u32 ix) noexcept = 0;
 
-            /**
-             * @brief Get the number of output parameters of this task (default is 0).
-             * @return number of output parameters.
-             */
-            inline virtual u32 getOutputParamsCount() const { return 0; }
-
-            /**
-             * @brief Get the kernel identifier for the task execution.
-             * @return Kernel index, UINT32_MAX else.
-             */
-            inline virtual u32 getKernelIx() const { return UINT32_MAX; }
-
-            /**
-             * @brief Build the input parameters needed by the task execution.
-             * @return input parameters array (if any), empty array else.
-             */
-            inline virtual spider::unique_ptr<i64> buildInputParams() const { return spider::unique_ptr<i64>(); }
-
-            /**
-             * @brief Build the FIFOs needed by the task execution.
-             * @param schedule Pointer to the schedule.
-             * @return @refitem std::shared_ptr of @refitem JobFifos
-             */
-            inline virtual std::shared_ptr<JobFifos> buildJobFifos(const Schedule */*schedule*/) const {
-                return std::shared_ptr<JobFifos>();
+            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value)  {
+                if (syncExecTaskIxArray_[lrtIx] == UINT32_MAX || value > syncExecTaskIxArray_[lrtIx]) {
+                    syncExecTaskIxArray_[lrtIx] = value;
+                }
             }
 
         private:
+            spider::unique_ptr<u32> syncExecTaskIxArray_;
             u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the vertexTask */
             u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
             u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */

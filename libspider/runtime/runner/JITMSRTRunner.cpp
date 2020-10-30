@@ -87,7 +87,7 @@
 
 #define LOG_JOB_START() \
     if (log::enabled<log::LRT>()) {\
-        log::info<log::LRT>("Runner #%zu -> starting job %zu.\n", ix(), job.ix_);\
+        log::info<log::LRT>("Runner #%zu -> starting job %zu.\n", ix(), job.execIx_);\
     }
 
 #define LOG_JOB_END() \
@@ -126,7 +126,7 @@
 
 #define LOG_JOB() \
     if (log::enabled<log::LRT>() && spider::api::verboseEnabled()) {\
-        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Task: %zu\n", ix(), job.ix_);\
+        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Task: %zu\n", ix(), job.execIx_);\
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Constraints:\n", ix());\
         for (const auto &constraint : job.execConstraints_) {\
             log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> job %zu on runner #%zu\n", ix(),\
@@ -158,7 +158,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
     bool waitForJob = false;
     while (run && !stop_) {
         /* == Check for notifications == */
-        bool blockingPop = (infiniteLoop && finished_) || waitForJob;
+        auto blockingPop = (infiniteLoop && finished_) || waitForJob;
         while (!stop_ && readNotification(blockingPop)) {
             blockingPop = pause_;
         }
@@ -166,7 +166,6 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             LOG_STOP();
             return;
         }
-
         /* == If there is a job available, do it == */
         if (start_ && (jobQueueCurrentPos_ != jobQueue_.size())) {
             auto &job = jobQueue_[jobQueueCurrentPos_];
@@ -175,7 +174,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 /* == Run the job == */
                 LOG_JOB_START();
                 runJob(job);
-                lastJobStamp_ = job.ix_;
+                lastJobStamp_ = job.execIx_;
                 jobQueueCurrentPos_++;
                 LOG_JOB_END();
             }
@@ -188,10 +187,6 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 shouldBroadcast_ = false;
                 broadcastCurrentJobStamp();
             }
-
-            /* == Send finished notification (after broadcast to avoid potential miss-synchronization) == */
-            sendFinishedNotification();
-
             /* == Reset state == */
             if (!repeat_) {
                 clearJobQueue();
@@ -199,10 +194,10 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             finished_ = true;
             start_ = false;
             receivedEnd_ = false;
-
+            /* == Send finished notification (after broadcast to avoid potential miss-synchronization) == */
+            sendFinishedNotification();
             /* == log == */
             LOG_END_ITER();
-
             /* == Exit condition based on infinite loop flag == */
             if (!infiniteLoop) {
                 return;
@@ -265,7 +260,7 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
 
     /* == Deallocate input buffers == */
     for (auto &fifo : job.fifos_->inputFifos()) {
-        if (fifo.attribute_ == FifoAttribute::RW_OWN) {
+        if (fifo.attribute_ == FifoAttribute::RW_OWN || fifo.attribute_ == FifoAttribute::R_MERGE) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
             memoryInterface->deallocate(fifo.address_, fifo.size_);
         }
@@ -279,8 +274,8 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Notify other runtimes that need to know == */
-    updateJobStamp(ix(), job.ix_);
-    sendJobStampNotification(job.synchronizationFlags_.get(), job.ix_);
+    updateJobStamp(ix(), job.execIx_);
+    sendJobStampNotification(job.synchronizationFlags_.get(), job.execIx_);
 
     /* == Send output parameters == */
     sendParameters(job.taskIx_, outputParams);

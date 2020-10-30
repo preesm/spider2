@@ -45,10 +45,19 @@
 
 /* === Method(s) implementation === */
 
+spider::sched::Task::Task() {
+    syncExecTaskIxArray_ = make_unique(make_n<u32, StackID::SCHEDULE>(archi::platform()->LRTCount(), UINT32_MAX));
+}
+
 const spider::PE *spider::sched::Task::mappedPe() const {
     return archi::platform()->peFromVirtualIx(mappedPEIx_);
 }
 
 void spider::sched::Task::visit(TaskLauncher *launcher) {
     launcher->visit(this);
+}
+
+void spider::sched::Task::setMappedPE(const spider::PE *pe) {
+    mappedPEIx_ = static_cast<u32>(pe->virtualIx());
+    syncExecTaskIxArray_[pe->attachedLRT()->virtualIx()] = UINT32_MAX;
 }

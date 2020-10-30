@@ -139,9 +139,9 @@ namespace spider {
 
         explicit Notification(NotificationType type,
                               size_t senderIx = SIZE_MAX,
-                              size_t notificationIx = SIZE_MAX) : type_{ type },
-                                                                  senderIx_{ senderIx },
-                                                                  notificationIx_{ notificationIx } {
+                              size_t notificationIx = SIZE_MAX) : senderIx_{ senderIx },
+                                                                  notificationIx_{ notificationIx },
+                                                                  type_{ type }{
 
         }
 
@@ -153,9 +153,9 @@ namespace spider {
 
         /* === Struct member(s) === */
 
-        NotificationType type_ = NotificationType::UNDEFINED; /*!< Primary type of the notification (ex: NotificationType::JOB). */
         size_t senderIx_ = SIZE_MAX;                          /*!< ID of the sender of the notification */
         size_t notificationIx_ = SIZE_MAX;                    /*!< Index of the notification to fetch (may be used for direct value passing for some notification). */
+        NotificationType type_ = NotificationType::UNDEFINED; /*!< Primary type of the notification (ex: NotificationType::JOB). */
     };
 }
 

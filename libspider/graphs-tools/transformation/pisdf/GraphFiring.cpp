@@ -244,35 +244,19 @@ void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
 }
 
 size_t spider::pisdf::GraphFiring::getEdgeAddress(const pisdf::Edge *edge, u32 firing) const {
-    if (edge->source()->subtype() == VertexType::DUPLICATE || edge->source()->subtype() == VertexType::FORK) {
-        return edgeAllocArray_[edge->ix()][firing].address_;
-    } else {
-        return edgeAllocArray_[edge->ix()][0].address_ + static_cast<size_t>(getSrcRate(edge) * firing);
-    }
+    return edgeAllocArray_[edge->ix()][firing].address_;
 }
 
 u32 spider::pisdf::GraphFiring::getEdgeOffset(const pisdf::Edge *edge, u32 firing) const {
-    if (edge->source()->subtype() == VertexType::DUPLICATE || edge->source()->subtype() == VertexType::FORK) {
-        return edgeAllocArray_[edge->ix()][firing].offset_;
-    } else {
-        return edgeAllocArray_[edge->ix()][0].offset_;
-    }
+    return edgeAllocArray_[edge->ix()][firing].offset_;
 }
 
 void spider::pisdf::GraphFiring::setEdgeAddress(size_t value, const pisdf::Edge *edge, u32 firing) {
-    if (edge->source()->subtype() == VertexType::DUPLICATE || edge->source()->subtype() == VertexType::FORK) {
-        edgeAllocArray_[edge->ix()][firing].address_ = value;
-    } else {
-        edgeAllocArray_[edge->ix()][0].address_ = value;
-    }
+    edgeAllocArray_[edge->ix()][firing].address_ = value;
 }
 
 void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const pisdf::Edge *edge, u32 firing) {
-    if (edge->source()->subtype() == VertexType::DUPLICATE || edge->source()->subtype() == VertexType::FORK) {
-        edgeAllocArray_[edge->ix()][firing].offset_ = value;
-    } else {
-        edgeAllocArray_[edge->ix()][0].offset_ = value;
-    }
+    edgeAllocArray_[edge->ix()][firing].offset_ = value;
 }
 
 /* === Private method(s) implementation === */
@@ -303,16 +287,9 @@ void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 r
         brvArray_[ix] = rvValue;
         deallocate(taskIxRegister_[ix]);
         taskIxRegister_[ix] = spider::make_n<u32, StackID::TRANSFO>(rvValue, UINT32_MAX);
-        if (vertex->subtype() == VertexType::DUPLICATE || vertex->subtype() == VertexType::FORK) {
-            for (const auto *edge : vertex->outputEdges()) {
-                deallocate(edgeAllocArray_[edge->ix()]);
-                edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::SCHEDULE>(rvValue, { SIZE_MAX, 0 });
-            }
-        } else {
-            for (const auto *edge : vertex->outputEdges()) {
-                deallocate(edgeAllocArray_[edge->ix()]);
-                edgeAllocArray_[edge->ix()] = spider::make<FifoAlloc, StackID::SCHEDULE>(FifoAlloc{ SIZE_MAX, 0 });
-            }
+        for (const auto *edge : vertex->outputEdges()) {
+            deallocate(edgeAllocArray_[edge->ix()]);
+            edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::SCHEDULE>(rvValue, { SIZE_MAX, 0 });
         }
     } else {
         /* == reset values == */

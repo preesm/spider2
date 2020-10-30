@@ -57,7 +57,7 @@ namespace spider {
         spider::unique_ptr<i64> inputParams_;           /*!< Array of static input parameters */
         spider::unique_ptr<bool> synchronizationFlags_; /*!< Array of LRT to notify after job completion (size IS equal to the number of LRT) */
         u32 kernelIx_;                                  /*!< Kernel used for executing the task */
-        u32 ix_;                                        /*!< Index of the job */
+        u32 execIx_;                                    /*!< Index of the job */
         u32 taskIx_;                                    /*!< Index of the task associated with the job */
         u32 nParamsOut_;                                /*!< Number of output parameters to be set by this job. */
     };
