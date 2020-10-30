@@ -35,6 +35,8 @@
 /* === Include(s) === */
 
 #include <runtime/communicator/ThreadRTCommunicator.h>
+#include <archi/Platform.h>
+#include <api/archi-api.h>
 
 /* === Static function === */
 
@@ -42,19 +44,30 @@
 
 /* === Private method(s) implementation === */
 
-spider::ThreadRTCommunicator::ThreadRTCommunicator(size_t lrtCount) :
-        notificationQueueVector_{ factory::vector<spider::Queue<Notification>>(lrtCount, StackID::RUNTIME) } { }
+spider::ThreadRTCommunicator::ThreadRTCommunicator(size_t lrtCount) {
+    auto *queues = spider::make_n<spider::Queue<Notification> *, StackID::RUNTIME>(lrtCount, nullptr);
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        queues[i] = spider::make<spider::Queue<Notification>, StackID::RUNTIME>();
+    }
+    notificationQueueArray_ = spider::make_unique(queues);
+}
+
+spider::ThreadRTCommunicator::~ThreadRTCommunicator() {
+    for (size_t i = 0; i < archi::platform()->LRTCount(); ++i) {
+        destroy(notificationQueueArray_[i]);
+    }
+}
 
 void spider::ThreadRTCommunicator::push(Notification notification, size_t receiver) {
-    notificationQueueVector_.at(receiver).push(notification);
+    notificationQueueArray_[receiver]->push(notification);
 }
 
 bool spider::ThreadRTCommunicator::pop(Notification &notification, size_t receiver) {
-    return notificationQueueVector_.at(receiver).pop(notification);
+    return notificationQueueArray_[receiver]->pop(notification);
 }
 
 bool spider::ThreadRTCommunicator::try_pop(Notification &notification, size_t receiver) {
-    return notificationQueueVector_[receiver].try_pop(notification);
+    return notificationQueueArray_[receiver]->try_pop(notification);
 }
 
 void spider::ThreadRTCommunicator::pushParamNotification(size_t sender, size_t messageIndex) {

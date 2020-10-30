@@ -54,20 +54,9 @@ namespace spider {
     public:
         IndexedQueue() = default;
 
-        /**
-         * @brief Copy constructor. mutex state of the queue will NOT be copied.
-         */
-        IndexedQueue(const IndexedQueue<T> &other) : freeIndexQueue_{ other.freeIndexQueue_ },
-                                                     queue_{ other.queue_ } {
-        }
+        IndexedQueue(const IndexedQueue<T> &) = delete;
 
-        /**
-         * @brief Move constructor. mutex state of the queue will NOT be moved.
-         */
-        IndexedQueue(IndexedQueue<T> &&other) noexcept: IndexedQueue() {
-            queue_.swap(other.queue_);
-            freeIndexQueue_.swap(other.freeIndexQueue_);
-        }
+        IndexedQueue(IndexedQueue<T> &&) noexcept = delete;
 
         IndexedQueue &operator=(const IndexedQueue<T> &) = delete;
 
@@ -103,7 +92,6 @@ namespace spider {
             std::lock_guard<std::mutex> lock{ mutex_ };
             /* == std::vector are thread-safe in read-only only if no other thread is writing == */
             load = std::move(queue_.at(ix)); /* = use move assignment if available = */
-
             /* == Push index as available one == */
             freeIndexQueue_.push(ix);
             return true;
