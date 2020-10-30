@@ -47,18 +47,22 @@
 
 /* === Method(s) implementation === */
 
-ufast64 spider::sched::Mapper::computeStartTime(const Task *task, const Schedule *schedule) const {
+ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *schedule) const {
     auto minTime = startTime_;
-    if (task) {
-        for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
-            const auto *source = task->previousTask(ix, schedule);
-            minTime = std::max(minTime, source ? source->endTime() : ufast64{ 0 });
+    if (!task) {
+        return minTime;
+    }
+    for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
+        const auto *srcTask = task->previousTask(ix, schedule);
+        if (srcTask) {
+            task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
+            minTime = std::max(minTime, srcTask->endTime());
         }
     }
     return minTime;
 }
 
-ufast64 spider::sched::Mapper::computeStartTime(const Task *task,
+ufast64 spider::sched::Mapper::computeStartTime(Task *task,
                                                 const Schedule *schedule,
                                                 const spider::vector<pisdf::DependencyIterator> &dependencies) const {
     auto minTime = startTime_;
@@ -69,7 +73,10 @@ ufast64 spider::sched::Mapper::computeStartTime(const Task *task,
         for (const auto &dep : depIt) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                 const auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
-                minTime = std::max(minTime, srcTask ? srcTask->endTime() : ufast64{ 0 });
+                if (srcTask) {
+                    task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
+                    minTime = std::max(minTime, srcTask->endTime());
+                }
             }
         }
     }

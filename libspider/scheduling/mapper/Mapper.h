@@ -111,7 +111,7 @@ namespace spider {
              * @param schedule  Pointer to the schedule.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(const Task *task, const Schedule *schedule) const;
+            ufast64 computeStartTime(Task *task, const Schedule *schedule) const;
 
             /**
              * @brief Compute the minimum start time possible for a given task.
@@ -120,7 +120,7 @@ namespace spider {
              * @param dependencies Dependencies of the task.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(const Task *task,
+            ufast64 computeStartTime(Task *task,
                                      const Schedule *schedule,
                                      const spider::vector<pisdf::DependencyIterator> &dependencies) const;
 

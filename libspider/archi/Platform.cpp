@@ -171,8 +171,11 @@ uint64_t spider::Platform::dataCommunicationCostPEToPE(const PE *peSrc, const PE
     if (!peSrc || !peSnk) {
         throwSpiderException("nullptr for peSrc or peSnk.");
     }
-    if ((peSrc == peSnk) || (peSrc->cluster() == peSnk->cluster())) {
+    if (peSrc == peSnk) {
         return 0;
+    } else if (peSrc->cluster() == peSnk->cluster()) {
+        /* == this will insight the mapper to try an stay on the same core when possible == */
+        return 10;
     }
     /* == For inter cluster communication, cost is a bit more complicated to compute == */
     const auto *interComBus = getClusterToClusterMemoryBus(peSrc->cluster(), peSnk->cluster());

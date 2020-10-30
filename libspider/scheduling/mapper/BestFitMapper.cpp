@@ -126,7 +126,8 @@ const spider::PE *spider::sched::BestFitMapper::findPE(const Cluster *cluster,
         if (!pe->enabled() || !task->isMappableOnPE(pe)) {
             continue;
         }
-        const auto readyTime = stats.endTime(pe->virtualIx());
+        /* == Add a small overhead in choosing GRT as a mapping choice to break inequality in favor of other PEs == */
+        const auto readyTime = stats.endTime(pe->virtualIx()) + (pe == archi::platform()->spiderGRTPE()) * 10;
         const auto startTime = std::max(readyTime, minStartTime);
         const auto idleTime = startTime - readyTime;
         const auto endTime = startTime + task->timingOnPE(pe);
