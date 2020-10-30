@@ -65,8 +65,6 @@ namespace spider {
 
             void receiveParams(const spider::array<i64> &values) final;
 
-            void insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *schedule) final;
-
             /* === Getter(s) === */
 
             i64 inputRate(size_t ix) const final;
@@ -99,14 +97,6 @@ namespace spider {
 
         private:
             srdag::Vertex *vertex_ = nullptr;
-
-            /* === Private method(s) === */
-
-            u32 getOutputParamsCount() const final;
-
-            u32 getKernelIx() const final;
-
-            spider::unique_ptr<i64> buildInputParams() const final;
         };
     }
 }

@@ -68,8 +68,6 @@ namespace spider {
 
             void receiveParams(const spider::array<i64> &values) final;
 
-            void insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *schedule) final;
-
             spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
 
             spider::vector<pisdf::DependencyIterator> computeConsDependencies() const;
@@ -100,14 +98,6 @@ namespace spider {
             pisdf::GraphFiring *handler_ = nullptr;
             u32 vertexIx_ = UINT32_MAX;
             u32 firing_ = UINT32_MAX;
-
-            /* === Private method(s) === */
-
-            u32 getOutputParamsCount() const final;
-
-            u32 getKernelIx() const final;
-
-            spider::unique_ptr<i64> buildInputParams() const final;
         };
     }
 }

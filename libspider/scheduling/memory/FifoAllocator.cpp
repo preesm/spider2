@@ -37,7 +37,6 @@
 
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/task/SyncTask.h>
 #include <scheduling/task/PiSDFTask.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/ExternInterface.h>
@@ -178,24 +177,6 @@ spider::unique_ptr<spider::JobFifos> spider::sched::FifoAllocator::buildJobFifos
 }
 
 #endif
-
-spider::unique_ptr<spider::JobFifos> spider::sched::FifoAllocator::buildJobFifos(SyncTask *task) const {
-    auto fifos = spider::make_unique<JobFifos, StackID::RUNTIME>(1, 1);
-    Fifo fifo{ };
-    fifo.address_ = task->getAllocAddress();
-    fifo.offset_ = task->getAllocOffset();
-    fifo.size_ = static_cast<u32>(task->size());
-    fifo.count_ = 0;
-    fifo.attribute_ = FifoAttribute::RW_ONLY;
-    fifos->setInputFifo(0, fifo);
-    if (task->syncType() == SyncType::RECEIVE) {
-        /* == The receive task should allocate memory in the other memory interface == */
-        fifo.count_ = 1;
-        fifo.attribute_ = FifoAttribute::RW_OWN;
-    }
-    fifos->setOutputFifo(0, fifo);
-    return fifos;
-}
 
 spider::unique_ptr<spider::JobFifos>
 spider::sched::FifoAllocator::buildJobFifos(PiSDFTask *task,

@@ -39,6 +39,7 @@
 
 #include <memory/memory.h>
 #include <common/Types.h>
+#include <common/Time.h>
 #include <scheduling/memory/JobFifos.h>
 #include <runtime/message/JobMessage.h>
 #include <graphs-tools/numerical/dependencies.h>
@@ -64,31 +65,35 @@ namespace spider {
         public:
             explicit TaskLauncher(const Schedule *schedule, FifoAllocator *allocator) : schedule_{ schedule },
                                                                                         allocator_{ allocator } {
-
+                deferedSyncTasks_ = factory::vector<std::pair<SyncTask *, u32>>(StackID::RUNTIME);
             }
 
-            ~TaskLauncher() = default;
+            ~TaskLauncher() noexcept = default;
 
             /* === Method(s) === */
 
             inline void visit(sched::Task *) { }
 
+#ifndef _NO_BUILD_LEGACY_RT
+
             void visit(sched::SRDAGTask *task);
+
+#endif
 
             void visit(sched::SyncTask *task);
 
             void visit(sched::PiSDFTask *task);
 
         private:
-            using constraint_t = std::pair<size_t, const Task *>;
+            spider::vector<std::pair<SyncTask *, u32>> deferedSyncTasks_;
             const Schedule *schedule_ = nullptr;
             FifoAllocator *allocator_ = nullptr;
 
             /* === Private method(s) === */
 
-            void fillTaskMessage(Task *task, JobMessage &message);
+            void sendTask(Task *task, JobMessage &message);
 
-            static void sendTask(Task *task, JobMessage &message);
+            void sendSyncTask(SyncTask *task, const JobMessage &message);
 
             /**
              * @brief Build the notification flags for this task.
@@ -102,24 +107,16 @@ namespace spider {
 
             /**
              * @brief Build execution constraints for this task (needed job + lrt).
-             * @param constraintsArray Array of execution constraints.
-             * @param constraintsCount Number of constraints.
+             * @param task Pointer to the task.
              * @return array of constraints if any, empty array else.
              */
-            static spider::array<SyncInfo> buildExecConstraints(spider::array<constraint_t> constraintsArray,
-                                                                size_t constraintsCount);
+            template<class ...Args>
+            spider::array<SyncInfo> buildExecConstraints(const Task *task, Args &&...args) const;
 
-            /**
-             * @brief Build the array of execution constraints for this task.
-             * @param task             Pointer to the task.
-             * @param constraintsCount Variable to be filled with actual constraints count.
-             * @return array of @refitem constraint_t
-             */
-            spider::array<constraint_t> buildConstraintsArray(const Task *task, size_t &constraintsCount) const;
+            spider::array<const Task *> buildConstraintsArray(const Task *task) const;
 
-            spider::array<constraint_t> buildConstraintsArray(const Task *task,
-                                                              size_t &constraintsCount,
-                                                              const spider::vector<pisdf::DependencyIterator> &execDeps) const;
+            spider::array<const Task *> buildConstraintsArray(const Task *task,
+                                                              const spider::vector<pisdf::DependencyIterator> &dependencies) const;
 
             /**
              * @brief Based on current state of the mapping / scheduling, fill the boolean array "flags" with
@@ -128,13 +125,13 @@ namespace spider {
              * @param schedule Pointer to the schedule.
              * @return True if at least one LRT will be notified by this task.
              */
-            bool updateNotificationFlags(const Task *task, bool *flags) const;
+            void updateNotificationFlags(const Task *task, bool *flags) const;
 
-            bool updateNotificationFlags(const Task *task,
+            void updateNotificationFlags(const Task *task,
                                          bool *flags,
                                          const spider::vector<pisdf::DependencyIterator> &consDeps) const;
 
-            bool getFlagFromSink(const Task *task, const PiSDFTask *sinkTask) const;
+            static bool setFlagsFromSink(const Task *task, const Task *sinkTask, bool *flags);
 
         };
     }

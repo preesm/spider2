@@ -64,10 +64,6 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline i64 inputRate(size_t) const final { return static_cast<i64>(size_); }
-
-            inline i64 outputRate(size_t) const final { return static_cast<i64>(size_); }
-
             inline Task *previousTask(size_t, const Schedule *) const final { return dependency_; }
 
             inline Task *nextTask(size_t, const Schedule *) const final { return successor_; }
@@ -90,11 +86,9 @@ namespace spider {
 
             inline SyncType syncType() const { return type_; }
 
-            inline size_t size() const { return size_; }
+            inline u32 getDepIx() const { return depIx_; }
 
-            inline size_t getAllocAddress() const { return allocAddress_; }
-
-            inline u32 getAllocOffset() const { return allocOffset_; }
+            inline const MemoryBus *getMemoryBus() const { return bus_; }
 
             /* === Setter(s) === */
 
@@ -118,38 +112,17 @@ namespace spider {
                 }
             }
 
-            /**
-             * @brief Set the data size (in bytes) to send / receive.
-             * @param size Size of the data to send / receive
-             */
-            inline void setSize(size_t size) { size_ = size; }
-
-            /**
-             * @brief Set allocated address of the sync task.
-             * @param alloc Virtual address to be used for the fifos.
-             */
-            inline void setAlloc(size_t address, u32 offset) {
-                allocAddress_ = address;
-                allocOffset_ = offset;
-            }
-
             inline void setIx(u32 ix) noexcept final { ix_ = ix; }
+
+            inline void setDepIx(u32 depIx) { depIx_ = depIx; }
 
         private:
             Task *successor_{ nullptr };      /*!< Successor task */
             Task *dependency_{ nullptr };     /*!< Successor task */
             const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
-            size_t size_{ 0U };               /*!< Data size (in bytes) to send / receive. */
-            size_t allocAddress_ = SIZE_MAX;  /*!< Address of the allocated fifo */
-            u32 allocOffset_ = 0;
+            u32 depIx_ = UINT32_MAX;
             u32 ix_ = UINT32_MAX;
             SyncType type_;
-
-            /* === Private method(s) === */
-
-            u32 getKernelIx() const final;
-
-            spider::unique_ptr<i64> buildInputParams() const final;
         };
     }
 }

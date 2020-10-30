@@ -86,12 +86,6 @@ void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
     }
 }
 
-void spider::sched::PiSDFTask::insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *) {
-//    const auto fifo = fifos_->inputFifo(ix);
-//    sndTask->setAlloc(fifo);
-//    rcvTask->setAlloc(fifo);
-}
-
 spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeExecDependencies() const {
     auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
     const auto *vertex = this->vertex();
@@ -156,18 +150,4 @@ u64 spider::sched::PiSDFTask::timingOnPE(const spider::PE *pe) const {
 
 const spider::pisdf::Vertex *spider::sched::PiSDFTask::vertex() const {
     return handler_->vertex(vertexIx_);
-}
-
-/* === Private method(s) === */
-
-u32 spider::sched::PiSDFTask::getOutputParamsCount() const {
-    return static_cast<u32>(vertex()->outputParamCount());
-}
-
-u32 spider::sched::PiSDFTask::getKernelIx() const {
-    return static_cast<u32>(vertex()->runtimeInformation()->kernelIx());
-}
-
-spider::unique_ptr<i64> spider::sched::PiSDFTask::buildInputParams() const {
-    return pisdf::buildVertexRuntimeInputParameters(vertex(), handler_->getParams());
 }

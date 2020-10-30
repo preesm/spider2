@@ -43,11 +43,13 @@
 
 namespace spider {
 
+#ifndef _NO_BUILD_LEGACY_RT
     namespace srdag {
         class Graph;
 
         class Vertex;
     }
+#endif
 
     namespace pisdf {
         class GraphHandler;
@@ -77,11 +79,13 @@ namespace spider {
 
             /* === Method(s) === */
 
+#ifndef _NO_BUILD_LEGACY_RT
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graph  Graph to use to perform the update.
              */
             inline virtual spider::vector<SRDAGTask *> schedule(const srdag::Graph *) { return { }; }
+#endif
 
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)

@@ -77,12 +77,6 @@ void spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
     }
 }
 
-void spider::sched::SRDAGTask::insertSyncTasks(SyncTask *sndTask, SyncTask *rcvTask, size_t ix, const Schedule *) {
-    const auto *inputEdge = vertex_->inputEdge(ix);
-    sndTask->setAlloc(inputEdge->address(), inputEdge->offset());
-    rcvTask->setAlloc(inputEdge->address(), inputEdge->offset());
-}
-
 i64 spider::sched::SRDAGTask::inputRate(size_t ix) const {
     return vertex_->inputEdge(ix)->rate();
 }
@@ -135,20 +129,6 @@ size_t spider::sched::SRDAGTask::dependencyCount() const {
 
 size_t spider::sched::SRDAGTask::successorCount() const {
     return vertex_->outputEdgeCount();
-}
-
-/* === Private method(s) === */
-
-u32 spider::sched::SRDAGTask::getOutputParamsCount() const {
-    return static_cast<u32>(vertex_->reference()->outputParamCount());
-}
-
-u32 spider::sched::SRDAGTask::getKernelIx() const {
-    return static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
-}
-
-spider::unique_ptr<i64> spider::sched::SRDAGTask::buildInputParams() const {
-    return srdag::buildVertexRuntimeInputParameters(vertex_);
 }
 
 #endif

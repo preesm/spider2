@@ -44,11 +44,11 @@
 #include <global-api.h>
 
 namespace spider {
-
+#ifndef _NO_BUILD_LEGACY_RT
     namespace srdag {
         class Graph;
     }
-
+#endif
     namespace pisdf {
         class GraphHandler;
     }

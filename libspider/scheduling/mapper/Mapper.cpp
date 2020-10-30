@@ -208,8 +208,9 @@ void spider::sched::Mapper::mapCommunications(Task *task,
         /* == Set dependencies == */
         sndTask->setPredecessor(srcTask);
         sndTask->setSuccessor(rcvTask);
+        sndTask->setDepIx(static_cast<u32>(depIx));
         rcvTask->setPredecessor(sndTask);
         rcvTask->setSuccessor(task);
-        task->insertSyncTasks(sndTask, rcvTask, depIx, schedule);
+        rcvTask->setDepIx(static_cast<u32>(depIx));
     }
 }

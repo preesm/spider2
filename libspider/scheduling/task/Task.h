@@ -95,25 +95,6 @@ namespace spider {
              */
             inline virtual void receiveParams(const spider::array<i64> &/*values*/) { }
 
-            /**
-             * @brief Insert a synchronization tasks before this task.
-             *        Only used to set the allocated address of the sync task.
-             * @param sndTask  Pointer to the send task.
-             * @param rcvTask  Pointer to the receive task.
-             * @param schedule Pointer to the schedule.
-             * @param ix       Index of the input dependency onto which the sync task is set.
-             */
-            inline virtual void insertSyncTasks(SyncTask */*sndTask*/,
-                                                SyncTask */*rcvTask*/,
-                                                size_t /*ix*/,
-                                                const Schedule */*schedule*/) { }
-
-            /**
-             * @brief Build the input parameters needed by the task execution.
-             * @return input parameters array (if any), empty array else.
-             */
-            inline virtual spider::unique_ptr<i64> buildInputParams() const { return spider::unique_ptr<i64>(); }
-
             /* === Getter(s) === */
 
             /**
@@ -229,18 +210,6 @@ namespace spider {
              * @return ix value, SIZE_MAX else.
              */
             inline u32 jobExecIx() const noexcept { return jobExecIx_; }
-
-            /**
-             * @brief Get the number of output parameters of this task (default is 0).
-             * @return number of output parameters.
-             */
-            inline virtual u32 getOutputParamsCount() const { return 0; }
-
-            /**
-             * @brief Get the kernel identifier for the task execution.
-             * @return Kernel index, UINT32_MAX else.
-             */
-            inline virtual u32 getKernelIx() const { return UINT32_MAX; }
 
             inline u32 syncExecIxOnLRT(size_t lrtIx) const { return syncExecTaskIxArray_[lrtIx]; }
 

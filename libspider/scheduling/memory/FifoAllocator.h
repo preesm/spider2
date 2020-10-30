@@ -44,10 +44,11 @@
 namespace spider {
 
     /* === Forward declaration(s) === */
-
+#ifndef _NO_BUILD_LEGACY_RT
     namespace srdag {
         class Edge;
     }
+#endif
 
     namespace pisdf {
         class Vertex;
@@ -123,8 +124,6 @@ namespace spider {
             spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *task) const;
 
 #endif
-
-            spider::unique_ptr<JobFifos> buildJobFifos(SyncTask *task) const;
 
             spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task,
                                                        const spider::vector<pisdf::DependencyIterator> &execDeps,

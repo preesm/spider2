@@ -62,40 +62,5 @@ u64 spider::sched::SyncTask::timingOnPE(const spider::PE *) const {
         return UINT64_MAX;
     }
     const auto busSpeed = type_ == SyncType::SEND ? bus_->writeSpeed() : bus_->readSpeed();
-    return busSpeed / size_;
-}
-
-/* === Private method(s) === */
-
-u32 spider::sched::SyncTask::getKernelIx() const {
-    if (type_ == SyncType::SEND) {
-        return static_cast<u32>(bus_->sendKernel()->ix());
-    } else {
-        return static_cast<u32>(bus_->receiveKernel()->ix());
-    }
-}
-
-spider::unique_ptr<i64> spider::sched::SyncTask::buildInputParams() const {
-    auto params = spider::allocate<i64, StackID::RUNTIME>(4u);
-#ifndef NDEBUG
-    if (!params) {
-        throwNullptrException();
-    }
-#endif
-    if (type_ == SyncType::SEND) {
-        const auto *fstLRT = mappedLRT();
-        const auto *sndLRT = successor_->mappedLRT();
-        params[0u] = static_cast<i64>(fstLRT->cluster()->ix());
-        params[1u] = static_cast<i64>(sndLRT->cluster()->ix());
-        params[2u] = static_cast<i64>(size_);
-        params[4u] = 0;
-    } else {
-        const auto *fstLRT = dependency_->mappedLRT();
-        const auto *sndLRT = mappedLRT();
-        params[0u] = static_cast<i64>(fstLRT->cluster()->ix());
-        params[1u] = static_cast<i64>(sndLRT->cluster()->ix());
-        params[2u] = static_cast<i64>(size_);
-        params[3u] = static_cast<i64>(allocAddress_);
-    }
-    return make_unique(params);
+    return busSpeed;
 }
