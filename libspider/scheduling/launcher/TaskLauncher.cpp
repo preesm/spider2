@@ -75,8 +75,6 @@ void spider::sched::TaskLauncher::visit(SRDAGTask *task) {
     message.kernelIx_ = static_cast<u32>(vertex->runtimeInformation()->kernelIx());
     /* == Set the synchronization flags == */
     message.synchronizationFlags_ = buildJobNotificationFlags(task);
-    /* == Set the execution task constraints == */
-    message.execConstraints_ = buildExecConstraints(task);
     /* == Set Fifos == */
     message.fifos_ = allocator_->buildJobFifos(task);
     /* == Set input params == */
@@ -109,8 +107,6 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
     message.kernelIx_ = static_cast<u32>(vertex->runtimeInformation()->kernelIx());
     /* == Set the synchronization flags == */
     message.synchronizationFlags_ = buildJobNotificationFlags(task, consDeps);
-    /* == Set the execution task constraints == */
-    message.execConstraints_ = buildExecConstraints(task, execDeps);
     /* == Set Fifos == */
     message.fifos_ = allocator_->buildJobFifos(task, execDeps, consDeps);
     /* == Set input params == */
@@ -125,6 +121,8 @@ void spider::sched::TaskLauncher::sendTask(Task *task, JobMessage &message) {
     /* == Set core properties == */
     message.taskIx_ = task->ix();
     message.execIx_ = task->jobExecIx();
+    /* == Set the execution task constraints == */
+    message.execConstraints_ = buildExecConstraints(task);
     /* == Check for sync tasks to be sent == */
     if (!deferedSyncTasks_.empty()) {
         for (size_t i = 0; i < deferedSyncTasks_.size(); ++i) {
@@ -142,8 +140,12 @@ void spider::sched::TaskLauncher::sendTask(Task *task, JobMessage &message) {
     const auto grtIx = archi::platform()->getGRTIx();
     auto *communicator = rt::platform()->communicator();
     const auto mappedLRTIx = task->mappedLRT()->virtualIx();
+    auto start = time::now();
     const auto messageIx = communicator->push(std::move(message), mappedLRTIx);
+    auto end = time::now();
     communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, mappedLRTIx);
+    const auto duration = time::duration::nanoseconds(start, end);
+    push_ += duration;
     /* == Set job in TaskState::RUNNING == */
     task->setState(TaskState::RUNNING);
 }
@@ -161,24 +163,21 @@ spider::sched::TaskLauncher::buildJobNotificationFlags(const Task *task, Args &&
     }
 }
 
-template<class ...Args>
-spider::array<spider::SyncInfo>
-spider::sched::TaskLauncher::buildExecConstraints(const Task *task, Args &&...args) const {
+spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraints(const Task *task) {
     /* == Now build the actual array of synchronization info == */
     const auto lrtCount = archi::platform()->LRTCount();
-    const auto constraints = buildConstraintsArray(task, std::forward<Args>(args)...);
     size_t constraintsCount = 0;
     for (size_t i = 0; i < lrtCount; ++i) {
-        constraintsCount += (constraints[i] != nullptr);
+        constraintsCount += task->syncExecIxOnLRT(i) != UINT32_MAX;
     }
     auto result = spider::array<SyncInfo>(constraintsCount, StackID::RUNTIME);
     if (constraintsCount) {
         auto resultIt = std::begin(result);
         for (size_t i = 0; i < lrtCount; ++i) {
-            if (constraints[i]) {
+            if (task->syncExecIxOnLRT(i) != UINT32_MAX) {
                 /* == Set this dependency as a synchronization constraint == */
                 resultIt->lrtToWait_ = i;
-                resultIt->jobToWait_ = constraints[i]->jobExecIx();
+                resultIt->jobToWait_ = task->syncExecIxOnLRT(i);
                 /* == Update iterator == */
                 if ((++resultIt) == std::end(result)) {
                     /* == shortcut to avoid useless other checks == */
@@ -191,49 +190,6 @@ spider::sched::TaskLauncher::buildExecConstraints(const Task *task, Args &&...ar
 }
 
 /* === Task type specific functions === */
-
-spider::array<const spider::sched::Task *>
-spider::sched::TaskLauncher::buildConstraintsArray(const Task *task) const {
-    /* == Get the number of actual execution constraints == */
-    const auto lrtCount = archi::platform()->LRTCount();
-    auto constraintsArray = spider::array<const Task *>(lrtCount, nullptr, StackID::RUNTIME);
-    for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
-        const auto *srcTask = task->previousTask(ix, schedule_);
-        if (srcTask && (srcTask->mappedLRT() != task->mappedLRT())) {
-            // TODO: handle SKIPPED source
-            const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
-            const auto *currentConstraint = constraintsArray[srcLRTIx];
-            if (!currentConstraint || (srcTask->jobExecIx() > currentConstraint->jobExecIx())) {
-                constraintsArray[srcLRTIx] = srcTask;
-            }
-        }
-    }
-    return constraintsArray;
-}
-
-spider::array<const spider::sched::Task *>
-spider::sched::TaskLauncher::buildConstraintsArray(const Task *task,
-                                                   const spider::vector<pisdf::DependencyIterator> &dependencies) const {
-    /* == Get the number of actual execution constraints == */
-    const auto lrtCount = archi::platform()->LRTCount();
-    auto constraintsArray = spider::array<const Task *>(lrtCount, nullptr, StackID::RUNTIME);
-    for (const auto &depIt : dependencies) {
-        for (const auto &dep : depIt) {
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto *srcTask = schedule_->task(dep.handler_->getTaskIx(dep.vertex_, k));
-                if (srcTask && (srcTask->mappedLRT() != task->mappedLRT())) {
-                    // TODO: handle SKIPPED source
-                    const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
-                    const auto *currentConstraint = constraintsArray[srcLRTIx];
-                    if (!currentConstraint || (srcTask->jobExecIx() > currentConstraint->jobExecIx())) {
-                        constraintsArray[srcLRTIx] = srcTask;
-                    }
-                }
-            }
-        }
-    }
-    return constraintsArray;
-}
 
 void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task, bool *flags) const {
     for (size_t iOut = 0; iOut < task->successorCount(); ++iOut) {

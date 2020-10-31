@@ -68,7 +68,9 @@ namespace spider {
                 deferedSyncTasks_ = factory::vector<std::pair<SyncTask *, u32>>(StackID::RUNTIME);
             }
 
-            ~TaskLauncher() noexcept = default;
+            ~TaskLauncher() {
+                log::info("push: %lld ns\n", push_);
+            }
 
             /* === Method(s) === */
 
@@ -88,6 +90,7 @@ namespace spider {
             spider::vector<std::pair<SyncTask *, u32>> deferedSyncTasks_;
             const Schedule *schedule_ = nullptr;
             FifoAllocator *allocator_ = nullptr;
+            long long push_ = 0;
 
             /* === Private method(s) === */
 
@@ -110,13 +113,7 @@ namespace spider {
              * @param task Pointer to the task.
              * @return array of constraints if any, empty array else.
              */
-            template<class ...Args>
-            spider::array<SyncInfo> buildExecConstraints(const Task *task, Args &&...args) const;
-
-            spider::array<const Task *> buildConstraintsArray(const Task *task) const;
-
-            spider::array<const Task *> buildConstraintsArray(const Task *task,
-                                                              const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+            static spider::array<SyncInfo> buildExecConstraints(const Task *task);
 
             /**
              * @brief Based on current state of the mapping / scheduling, fill the boolean array "flags" with
