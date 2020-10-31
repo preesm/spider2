@@ -51,33 +51,10 @@
 
 /* === Function(s) definition === */
 
-spider::pisdf::DependencyIterator spider::pisdf::computeExecDependency(const Vertex *vertex,
-                                                                       u32 firing,
-                                                                       size_t edgeIx,
-                                                                       const pisdf::GraphFiring *handler,
-                                                                       i32 *count) {
-#ifndef NDEBUG
-    if (!handler || !vertex) {
-        throwNullptrException();
-    }
-#endif
-    const auto *edge = vertex->inputEdge(edgeIx);
-    const auto snkRate = handler->getSnkRate(edge);
-    if (!snkRate) {
-        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
-    }
-    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    auto depCount = detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, &result);
-    if (count) {
-        *count = depCount;
-    }
-    return DependencyIterator{ std::move(result) };
-}
-
 i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
                                               u32 firing,
                                               size_t edgeIx,
-                                              const pisdf::GraphFiring *handler) {
+                                              const GraphFiring *handler) {
 #ifndef NDEBUG
     if (!handler || !vertex) {
         throwNullptrException();
@@ -91,28 +68,6 @@ i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
     return detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, nullptr);
 }
 
-spider::pisdf::DependencyIterator spider::pisdf::computeConsDependency(const Vertex *vertex,
-                                                                       u32 firing,
-                                                                       size_t edgeIx,
-                                                                       const spider::pisdf::GraphFiring *handler,
-                                                                       i32 *count) {
-#ifndef NDEBUG
-    if (!handler || !vertex) {
-        throwNullptrException();
-    }
-#endif
-    const auto *edge = vertex->outputEdge(edgeIx);
-    const auto srcRate = handler->getSrcRate(edge);
-    if (!srcRate) {
-        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
-    }
-    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, &result);
-    if (count) {
-        *count = depCount;
-    }
-    return DependencyIterator{ std::move(result) };
-}
 
 i32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
                                               u32 firing,

@@ -78,7 +78,7 @@ spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     for (size_t k = 0; k < lastSchedulable; ++k) {
         auto &task = sortedTaskVector_[k];
         result[k] = spider::make<PiSDFTask, StackID::SCHEDULE>(task.handler_, task.vertex_, task.firing_);
-        task.handler_->registerTaskIx(task.vertex_, task.firing_, UINT32_MAX);
+        task.handler_->setTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
     /* == Remove scheduled vertices == */
     auto it = std::begin(sortedTaskVector_);
@@ -101,7 +101,7 @@ void spider::sched::PiSDFListScheduler::clear() {
 void spider::sched::PiSDFListScheduler::resetUnScheduledTasks() {
     for (size_t k = 0; k < sortedTaskVector_.size(); ++k) {
         auto &listTask = sortedTaskVector_[k];
-        listTask.handler_->registerTaskIx(listTask.vertex_, listTask.firing_, static_cast<u32>(k));
+        listTask.handler_->setTaskIx(listTask.vertex_, listTask.firing_, static_cast<u32>(k));
     }
 }
 
@@ -134,7 +134,7 @@ void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
     const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
         sortedTaskVector_.push_back({ vertex, handler, -1, firing });
-        handler->registerTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
+        handler->setTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }
 
@@ -142,7 +142,7 @@ void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(const pisdf::
                                                                    u32 firing,
                                                                    const pisdf::GraphFiring *handler) {
     for (const auto *edge : vertex->outputEdges()) {
-        const auto deps = pisdf::computeConsDependency(vertex, firing, edge->sourcePortIx(), handler);
+        const auto deps = handler->computeConsDependency(vertex, firing, edge->sourcePortIx());
         for (const auto &dep : deps) {
             if (dep.vertex_ && dep.rate_ > 0) {
                 /* == Disable non-null edge == */
@@ -167,17 +167,18 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) 
         const auto *platform = archi::platform();
         i32 level = 0;
         for (const auto *edge : vertex->inputEdges()) {
-            auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
+            auto deps = handler->computeExecDependency(vertex, firing, edge->sinkPortIx());
             for (const auto &dep : deps) {
                 const auto *source = dep.vertex_;
                 if (source && dep.rate_ > 0) {
                     const auto *sourceRTInfo = source->runtimeInformation();
                     for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                        const auto &params = dep.handler_->getParams();
                         auto minExecutionTime = INT64_MAX;
                         for (auto &cluster : platform->clusters()) {
                             if (sourceRTInfo->isClusterMappable(cluster)) {
                                 for (const auto &pe : cluster->peArray()) {
-                                    auto executionTime = sourceRTInfo->timingOnPE(pe, dep.handler_->getParams());
+                                    auto executionTime = sourceRTInfo->timingOnPE(pe, params);
                                     if (!executionTime) {
                                         throwSpiderException(
                                                 "Vertex [%s:%u] has null execution time on mappable cluster.",
@@ -243,7 +244,7 @@ size_t spider::sched::PiSDFListScheduler::countNonSchedulableTasks() {
     size_t count{ };
     for (; (it->level_ == NON_SCHEDULABLE_LEVEL) && (it != sortedTaskVector_.rend()); ++it) {
         count++;
-        it->handler_->registerTaskIx(it->vertex_, it->firing_, UINT32_MAX);
+        it->handler_->setTaskIx(it->vertex_, it->firing_, UINT32_MAX);
         it->level_ = -1; /* = Reset the schedule level = */
     }
     return count;

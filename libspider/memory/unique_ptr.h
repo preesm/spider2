@@ -105,22 +105,30 @@ namespace spider {
         };
 
         T &operator*() const {
+#ifndef NDEBUG
             assert(data_ != nullptr);
+#endif
             return *get();
         };
 
         T &operator*() {
+#ifndef NDEBUG
             assert(data_ != nullptr);
+#endif
             return *get();
         };
 
         T &operator[](size_t ix) const {
+#ifndef NDEBUG
             assert(data_ != nullptr);
+#endif
             return data_[ix];
         }
 
         T &operator[](size_t ix) {
+#ifndef NDEBUG
             assert(data_ != nullptr);
+#endif
             return data_[ix];
         }
 

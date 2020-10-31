@@ -87,27 +87,11 @@ void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
 }
 
 spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeExecDependencies() const {
-    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
-    const auto *vertex = this->vertex();
-    if (vertex->inputEdgeCount()) {
-        spider::reserve(result, vertex->inputEdgeCount());
-        for (const auto *edge : vertex->inputEdges()) {
-            result.emplace_back(pisdf::computeExecDependency(vertex, firing_, edge->sinkPortIx(), handler_));
-        }
-    }
-    return result;
+    return handler_->computeExecDependencies(vertex(), firing_);
 }
 
 spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeConsDependencies() const {
-    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
-    const auto *vertex = this->vertex();
-    if (vertex->outputEdgeCount()) {
-        spider::reserve(result, vertex->outputEdgeCount());
-        for (const auto *edge : vertex->outputEdges()) {
-            result.emplace_back(pisdf::computeConsDependency(vertex, firing_, edge->sourcePortIx(), handler_));
-        }
-    }
-    return result;
+    return handler_->computeConsDependencies(vertex(), firing_);
 }
 
 u32 spider::sched::PiSDFTask::color() const {
@@ -137,7 +121,7 @@ u32 spider::sched::PiSDFTask::ix() const noexcept {
 }
 
 void spider::sched::PiSDFTask::setIx(u32 ix) noexcept {
-    handler_->registerTaskIx(vertex(), firing_, ix);
+    handler_->setTaskIx(vertex(), firing_, ix);
 }
 
 bool spider::sched::PiSDFTask::isMappableOnPE(const spider::PE *pe) const {

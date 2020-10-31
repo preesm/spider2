@@ -42,6 +42,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static function === */
 
@@ -82,15 +83,6 @@ spider::pisdf::GraphFiring::~GraphFiring() {
     for (const auto &edge : parent_->graph()->edges()) {
         deallocate(edgeAllocArray_[edge->ix()]);
     }
-}
-
-void spider::pisdf::GraphFiring::registerTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
-#ifndef NDEBUG
-    if (firing >= getRV(vertex)) {
-        throwSpiderException("invalid vertex firing.");
-    }
-#endif
-    taskIxRegister_[vertex->ix()][firing] = taskIx;
 }
 
 void spider::pisdf::GraphFiring::resolveBRV() {
@@ -160,6 +152,71 @@ void spider::pisdf::GraphFiring::clear() {
     resolved_ = parent_->isStatic();
 }
 
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::GraphFiring::computeExecDependencies(const Vertex *vertex, u32 firing) const {
+    auto result = factory::vector<DependencyIterator>(StackID::SCHEDULE);
+    if (vertex->inputEdgeCount()) {
+        spider::reserve(result, vertex->inputEdgeCount());
+        for (const auto *edge : vertex->inputEdges()) {
+            result.emplace_back(computeExecDependency(vertex, firing, edge->sinkPortIx()));
+        }
+    }
+    return result;
+}
+
+spider::pisdf::DependencyIterator
+spider::pisdf::GraphFiring::computeExecDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
+#ifndef NDEBUG
+    if (!vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = getSnkRate(edge);
+    if (!snkRate) {
+        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
+    }
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    spider::reserve(result, 20);
+    auto depCount = pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, this, &result);
+    if (count) {
+        *count = depCount;
+    }
+    return DependencyIterator{ std::move(result) };
+}
+
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::GraphFiring::computeConsDependencies(const Vertex *vertex, u32 firing) const {
+    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
+    if (vertex->outputEdgeCount()) {
+        spider::reserve(result, vertex->outputEdgeCount());
+        for (const auto *edge : vertex->outputEdges()) {
+            result.emplace_back(computeConsDependency(vertex, firing, edge->sourcePortIx()));
+        }
+    }
+    return result;
+}
+
+spider::pisdf::DependencyIterator
+spider::pisdf::GraphFiring::computeConsDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
+#ifndef NDEBUG
+    if (!vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->outputEdge(edgeIx);
+    const auto srcRate = getSrcRate(edge);
+    if (!srcRate) {
+        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
+    }
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, this, &result);
+    if (count) {
+        *count = depCount;
+    }
+    return DependencyIterator{ std::move(result) };
+}
+
 spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphFirings() const {
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
@@ -168,7 +225,7 @@ spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
-int64_t spider::pisdf::GraphFiring::getSrcRate(const pisdf::Edge *edge) const {
+int64_t spider::pisdf::GraphFiring::getSrcRate(const Edge *edge) const {
 #ifndef NDEBUG
     if (edge->graph() != parent_->graph()) {
         throwSpiderException("edge does not belong to this graph.");
@@ -178,7 +235,7 @@ int64_t spider::pisdf::GraphFiring::getSrcRate(const pisdf::Edge *edge) const {
     return ratesArray_[edge->ix()].srcRate_;
 }
 
-int64_t spider::pisdf::GraphFiring::getSnkRate(const pisdf::Edge *edge) const {
+int64_t spider::pisdf::GraphFiring::getSnkRate(const Edge *edge) const {
 #ifndef NDEBUG
     if (edge->graph() != parent_->graph()) {
         throwSpiderException("edge does not belong to this graph.");
@@ -188,7 +245,7 @@ int64_t spider::pisdf::GraphFiring::getSnkRate(const pisdf::Edge *edge) const {
     return ratesArray_[edge->ix()].snkRate_;
 }
 
-u32 spider::pisdf::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) const {
+u32 spider::pisdf::GraphFiring::getRV(const Vertex *vertex) const {
 #ifndef NDEBUG
     if (vertex->graph() != parent_->graph()) {
         throwSpiderException("vertex does not belong to the correct graph.");
@@ -200,7 +257,7 @@ u32 spider::pisdf::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) const
     return brvArray_[vertex->ix()];
 }
 
-u32 spider::pisdf::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, u32 firing) const {
+u32 spider::pisdf::GraphFiring::getTaskIx(const Vertex *vertex, u32 firing) const {
 #ifndef NDEBUG
     if (firing >= getRV(vertex)) {
         throwSpiderException("invalid vertex firing.");
@@ -210,7 +267,7 @@ u32 spider::pisdf::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, u
 }
 
 const spider::pisdf::GraphFiring *
-spider::pisdf::GraphFiring::getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const {
+spider::pisdf::GraphFiring::getSubgraphGraphFiring(const Graph *subgraph, u32 firing) const {
 #ifndef NDEBUG
     if (subgraph->graph() != parent_->graph()) {
         throwSpiderException("subgraph does not belong to this graph.");
@@ -225,6 +282,14 @@ const spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) const
 
 spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) {
     return parent_->graph()->vertex(ix);
+}
+
+size_t spider::pisdf::GraphFiring::getEdgeAddress(const Edge *edge, u32 firing) const {
+    return edgeAllocArray_[edge->ix()][firing].address_;
+}
+
+u32 spider::pisdf::GraphFiring::getEdgeOffset(const Edge *edge, u32 firing) const {
+    return edgeAllocArray_[edge->ix()][firing].offset_;
 }
 
 void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
@@ -243,12 +308,13 @@ void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     }
 }
 
-size_t spider::pisdf::GraphFiring::getEdgeAddress(const pisdf::Edge *edge, u32 firing) const {
-    return edgeAllocArray_[edge->ix()][firing].address_;
-}
-
-u32 spider::pisdf::GraphFiring::getEdgeOffset(const pisdf::Edge *edge, u32 firing) const {
-    return edgeAllocArray_[edge->ix()][firing].offset_;
+void spider::pisdf::GraphFiring::setTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
+#ifndef NDEBUG
+    if (firing >= getRV(vertex)) {
+        throwSpiderException("invalid vertex firing.");
+    }
+#endif
+    taskIxRegister_[vertex->ix()][firing] = taskIx;
 }
 
 void spider::pisdf::GraphFiring::setEdgeAddress(size_t value, const pisdf::Edge *edge, u32 firing) {

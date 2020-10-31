@@ -40,6 +40,7 @@
 #include <scheduling/schedule/Schedule.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
+#include <common/Time.h>
 
 /* === Static function === */
 
@@ -119,6 +120,7 @@ const spider::PE *spider::sched::BestFitMapper::findPE(const Cluster *cluster,
                                                        const Stats &stats,
                                                        const Task *task,
                                                        ufast64 minStartTime) const {
+    const auto *grtPE = archi::platform()->spiderGRTPE();
     const PE *foundPE = nullptr;
     auto bestFitIdleTime = UINT_FAST64_MAX;
     auto bestFitEndTime = UINT_FAST64_MAX;
@@ -127,7 +129,7 @@ const spider::PE *spider::sched::BestFitMapper::findPE(const Cluster *cluster,
             continue;
         }
         /* == Add a small overhead in choosing GRT as a mapping choice to break inequality in favor of other PEs == */
-        const auto readyTime = stats.endTime(pe->virtualIx()) + (pe == archi::platform()->spiderGRTPE()) * 10;
+        const auto readyTime = stats.endTime(pe->virtualIx()) + (pe == grtPE) * 10;
         const auto startTime = std::max(readyTime, minStartTime);
         const auto idleTime = startTime - readyTime;
         const auto endTime = startTime + task->timingOnPE(pe);

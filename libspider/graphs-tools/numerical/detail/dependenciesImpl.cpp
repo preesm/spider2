@@ -114,10 +114,6 @@ namespace spider {
                 dep.memoryEnd_ = static_cast<u32>(memEnd);
                 dep.firingStart_ = static_cast<u32>(start);
                 dep.firingEnd_ = static_cast<u32>(end);
-//                dep.memoryStart_ = static_cast<u32>((lowerProd + delayValue) % snkRate);
-//                dep.memoryEnd_ = static_cast<u32>((upperProd + delayValue) % snkRate);
-//                dep.firingStart_ = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
-//                dep.firingEnd_ = static_cast<u32>(math::floorDiv(upperProd + delayValue, snkRate));
                 return dep;
             }
         }
