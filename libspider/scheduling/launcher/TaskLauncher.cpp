@@ -205,7 +205,8 @@ void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task,
     for (const auto &depIt : consDeps) {
         for (const auto &dep : depIt) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                if (setFlagsFromSink(task, schedule_->task(dep.handler_->getTaskIx(dep.vertex_, k)), flags)) {
+                const auto *snkTask = dep.vertex_ ? schedule_->task(dep.handler_->getTaskIx(dep.vertex_, k)) : nullptr;
+                if (setFlagsFromSink(task, snkTask, flags)) {
                     return;
                 }
             }

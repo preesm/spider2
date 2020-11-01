@@ -62,8 +62,8 @@ spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
     brvArray_ = spider::make_unique(make_n<u32, StackID::TRANSFO>(graph->vertexCount(), UINT32_MAX));
     subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
     ratesArray_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
-    taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::SCHEDULE>(graph->vertexCount(), nullptr));
-    edgeAllocArray_ = spider::make_unique(make_n<FifoAlloc *, StackID::SCHEDULE>(graph->edgeCount(), nullptr));
+    taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::TRANSFO>(graph->vertexCount(), nullptr));
+    edgeAllocArray_ = spider::make_unique(make_n<FifoAlloc *, StackID::TRANSFO>(graph->edgeCount(), nullptr));
     /* == copy parameters == */
     params_.reserve(params.size());
     dynamicParamCount_ = 0;
@@ -355,7 +355,7 @@ void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 r
         taskIxRegister_[ix] = spider::make_n<u32, StackID::TRANSFO>(rvValue, UINT32_MAX);
         for (const auto *edge : vertex->outputEdges()) {
             deallocate(edgeAllocArray_[edge->ix()]);
-            edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::SCHEDULE>(rvValue, { SIZE_MAX, 0 });
+            edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::TRANSFO>(rvValue, { SIZE_MAX, 0 });
         }
     } else {
         /* == reset values == */

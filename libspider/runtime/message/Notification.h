@@ -67,6 +67,7 @@ namespace spider {
         JOB_BROADCAST_JOBSTAMP,         /*!< Signal LRT to broadcast its job stamp to everybody */
         JOB_DELAY_BROADCAST_JOBSTAMP,   /*!< Signal LRT to broadcast its job stamp to everybody after last job has been done */
         JOB_UPDATE_JOBSTAMP,            /*!< Signal LRT that an update of job stamp is pending */
+        MEM_UPDATE_COUNT,               /*!< Signal LRT that an update of memory counter for a fifo is pending */
         UNDEFINED,                      /*!< Undefined type of notification */
         First = LRT_END_ITERATION,      /*!< Sentry for EnumIterator::begin */
         Last = UNDEFINED,               /*!< Sentry for EnumIterator::end */
@@ -120,6 +121,8 @@ namespace spider {
                 return "JOB_DELAY_BROADCAST_JOBSTAMP";
             case NotificationType::JOB_UPDATE_JOBSTAMP:
                 return "JOB_UPDATE_JOBSTAMP";
+            case NotificationType::MEM_UPDATE_COUNT:
+                return "MEM_UPDATE_COUNT";
             case NotificationType::UNDEFINED:
                 return "UNDEFINED";
             default:

@@ -128,8 +128,10 @@ void spider::sched::ResourcesAllocator::clear() {
 
 template<class T>
 void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) {
-    mapper_->setStartTime(computeMinStartTime());
+    const auto startTime = computeMinStartTime();
+    mapper_->setStartTime(startTime);
     schedule_->reserve(tasks.size());
+    allocator_->updateDynamicBuffersCount();
     auto launcher = TaskLauncher{ schedule_.get(), allocator_.get() };
     switch (executionPolicy_) {
         case ExecutionPolicy::JIT:

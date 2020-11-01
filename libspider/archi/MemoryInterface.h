@@ -88,7 +88,7 @@ namespace spider {
         /**
          * @brief Free every existing buffer with non-zero counter.
          */
-        void garbageCollect();
+        void collect();
 
         /**
          * @brief Reset the memory interface.
@@ -150,11 +150,11 @@ namespace spider {
         };
         /* = Map associating virtual address to physical ones = */
         spider::unordered_map<uint64_t, buffer_t> virtual2Phys_;
+        std::mutex lock_;
         /* = Total size of the MemoryUnit = */
         uint64_t size_ = 0;
         /* = Currently used memory (strictly less or equal to size_) = */
         uint64_t used_ = 0;
-        std::mutex lock_;
 
         /* === Allocation routines === */
 

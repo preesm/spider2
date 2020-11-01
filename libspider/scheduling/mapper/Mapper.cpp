@@ -72,6 +72,9 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task,
     for (const auto &depIt : dependencies) {
         for (const auto &dep : depIt) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                if (!dep.vertex_) {
+                    continue;
+                }
                 const auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
                 if (srcTask) {
                     task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
@@ -108,6 +111,9 @@ spider::sched::Mapper::computeCommunicationCost(const Task *,
     for (const auto &depIt : dependencies) {
         for (const auto &dep : depIt) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                if (!dep.vertex_) {
+                    continue;
+                }
                 const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
                 const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
                 const auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));

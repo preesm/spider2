@@ -330,7 +330,7 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
             break;
         case NotificationType::LRT_CLEAR_ITERATION:
             clear();
-            attachedPE_->cluster()->memoryInterface()->garbageCollect();
+            attachedPE_->cluster()->memoryInterface()->collect();
             break;
         case NotificationType::LRT_RST_ITERATION:
             reset();
@@ -386,6 +386,20 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
                                      ix(), notification.senderIx_);
             }
             updateJobStamp(notification.senderIx_, notification.notificationIx_);
+            break;
+        case NotificationType::MEM_UPDATE_COUNT: {
+            const auto fifoAddress = notification.notificationIx_;
+            rt::platform()->communicator()->pop(notification, ix());
+            while (notification.type_ != NotificationType::MEM_UPDATE_COUNT) {
+                rt::platform()->communicator()->push(notification, ix());
+                if (!rt::platform()->communicator()->try_pop(notification, ix())) {
+                    throwSpiderException("Expected a secondary notification.");
+                }
+            }
+            const auto countUpdate = notification.notificationIx_;
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->update(fifoAddress, static_cast<i32>(countUpdate));
+        }
             break;
         default:
             LOG_UNHANDLED();

@@ -61,8 +61,6 @@ spider::MemoryInterface::~MemoryInterface() {
 #endif
 }
 
-/* === Private method(s) implementation === */
-
 void *spider::MemoryInterface::read(uint64_t address, i32 count) {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     auto *buffer = retrieveBuffer(address);
@@ -132,7 +130,7 @@ void spider::MemoryInterface::clear() {
     virtual2Phys_.clear();
 }
 
-void spider::MemoryInterface::garbageCollect() {
+void spider::MemoryInterface::collect() {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     for (auto &elt : virtual2Phys_) {
         auto &buffer = elt.second;

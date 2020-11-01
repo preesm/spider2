@@ -81,7 +81,9 @@ namespace spider {
 
             FifoAllocatorTraits traits_;
 
-            FifoAllocator() : FifoAllocator({ true, true }) { }
+            FifoAllocator() : FifoAllocator({ true, true }) {
+
+            }
 
             ~FifoAllocator() noexcept = default;
 
@@ -103,7 +105,10 @@ namespace spider {
 
 #endif
 
-
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
+             */
             void allocate(PiSDFTask *task);
 
             /**
@@ -119,9 +124,11 @@ namespace spider {
              */
             void allocatePersistentDelays(pisdf::Graph *graph);
 
+            void updateDynamicBuffersCount();
+
 #ifndef _NO_BUILD_LEGACY_RT
 
-            spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *task) const;
+            static spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *task) ;
 
 #endif
 
@@ -143,16 +150,23 @@ namespace spider {
              * @brief Set the schedule that can be used by the FifoAllocator for additionnal information.
              * @param schedule Pointer to the schedule to set.
              */
-            inline void setSchedule(const Schedule *schedule) {
-                schedule_ = schedule;
-            }
+            inline void setSchedule(const Schedule *schedule) { schedule_ = schedule; }
 
         protected:
+            struct dynaBuffer_t {
+                const PiSDFTask *task_;
+                u32 edgeIx_;
+            };
+            spider::vector<dynaBuffer_t> dynamicBuffers_;
             const Schedule *schedule_ = nullptr;
             size_t reservedMemory_ = 0;
             size_t virtualMemoryAddress_ = 0;
 
-            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
+            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept:
+                    traits_{ traits },
+                    dynamicBuffers_{ factory::vector<dynaBuffer_t>(StackID::SCHEDULE) } {
+
+            }
 
         private:
 
@@ -165,20 +179,17 @@ namespace spider {
 #endif
 
             static Fifo buildInputFifo(const pisdf::Edge *edge,
-                                       u32 size,
-                                       u32 offset,
-                                       u32 firing,
-                                       const pisdf::GraphFiring *handler);
+                                u32 size,
+                                u32 offset,
+                                u32 firing,
+                                const pisdf::GraphFiring *handler) ;
 
-            static Fifo buildOutputFifo(const JobFifos *fifos,
-                                        const pisdf::Edge *edge,
-                                        pisdf::GraphFiring *handler,
-                                        const pisdf::DependencyIterator &depIt,
-                                        u32 firing);
+            Fifo buildOutputFifo(const JobFifos *fifos,
+                                 const pisdf::Edge *edge,
+                                 const PiSDFTask *task,
+                                 const pisdf::DependencyIterator &depIt);
 
             static i32 getFifoCount(const pisdf::DependencyIterator &depIt);
-
-            static size_t getFifoAddress(const pisdf::Edge *edge, u32 firing, const pisdf::GraphFiring *handler);
 
             Fifo buildMergeFifo(Fifo *fifos,
                                 const PiSDFTask *task,
