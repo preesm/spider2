@@ -35,13 +35,15 @@
 #ifndef SPIDER2_UNITARYOPTIMIZER_H
 #define SPIDER2_UNITARYOPTIMIZER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 /* === Function(s) prototype === */
 
 namespace spider {
 
-    namespace pisdf {
+    namespace srdag {
         class Vertex;
     }
 
@@ -52,7 +54,8 @@ namespace spider {
          * @param vertex  Pointer to the vertex.
          * @return true if optimized vertex, false else.
          */
-        bool optimizeUnitaryVertex(pisdf::Vertex *vertex);
+        bool optimizeUnitaryVertex(srdag::Vertex *vertex);
     }
 }
+#endif
 #endif //SPIDER2_UNITARYOPTIMIZER_H

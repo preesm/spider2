@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <utility>
+#include <cassert>
 #include <api/global-api.h>
 #include <memory/memory.h>
 
@@ -51,22 +52,22 @@ namespace spider {
         struct ptr_t {
             using type = U *;
         };
+        template<typename Cond>
+        using require = typename std::enable_if<Cond::value>::type;
     public:
         using pointer = typename ptr_t<T>::type;
-        using element_type  = T;
+        using element_type = T;
 
-        constexpr unique_ptr() noexcept : data_{ nullptr } { }
+        constexpr unique_ptr() noexcept: data_{ nullptr } { }
 
         explicit unique_ptr(T *value) : data_{ value } { }
 
-        unique_ptr(unique_ptr &&rhs) noexcept : data_{ rhs.release() } { }
+        unique_ptr(unique_ptr &&rhs) noexcept: data_{ rhs.release() } { }
 
-        template<typename U, typename = typename std::_Require<
-                std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
+        template<typename U, typename = require<std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
         explicit unique_ptr(U *value) : data_{ value } { }
 
-        template<typename U, typename = typename std::_Require<
-                std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
+        template<typename U, typename = require<std::is_convertible<typename unique_ptr<U>::pointer, pointer>>>
         unique_ptr(unique_ptr<U> &&rhs) noexcept : data_{ rhs.release() } { }
 
         ~unique_ptr() {
@@ -82,6 +83,8 @@ namespace spider {
         /* === Method(s) === */
 
         T *get() const noexcept { return data_; }
+
+        T *get() noexcept { return data_; }
 
         T *release() {
             T *tmp = data_;
@@ -102,11 +105,36 @@ namespace spider {
         };
 
         T &operator*() const {
+#ifndef NDEBUG
             assert(data_ != nullptr);
+#endif
             return *get();
         };
 
+        T &operator*() {
+#ifndef NDEBUG
+            assert(data_ != nullptr);
+#endif
+            return *get();
+        };
+
+        T &operator[](size_t ix) const {
+#ifndef NDEBUG
+            assert(data_ != nullptr);
+#endif
+            return data_[ix];
+        }
+
+        T &operator[](size_t ix) {
+#ifndef NDEBUG
+            assert(data_ != nullptr);
+#endif
+            return data_[ix];
+        }
+
         T *operator->() const noexcept { return get(); };
+
+        T *operator->() noexcept { return get(); };
 
         explicit operator bool() const noexcept { return data_ != nullptr; }
 

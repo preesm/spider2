@@ -52,20 +52,6 @@ spider::pisdf::Vertex *spider::pisdf::Interface::opposite() const {
     return (subtype_ == VertexType::INPUT) ? outputEdge()->sink() : inputEdge()->source();
 }
 
-void spider::pisdf::Interface::connectInputEdge(Edge *edge, size_t pos) {
-    if (subtype_ == VertexType::INPUT) {
-        throwSpiderException("Can not connect output edge to output interface.");
-    }
-    Vertex::connectInputEdge(edge, pos);
-}
-
-void spider::pisdf::Interface::connectOutputEdge(Edge *edge, size_t pos) {
-    if (subtype_ == VertexType::OUTPUT) {
-        throwSpiderException("Can not connect output edge to output interface.");
-    }
-    Vertex::connectOutputEdge(edge, pos);
-}
-
 spider::pisdf::Edge *spider::pisdf::Interface::edge() const {
     return (subtype_ == VertexType::OUTPUT) ? Vertex::inputEdge(0) : Vertex::outputEdge(0);
 }

@@ -103,10 +103,10 @@ namespace spider {
              * @brief Evaluate the expression rate of the source.
              * @return @refitem Expression of the source rate .
              */
-            inline const Expression &sourceRateExpression() const { return srcExpression_; }
+            inline const Expression &sourceRateExpression() const { return *(srcExpression_.get()); }
 
             /**
-             * @brief Evaluates the sourceRateExpression with source input param.
+             * @brief Shortcurt for the method of @refitem Expression::value.
              * @return value of the source rate expression.
              */
             int64_t sourceRateValue() const;
@@ -115,14 +115,13 @@ namespace spider {
              * @brief Evaluate the expression rate of the sink.
              * @return @refitem Expression of the sink rate.
              */
-            inline const Expression &sinkRateExpression() const { return snkExpression_; }
+            inline const Expression &sinkRateExpression() const { return *(snkExpression_.get()); }
 
             /**
-             * @brief Evaluates the sinkRateExpression with source input param.
+             * @brief Shortcurt for the method of @refitem Expression::value.
              * @return value of the sink rate expression.
              */
             int64_t sinkRateValue() const;
-
 
             /**
              * @brief Get the source reference vertex.
@@ -172,8 +171,8 @@ namespace spider {
             void setSink(Vertex *vertex, size_t ix, Expression expr);
 
         private:
-            Expression srcExpression_;     /* = Expression of the source rate of the Edge = */
-            Expression snkExpression_;     /* = Expression of the sink rate of the Edge = */
+            spider::unique_ptr<Expression> srcExpression_;     /* = Expression of the source rate of the Edge = */
+            spider::unique_ptr<Expression> snkExpression_;     /* = Expression of the sink rate of the Edge = */
             Vertex *src_ = nullptr;        /* = Pointer to the source Vertex (if any) = */
             Vertex *snk_ = nullptr;        /* = Pointer to the sink Vertex (if any) = */
             unique_ptr<Delay> delay_;      /* = Pointer to Delay associated to the Edge (if any) = */

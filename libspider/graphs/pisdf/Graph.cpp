@@ -36,7 +36,7 @@
 
 #include <graphs/pisdf/Graph.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
@@ -145,7 +145,10 @@ void spider::pisdf::Graph::addInputInterface(Interface *interface) {
 
     /* == Resize the input edge vector == */
     if (inputEdgeCount() < inputInterfaceVector_.size()) {
-        inputEdgeVector_.emplace_back(nullptr);
+        auto *tmp = spider::make_n<Edge *, StackID::PISDF>(inputInterfaceVector_.size(), nullptr);
+        std::move(inputEdgeArray_.get(), inputEdgeArray_.get() + nINEdges_, tmp);
+        inputEdgeArray_.reset(tmp);
+        nINEdges_++;
     }
 }
 
@@ -160,7 +163,10 @@ void spider::pisdf::Graph::addOutputInterface(Interface *interface) {
 
     /* == Resize the output edge vector == */
     if (outputEdgeCount() < outputInterfaceVector_.size()) {
-        outputEdgeVector_.emplace_back(nullptr);
+        auto *tmp = spider::make_n<Edge *, StackID::PISDF>(outputInterfaceVector_.size(), nullptr);
+        std::move(outputEdgeArray_.get(), outputEdgeArray_.get() + nOUTEdges_, tmp);
+        outputEdgeArray_.reset(tmp);
+        nOUTEdges_++;
     }
 }
 
@@ -200,13 +206,13 @@ void spider::pisdf::Graph::removeVertex(Vertex *vertex) {
     /* == Assert that vertex is part of the edgeVector_ == */
     assertElement(vertex, vertexVector_);
     /* == Reset vertex input edges == */
-    for (auto &edge : vertex->inputEdgeVector()) {
+    for (auto &edge : vertex->inputEdges()) {
         if (edge) {
             edge->setSink(nullptr, SIZE_MAX, Expression());
         }
     }
     /* == Reset vertex output edges == */
-    for (auto &edge : vertex->outputEdgeVector()) {
+    for (auto &edge : vertex->outputEdges()) {
         if (edge) {
             edge->setSource(nullptr, SIZE_MAX, Expression());
         }
@@ -277,33 +283,40 @@ void spider::pisdf::Graph::moveEdge(Edge *edge, Graph *graph) {
 
 void spider::pisdf::Graph::addParam(std::shared_ptr<Param> param) {
     /* == Check if a parameter with the same name already exists in the scope of this graph == */
-    for (auto &p : paramVector_) {
+    for (const auto &p : paramVector_) {
         if (p->name() == param->name()) {
             throwSpiderException("Parameter [%s] already exist in graph [%s].", param->name().c_str(), name().c_str());
         }
     }
-    if (!param->graph()) {
-        param->setIx(paramVector_.size());
-        param->setGraph(this);
-    }
+    param->setIx(paramVector_.size());
     paramVector_.emplace_back(std::move(param));
 }
 
 void spider::pisdf::Graph::removeParam(const std::shared_ptr<Param> &param) {
-    if (!param || param->graph() != this) {
+    if (!param || param->ix() >= paramVector_.size()) {
         return;
+    } else if (paramVector_[param->ix()] == param) {
+        const auto tmp = param;
+        out_of_order_erase(paramVector_, tmp->ix());
+        paramVector_[tmp->ix()]->setIx(tmp->ix());
     }
-    const auto tmp = param;
-    out_of_order_erase(paramVector_, tmp->ix());
-    paramVector_[tmp->ix()]->setIx(tmp->ix());
 }
 
-std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const std::string &name) {
-    auto lowerCaseName = name;
-    std::transform(std::begin(lowerCaseName), std::end(lowerCaseName), std::begin(lowerCaseName),
-                   [](char c) { return static_cast<char>(::tolower(c)); });
+std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const std::string &name) const {
+    auto iStrEquals = [](const std::string &s0, const std::string &s1) {
+        if (s0.size() != s1.size()) {
+            return false;
+        }
+        auto itS1 = std::begin(s1);
+        for (const auto &c0 : s0) {
+            if (::tolower(c0) != ::tolower(*(itS1++))) {
+                return false;
+            }
+        }
+        return true;
+    };
     for (const auto &param : paramVector_) {
-        if (param->name() == lowerCaseName) {
+        if (iStrEquals(param->name(), name)) {
             return param;
         }
     }
@@ -311,11 +324,12 @@ std::shared_ptr<spider::pisdf::Param> spider::pisdf::Graph::paramFromName(const 
 }
 
 bool spider::pisdf::Graph::dynamic() const {
-    const auto paramCount = std::count_if(std::begin(paramVector_), std::end(paramVector_),
-                                          [](const std::shared_ptr<Param> &p) {
-                                              return p->type() == ParamType::DYNAMIC;
-                                          });
-    return (paramCount > 0) && (paramCount == static_cast<long>(configVertexCount()));
+    for (const auto &param : paramVector_) {
+        if (param->type() == ParamType::DYNAMIC) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /* === Private method(s) implementation === */

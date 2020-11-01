@@ -35,7 +35,7 @@
 /* === Include(s) === */
 
 #include <runtime/platform/ThreadRTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
+#include <runtime/communicator/RTCommunicator.h>
 #include <runtime/runner/RTRunner.h>
 #include <thread/Thread.h>
 #include <archi/Platform.h>

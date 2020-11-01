@@ -31,6 +31,30 @@ jobs:
             - rm -rf ../bin/*
             - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
             - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DUSE_JIT_EXPRESSION=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DUSE_JIT_EXPRESSION=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_LEGACY_RUNTIME=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_LEGACY_RUNTIME=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_GANTT_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_GANTT_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_GRAPH_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
+            - rm -rf ../bin/*
+            - cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_GRAPH_EXPORTER=OFF
+            - cmake --build . --target spider2 -- -j$(nproc)
 
         - stage: Build
           os: windows
@@ -41,7 +65,7 @@ jobs:
             - choco install visualstudio2019-workload-vctools
           install:
             - mkdir doxygen && cd doxygen
-            - curl -o doxygen.zip https://netix.dl.sourceforge.net/project/doxygen/rel-1.8.16/doxygen-1.8.16.windows.bin.zip
+            - curl https://www.doxygen.nl/files/doxygen-1.8.20.windows.x64.bin.zip -o doxygen.zip
             - unzip doxygen.zip
             - export PATH=$PATH:$PWD
             - cd ..

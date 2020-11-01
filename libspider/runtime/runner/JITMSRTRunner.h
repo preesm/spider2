@@ -38,7 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/runner/RTRunner.h>
-#include <runtime/interface/Notification.h>
+#include <runtime/message/Notification.h>
 
 namespace spider {
 

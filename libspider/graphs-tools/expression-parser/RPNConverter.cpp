@@ -34,10 +34,11 @@
  */
 /* === Includes === */
 
+#include <graphs-tools/expression-parser/RPNConverter.h>
 #include <common/Exception.h>
 #include <containers/stack.h>
 #include <algorithm>
-#include <graphs-tools/expression-parser/RPNConverter.h>
+#include <cctype>
 
 /* === Static variable definition(s) === */
 
@@ -45,7 +46,12 @@
  * @brief String containing all supported operators (should not be edited).
  */
 static const std::string &supportedBasicOperators() {
-    static std::string operators{ "+-*/%^!()<>" };
+    static const std::string operators{ "+-*/%^!()<=>=!==" };
+    return operators;
+}
+
+static const std::string &partialEqualOperators() {
+    static const std::string operators{ "!<>=" };
     return operators;
 }
 
@@ -54,7 +60,6 @@ static const std::string &supportedBasicOperators() {
 
 static bool isOperator(const std::string &s) {
     bool found = supportedBasicOperators().find_first_of(s) != std::string::npos;
-    found |= (s == "<=") || (s == ">=");
     for (auto i = spider::rpn::FUNCTION_OFFSET; !found && i < spider::rpn::OPERATOR_COUNT; ++i) {
         found |= (spider::rpn::getOperator(i).label == s);
     }
@@ -363,7 +368,8 @@ spider::vector<RPNElement> spider::rpn::extractInfixElements(std::string infixEx
 
         /* == Operator element == */
         token = infixExpressionLocal.substr(pos++, 1);
-        if ((token == ">" || token == "<") && (infixExpressionLocal[pos] == '=')) {
+        if ((partialEqualOperators().find_first_not_of(token) != std::string::npos) &&
+            (infixExpressionLocal[pos] == '=')) {
             token += infixExpressionLocal.substr(pos++, 1);
         }
         addElementFromToken(tokens, token);
@@ -506,10 +512,12 @@ const RPNOperator &spider::rpn::getOperator(uint32_t ix) {
                                   { "%", RPNOperatorType::MOD, 3, 2, false },          /*! MOD operator */
                                   { "^", RPNOperatorType::POW, 3, 2, true },           /*! POW operator */
                                   { "!", RPNOperatorType::FACT, 4, 1, true },          /*! FACT operator */
-                                  { ">", RPNOperatorType::GREATER, 0, 2, false },    /*! GREATER operator */
-                                  { ">=", RPNOperatorType::GEQ, 0, 2, false },        /*! GEQ operator */
-                                  { "<", RPNOperatorType::LESS, 0, 2, false },      /*! LESS operator */
-                                  { "<=", RPNOperatorType::LEQ, 0, 2, false },        /*! LEQ operator */
+                                  { "!=", RPNOperatorType::NOT_EQUAL, 0, 2, false },   /*! NOT_EQUAL operator */
+                                  { "==", RPNOperatorType::EQUAL, 0, 2, false },       /*! EQUAL operator */
+                                  { ">", RPNOperatorType::GREATER, 0, 2, false },      /*! GREATER operator */
+                                  { ">=", RPNOperatorType::GEQ, 0, 2, false },         /*! GEQ operator */
+                                  { "<", RPNOperatorType::LESS, 0, 2, false },         /*! LESS operator */
+                                  { "<=", RPNOperatorType::LEQ, 0, 2, false },         /*! LEQ operator */
                                   { "(", RPNOperatorType::LEFT_PAR, 1, 0, false },     /*! LEFT_PAR operator */
                                   { ")", RPNOperatorType::RIGHT_PAR, 1, 0, false },    /*! RIGHT_PAR operator */
                                   { "cos", RPNOperatorType::COS, 5, 1, false },        /*! COS function */

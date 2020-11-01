@@ -35,11 +35,13 @@
 #ifndef SPIDER2_OPTIMIZATIONS_H
 #define SPIDER2_OPTIMIZATIONS_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 namespace spider {
 
-    namespace pisdf {
+    namespace srdag {
         class Graph;
     }
 
@@ -52,7 +54,7 @@ namespace spider {
          * @remark if graph is nullptr, nothing happen.
          * @param graph Pointer to the graph to be optimized.
          */
-        void optimize(pisdf::Graph *graph);
+        void optimize(srdag::Graph *graph);
 
         /**
          * @brief Optimize Repeat -> Fork patterns in a @refitem pisdf::Graph.
@@ -61,14 +63,14 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceRepeatFork(pisdf::Graph *graph);
+        bool reduceRepeatFork(srdag::Graph *graph);
 
         /**
          * @brief Optimize Duplicate -> Duplicate patterns in a @refitem pisdf::Graph.
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceDupDup(pisdf::Graph *graph);
+        bool reduceDupDup(srdag::Graph *graph);
 
         /**
          * @brief Optimize Fork -> Fork patterns in a @refitem pisdf::Graph.
@@ -76,7 +78,7 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceForkFork(pisdf::Graph *graph);
+        bool reduceForkFork(srdag::Graph *graph);
 
         /**
          * @brief Optimize Join -> Fork patterns in a @refitem pisdf::Graph.
@@ -84,7 +86,7 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceJoinFork(pisdf::Graph *graph);
+        bool reduceJoinFork(srdag::Graph *graph);
 
         /**
          * @brief Optimize Join -> Join patterns in a @refitem pisdf::Graph.
@@ -92,7 +94,7 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceJoinJoin(pisdf::Graph *graph);
+        bool reduceJoinJoin(srdag::Graph *graph);
 
         /**
          * @brief Optimize Join -> End patterns in a @refitem pisdf::Graph.
@@ -100,7 +102,7 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceJoinEnd(pisdf::Graph *graph);
+        bool reduceJoinEnd(srdag::Graph *graph);
 
         /**
          * @brief Optimize Init -> End patterns in a @refitem pisdf::Graph.
@@ -108,7 +110,7 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceInitEnd(pisdf::Graph *graph);
+        bool reduceInitEnd(srdag::Graph *graph);
 
         /**
          * @brief Optimize a @refitem pisdf::Graph by removing useless special actors.
@@ -122,8 +124,8 @@ namespace spider {
          * @param graph Pointer to the graph to be optimized.
          * @return true if optimization was applied, false else.
          */
-        bool reduceUnitaryRateActors(pisdf::Graph *graph);
+        bool reduceUnitaryRateActors(const srdag::Graph *graph);
     }
 }
-
+#endif
 #endif //SPIDER2_OPTIMIZATIONS_H

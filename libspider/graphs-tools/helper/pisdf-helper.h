@@ -39,13 +39,17 @@
 
 #include <containers/array.h>
 #include <containers/vector.h>
+#include <memory/unique_ptr.h>
 
 /* === Function(s) prototype === */
 
 namespace spider {
+
     namespace pisdf {
 
         /* === Forward declaration(s) === */
+
+        class GraphFiring;
 
         class Graph;
 
@@ -63,17 +67,19 @@ namespace spider {
         bool isGraphFullyStatic(const Graph *graph);
 
         /**
-         * @brief Recursively split dynamic graphs to separate init from run sections of the graph.
-         * @param graph  Pointer to the top graph.
+         * @brief Creates a subgraph for the 'run' section of a dynamic graph and keep config actors as the 'init'
+         *        section.
+         * @remark This method changes original graph.
+         * @param graph         Pointer to the graph to split (if static nothing happen).
+         * @return true if split the graph, false else.
          */
-        void recursiveSplitDynamicGraph(Graph *graph);
+        void separateRunGraphFromInit(pisdf::Graph *graph);
 
         /**
-         * @brief Creates an array with parameters needed for the runtime exec of a vertex.
-         * @param vertex Pointer to the vertex.
-         * @return array of int_least_64_t.
+         * @brief Recursively split dynamic graphs to separate init from run sections of the graph.
+         * @param graph         Pointer to the top graph.
          */
-        array<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex);
+        void recursiveSplitDynamicGraph(Graph *graph);
 
         /**
          * @brief Creates an array with parameters needed for the runtime exec of a vertex.
@@ -81,8 +87,8 @@ namespace spider {
          * @param params  Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
          * @return array of int_least_64_t.
          */
-        array<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
-                                                     const spider::vector<std::shared_ptr<pisdf::Param>> &params);
+        spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
+                                                                  const spider::vector<std::shared_ptr<pisdf::Param>> &params = { });
 
         /**
          * @brief Get the source of the vertex across interfaces.

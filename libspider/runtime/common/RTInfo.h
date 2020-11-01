@@ -50,14 +50,12 @@ namespace spider {
     class RTInfo {
     public:
 
-        RTInfo() : peMappableVector_{ factory::vector<bool>(StackID::RUNTIME) },
-                   clusterMappableVector_{ factory::vector<bool>(StackID::RUNTIME) },
-                   timingVector_{ factory::vector<Expression>(StackID::RUNTIME) } {
-            auto *platform = archi::platform();
+        RTInfo() {
+            const auto *platform = archi::platform();
             if (platform) {
-                peMappableVector_.resize(platform->PECount(), true);
-                clusterMappableVector_.resize(platform->clusterCount(), true);
-                timingVector_.resize(platform->HWTypeCount(), Expression(100));
+                peMappableArray_ = spider::make_n<bool, StackID::RUNTIME>(platform->PECount(), true);
+                clusterMappableArray_ = spider::make_n<bool, StackID::RUNTIME>(platform->clusterCount(), true);
+                timingArray_ = spider::make_n<Expression, StackID::RUNTIME>(platform->HWTypeCount(), Expression(100));
             }
         }
 
@@ -69,7 +67,16 @@ namespace spider {
 
         RTInfo &operator=(RTInfo &&) = default;
 
-        ~RTInfo() = default;
+        ~RTInfo() {
+            if (archi::platform()) {
+                deallocate(peMappableArray_);
+                deallocate(clusterMappableArray_);
+                for (size_t i = 0; i < archi::platform()->HWTypeCount(); ++i) {
+                    timingArray_[i].~Expression();
+                }
+                deallocate(timingArray_);
+            }
+        }
 
         /* === Getter(s) === */
 
@@ -83,7 +90,7 @@ namespace spider {
             if (!pe) {
                 return false;
             }
-            return peMappableVector_.at(pe->virtualIx());
+            return peMappableArray_[pe->virtualIx()];
         }
 
         /**
@@ -96,7 +103,7 @@ namespace spider {
             if (!cluster) {
                 return false;
             }
-            return clusterMappableVector_.at(cluster->ix());
+            return clusterMappableArray_[cluster->ix()];
         }
 
         /**
@@ -106,11 +113,12 @@ namespace spider {
          * @return timing on given PE (100 by default). If pe is nullptr, return INT64_MAX.
          * @throws std::out_of_range
          */
-        inline int64_t timingOnPE(const PE *pe, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+        inline int64_t
+        timingOnPE(const PE *pe, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
             if (!pe) {
                 return INT64_MAX;
             }
-            return timingVector_.at(pe->hardwareType()).evaluate(params);
+            return timingArray_[pe->hardwareType()].evaluate(params);
         }
 
         /**
@@ -120,9 +128,9 @@ namespace spider {
          * @return timing on given PE (100 by default).
          * @throws std::out_of_range
          */
-        inline int64_t timingOnPE(size_t ix, const vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
-            auto *pe = archi::platform()->processingElement(ix);
-            return timingVector_.at(pe->hardwareType()).evaluate(params);
+        inline int64_t timingOnPE(size_t ix, const spider::vector<std::shared_ptr<pisdf::Param>> &params = { }) const {
+            const auto *pe = archi::platform()->processingElement(ix);
+            return timingArray_[pe->hardwareType()].evaluate(params);
         }
 
         /**
@@ -132,7 +140,12 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline bool isPEMappable(size_t ix) const {
-            return peMappableVector_.at(ix);
+#ifndef NDEBUG
+            if (ix >= archi::platform()->PECount()) {
+                throwSpiderException("index out of bound.");
+            }
+#endif
+            return peMappableArray_[ix];
         }
 
         /**
@@ -142,7 +155,7 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline bool isClusterMappable(size_t ix) const {
-            return clusterMappableVector_.at(ix);
+            return clusterMappableArray_[ix];
         }
 
         /**
@@ -163,17 +176,17 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline void setMappableConstraintOnPE(const PE *pe, bool mappable = true) {
-            auto *cluster = pe->cluster();
-            peMappableVector_.at(pe->virtualIx()) = mappable;
+            const auto *cluster = pe->cluster();
+            peMappableArray_[pe->virtualIx()] = mappable;
             if (!mappable) {
                 /* == We need to recompute the condition to check if at least one PE in the cluster is valid == */
                 bool clusterMappable = false;
-                for (auto *elt : cluster->peArray()) {
-                    clusterMappable |= peMappableVector_.at(elt->virtualIx());
+                for (const auto *elt : cluster->peArray()) {
+                    clusterMappable |= peMappableArray_[elt->virtualIx()];
                 }
-                clusterMappableVector_.at(cluster->ix()) = clusterMappable;
+                clusterMappableArray_[cluster->ix()] = clusterMappable;
             } else {
-                clusterMappableVector_.at(cluster->ix()) = mappable;
+                clusterMappableArray_[cluster->ix()] = mappable;
             }
         }
 
@@ -182,8 +195,10 @@ namespace spider {
          * @param mappable  Value to set (default is true).
          */
         inline void setMappableConstraintOnAllPE(bool mappable = true) {
-            std::fill(peMappableVector_.begin(), peMappableVector_.end(), mappable);
-            std::fill(clusterMappableVector_.begin(), clusterMappableVector_.end(), mappable);
+            if (archi::platform()) {
+                std::fill(peMappableArray_, peMappableArray_ + archi::platform()->PECount(), mappable);
+                std::fill(clusterMappableArray_, clusterMappableArray_ + archi::platform()->clusterCount(), mappable);
+            }
         }
 
         /**
@@ -193,7 +208,12 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline void setTimingOnHWType(u32 hardwareType, int64_t value = 100) {
-            timingVector_.at(hardwareType) = Expression(value);
+#ifndef NDEBUG
+            if (hardwareType >= archi::platform()->HWTypeCount()) {
+                throwSpiderException("index out of bound.");
+            }
+#endif
+            timingArray_[hardwareType] = Expression(value);
         }
 
         /**
@@ -203,7 +223,12 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline void setTimingOnHWType(u32 hardwareType, Expression expression) {
-            timingVector_.at(hardwareType) = std::move(expression);
+#ifndef NDEBUG
+            if (hardwareType >= archi::platform()->HWTypeCount()) {
+                throwSpiderException("index out of bound.");
+            }
+#endif
+            timingArray_[hardwareType] = std::move(expression);
         }
 
         /**
@@ -213,7 +238,12 @@ namespace spider {
          * @throws std::out_of_range
          */
         inline void setTimingOnCluster(size_t ix, int64_t value = 100) {
-            timingVector_.at(ix) = Expression(value);
+#ifndef NDEBUG
+            if (ix >= archi::platform()->HWTypeCount()) {
+                throwSpiderException("index out of bound.");
+            }
+#endif
+            timingArray_[ix] = Expression(value);
         }
 
         /**
@@ -222,7 +252,12 @@ namespace spider {
          * @param expression  Expression to set.
          */
         inline void setTimingOnCluster(size_t ix, Expression expression) {
-            timingVector_.at(ix) = std::move(expression);
+#ifndef NDEBUG
+            if (ix >= archi::platform()->HWTypeCount()) {
+                throwSpiderException("index out of bound.");
+            }
+#endif
+            timingArray_[ix] = std::move(expression);
         }
 
         /**
@@ -230,7 +265,9 @@ namespace spider {
          * @param value  Value to set (default is 100).
          */
         inline void setTimingOnAllHWTypes(int64_t value = 100) {
-            std::fill(timingVector_.begin(), timingVector_.end(), Expression(value));
+            if (archi::platform()) {
+                std::fill(timingArray_, timingArray_ + archi::platform()->HWTypeCount(), Expression(value));
+            }
         }
 
         /**
@@ -238,7 +275,9 @@ namespace spider {
          * @param expression Expression to set.
          */
         inline void setTimingOnAllHWTypes(const Expression &expression) {
-            std::fill(timingVector_.begin(), timingVector_.end(), expression);
+            if (archi::platform()) {
+                std::fill(timingArray_, timingArray_ + archi::platform()->HWTypeCount(), expression);
+            }
         }
 
         /**
@@ -250,9 +289,9 @@ namespace spider {
         }
 
     private:
-        vector<bool> peMappableVector_;
-        vector<bool> clusterMappableVector_;
-        vector<Expression> timingVector_;
+        bool *peMappableArray_ = nullptr;
+        bool *clusterMappableArray_ = nullptr;
+        Expression *timingArray_ = nullptr;
         size_t kernelIx_ = SIZE_MAX;
     };
 }

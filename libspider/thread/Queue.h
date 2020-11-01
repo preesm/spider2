@@ -37,10 +37,9 @@
 
 /* === Include(s) === */
 
-#include <mutex>
-#include <containers/vector.h>
-#include <thread/Semaphore.h>
 #include <containers/queue.h>
+#include <condition_variable>
+#include <mutex>
 
 namespace spider {
 
@@ -55,25 +54,15 @@ namespace spider {
 
         Queue() = default;
 
-        /**
-         * @brief Copy constructor. mutex state of the queue will NOT be copied.
-         */
-        Queue(const Queue<T> &other) : Queue() {
-            queue_ = other.queue_;
-        };
+        Queue(const Queue<T> &) = default;
 
-        /**
-         * @brief Move constructor. mutex state of the queue will NOT be moved.
-         */
-        Queue(Queue<T> &&other) noexcept : Queue() {
-            queue_.swap(other.queue_);
-        }
+        Queue(Queue<T> &&other) noexcept = default;
 
         ~Queue() = default;
 
-        Queue &operator=(const Queue<T> &) = delete;
+        Queue &operator=(const Queue<T> &) = default;
 
-        Queue &operator=(Queue<T> &&) noexcept = delete;
+        Queue &operator=(Queue<T> &&) noexcept = default;
 
         /* === Method(s) === */
 
@@ -92,8 +81,8 @@ namespace spider {
          * @return true if success, nothing it would just hang in spider::basic_semaphore::wait().
          */
         inline bool pop(T &data) {
-            sem_.wait();
-            std::lock_guard<std::mutex> lock{ mutex_ };
+            std::unique_lock<std::mutex> lock{ mutex_ };
+            cond_.wait(lock, [this]() { return !queue_.empty(); });
             data = std::move(static_cast<T>(queue_.front()));
             queue_.pop();
             return true;
@@ -106,30 +95,30 @@ namespace spider {
          * @return true if success, false if try_wait() failed.
          */
         inline bool try_pop(T &data) {
-            if (!sem_.try_wait()) {
+            if (queue_.empty()) {
                 return false;
             }
-            std::lock_guard<std::mutex> lock{ mutex_ };
+            std::unique_lock<std::mutex> lock{ mutex_ };
             data = std::move(static_cast<T>(queue_.front()));
             queue_.pop();
             return true;
         }
-
 
         /**
          * @brief Push data into the queue.
          * @param data Pointer to the data to be pushed (call copy ctor of T)
          */
         inline void push(T data) {
-            std::lock_guard<std::mutex> lock{ mutex_ };
+            std::unique_lock<std::mutex> lock{ mutex_ };
             queue_.push(std::move(data));
-            sem_.notify();
+            lock.unlock();
+            cond_.notify_one();
         }
 
     private:
-        spider::queue<T> queue_;
-        spider::semaphore sem_;
-        std::mutex mutex_;
+        spider::queue<T> queue_{ };
+        std::condition_variable cond_{ };
+        std::mutex mutex_{ };
     };
 }
 

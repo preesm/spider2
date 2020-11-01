@@ -46,12 +46,13 @@
 /* === Method(s) implementation === */
 
 spider::pisdf::Edge::Edge(Vertex *source, size_t srcIx, Expression srcExpr,
-                          Vertex *sink, size_t snkIx, Expression snkExpr) : srcExpression_{ std::move(srcExpr) },
-                                                                            snkExpression_{ std::move(snkExpr) },
-                                                                            src_{ source },
-                                                                            snk_{ sink },
-                                                                            srcPortIx_{ srcIx },
-                                                                            snkPortIx_{ snkIx } {
+                          Vertex *sink, size_t snkIx, Expression snkExpr) :
+        srcExpression_{ spider::make_unique<Expression>(std::move(srcExpr)) },
+        snkExpression_{ spider::make_unique<Expression>(std::move(snkExpr)) },
+        src_{ source },
+        snk_{ sink },
+        srcPortIx_{ srcIx },
+        snkPortIx_{ snkIx } {
     if (!source || !sink) {
         throwSpiderException("nullptr vertex connected to Edge.");
     }
@@ -64,7 +65,9 @@ spider::pisdf::Edge::Edge(Vertex *source, size_t srcIx, Expression srcExpr,
 }
 
 std::string spider::pisdf::Edge::name() const {
-    return "edge_" + src_->name() + "-" + snk_->name();
+    auto srcName = std::string(src_->name()).append(":").append(std::to_string(srcPortIx_));
+    auto snkName = std::string(snk_->name()).append(":").append(std::to_string(snkPortIx_));
+    return std::string("edge_").append(srcName).append("-").append(snkName);
 }
 
 spider::pisdf::Graph *spider::pisdf::Edge::graph() const {
@@ -79,11 +82,11 @@ spider::pisdf::Delay *spider::pisdf::Edge::delay() const {
 }
 
 int64_t spider::pisdf::Edge::sourceRateValue() const {
-    return src_ ? srcExpression_.evaluate(src_->inputParamVector()) : 0;
+    return srcExpression_->value();
 }
 
 int64_t spider::pisdf::Edge::sinkRateValue() const {
-    return snk_ ? snkExpression_.evaluate(snk_->inputParamVector()) : 0;
+    return snkExpression_->value();
 }
 
 void spider::pisdf::Edge::setDelay(Delay *delay) {
@@ -108,7 +111,7 @@ void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression expr) 
         vertex->disconnectOutputEdge(ix);
 
         /* == Connect this edge == */
-        vertex->connectOutputEdge(static_cast<Edge *>(this), ix);
+        vertex->connectOutputEdge(this, ix);
     }
 
     /* == Disconnect current src (if any) == */
@@ -119,7 +122,7 @@ void spider::pisdf::Edge::setSource(Vertex *vertex, size_t ix, Expression expr) 
     /* == Set source of this edge == */
     src_ = vertex;
     srcPortIx_ = ix;
-    srcExpression_ = std::move(expr);
+    *(srcExpression_.get()) = std::move(expr);
 }
 
 void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
@@ -132,7 +135,7 @@ void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
         vertex->disconnectInputEdge(ix);
 
         /* == Connect this edge == */
-        vertex->connectInputEdge(static_cast<Edge *>(this), ix);
+        vertex->connectInputEdge(this, ix);
     }
 
     /* == Disconnect current snk_ (if any) == */
@@ -143,5 +146,5 @@ void spider::pisdf::Edge::setSink(Vertex *vertex, size_t ix, Expression expr) {
     /* == Set sink of this edge == */
     snk_ = vertex;
     snkPortIx_ = ix;
-    snkExpression_ = std::move(expr);
+    *(snkExpression_.get()) = std::move(expr);
 }

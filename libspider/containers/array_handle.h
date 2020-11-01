@@ -65,9 +65,11 @@ namespace spider {
         array_handle() = default;
 
         array_handle(T *data, size_type size) : data_{ data }, size_{ size } {
+#ifndef NDEBUG
             if (!data && size) {
                 throwSpiderException("unsafe array handle created with nullptr data and size != 0.");
             }
+#endif
         }
 
         array_handle(const array_handle &) = default;
@@ -103,6 +105,20 @@ namespace spider {
             std::copy(ilist.begin(), std::min(ilist.begin() + size(), ilist.end()), begin());
         }
 
+        /**
+         * @brief Exchanges the contents of the container with those of other.
+         * Does not invoke any move, copy, or swap operations on individual elements.
+         * All iterators and references remain valid.
+         * @param first   First container.
+         * @param second  Other container to exchange the contents with.
+         */
+        inline friend void swap(array_handle<T> &first, array_handle<T> &second) noexcept {
+            /* == Do the swapping of the values == */
+            using std::swap;
+            swap(first.data_, second.data_);
+            swap(first.size_, second.size_);
+        }
+
         /* === Element access === */
 
         /**
@@ -113,12 +129,16 @@ namespace spider {
          * @throws std::out_of_range if !(pos < size()).
          */
         inline reference at(size_type pos) {
+#ifndef NDEBUG
             if (pos >= size()) { throw std::out_of_range("array out of bound."); }
+#endif
             return data_[pos];
         }
 
         inline const_reference at(size_type pos) const {
+#ifndef NDEBUG
             if (pos >= size()) { throw std::out_of_range("array out of bound."); }
+#endif
             return data_[pos];
         }
 
@@ -257,12 +277,12 @@ namespace spider {
             return !(lhs == rhs);
         }
 
-    private:
+    protected:
         pointer data_ = nullptr;
         size_type size_ = 0;
     };
 
-    template <class T>
+    template<class T>
     array_handle<T> make_handle(T *data, size_t size) {
         return array_handle<T>(data, size);
     }

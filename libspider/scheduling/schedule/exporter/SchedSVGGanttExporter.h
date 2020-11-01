@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SCHEDSVGGANTTEXPORTER_H
 #define SPIDER2_SCHEDSVGGANTTEXPORTER_H
 
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 /* === Include(s) === */
 
 #include <common/Exporter.h>
@@ -47,9 +49,12 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class Schedule;
+    namespace sched {
 
-    class ScheduleTask;
+        class Schedule;
+
+        class Task;
+    }
 
     namespace pisdf {
         class Graph;
@@ -60,7 +65,7 @@ namespace spider {
     class SchedSVGGanttExporter final : public Exporter {
     public:
 
-        explicit SchedSVGGanttExporter(const Schedule *schedule);
+        explicit SchedSVGGanttExporter(const sched::Schedule *schedule);
 
         ~SchedSVGGanttExporter() override = default;
 
@@ -77,7 +82,7 @@ namespace spider {
         void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
 
     private:
-        const Schedule *schedule_ = nullptr;
+        const sched::Schedule *schedule_ = nullptr;
         double widthMin_ = 0;
         double widthMax_ = 0;
         double alpha_ = 0.;
@@ -98,9 +103,10 @@ namespace spider {
 
         void axisPrinter(FILE *file) const;
 
-        void taskPrinter(FILE *file, const ScheduleTask *task) const;
+        void taskPrinter(FILE *file, const sched::Task *task) const;
     };
 
     /* === Inline method(s) === */
 }
+#endif
 #endif //SPIDER2_SCHEDSVGGANTTEXPORTER_H

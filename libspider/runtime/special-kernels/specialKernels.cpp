@@ -47,15 +47,15 @@
 
 /* === Function(s) definition === */
 
-void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::fork(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto inputRate = paramsIn[0];   /* = Rate of the input port (used for sanity check) = */
     const auto outputCount = paramsIn[1]; /* = Number of output = */
     size_t offset = 0;
     for (int64_t i = 0; i < outputCount; ++i) {
         /* == Size of the current output to copy == */
         const auto outputSize = static_cast<size_t>(paramsIn[i + 2]);
-        auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[0]) + offset);
-        if (input != out[i]) {
+        const auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[0]) + offset);
+        if (outputSize && input != out[i]) {
             std::memcpy(out[i], input, outputSize);
         }
         offset += outputSize;
@@ -69,7 +69,7 @@ void spider::rt::fork(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::join(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto outputRate = paramsIn[0]; /* = Rate of the output port (used for sanity check) = */
     const auto inputCount = paramsIn[1]; /* = Number of input = */
     size_t offset = 0;
@@ -91,7 +91,7 @@ void spider::rt::join(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::head(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::head(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto inputEnd = paramsIn[0]; /* = Number of inputs to consider = */
     size_t offset = 0;
     for (int64_t i = 0; i < inputEnd; ++i) {
@@ -105,14 +105,14 @@ void spider::rt::head(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::tail(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::tail(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto inputCount = static_cast<size_t>(paramsIn[0]);     /* = Number of input = */
     const auto inputStart = static_cast<size_t>(paramsIn[1]);     /* = First input to be considered = */
     const auto inputOffset = static_cast<size_t>(paramsIn[2]);    /* = Offset in the first buffer if any = */
     const auto sizeFirstInput = static_cast<size_t>(paramsIn[3]); /* = Effective size to copy of the first input = */
 
     /* == Copy the first input with the offset == */
-    auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[inputStart]) + inputOffset);
+    const auto *input = reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(in[inputStart]) + inputOffset);
     std::memcpy(out[0], input, sizeFirstInput);
 
     /* == Do the general case == */
@@ -127,7 +127,7 @@ void spider::rt::tail(const int64_t *paramsIn, int64_t *, void **in, void **out)
     }
 }
 
-void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::repeat(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     if (in[0] == out[0]) {
         return;
     }
@@ -150,7 +150,7 @@ void spider::rt::repeat(const int64_t *paramsIn, int64_t *, void **in, void **ou
     }
 }
 
-void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void **out) {
+void spider::rt::duplicate(const int64_t *paramsIn, const int64_t *, void **in, void **out) {
     const auto outputCount = paramsIn[0]; /* = Number of output = */
     const auto inputSize = paramsIn[1];   /* = Rate of the input port = */
     const auto *input = in[0];            /* = Input buffer = */
@@ -161,16 +161,19 @@ void spider::rt::duplicate(const int64_t *paramsIn, int64_t *, void **in, void *
     }
 }
 
-void spider::rt::init(const int64_t *paramsIn, int64_t *, void **, void **out) {
+void spider::rt::init(const int64_t *paramsIn, const int64_t *, void **, void **out) {
     const auto isPersistent = paramsIn[0];
     const auto size = paramsIn[1];
+    if (!size) {
+        return;
+    }
     if (!isPersistent) {
         std::memset(out[0], 0, static_cast<size_t>(size));
     } else {
         const auto address = paramsIn[2];
         const auto *grt = archi::platform()->spiderGRTPE();
         auto *memInterface = grt->cluster()->memoryInterface();
-        auto *buffer = memInterface->read(static_cast<u64>(address), 1);
+        const auto *buffer = memInterface->read(static_cast<u64>(address));
         if (out[0] != buffer) {
             memcpy(out[0], buffer, static_cast<size_t>(size));
         }
@@ -180,13 +183,13 @@ void spider::rt::init(const int64_t *paramsIn, int64_t *, void **, void **out) {
     }
 }
 
-void spider::rt::end(const int64_t *paramsIn, int64_t *, void **in, void **) {
-    if (paramsIn[0]) {
+void spider::rt::end(const int64_t *paramsIn, const int64_t *, void **in, void **) {
+    if (paramsIn && paramsIn[0]) {
         const auto size = paramsIn[1];
         const auto address = paramsIn[2];
         const auto *grt = archi::platform()->spiderGRTPE();
         auto *memInterface = grt->cluster()->memoryInterface();
-        auto *buffer = memInterface->read(static_cast<u64>(address), 1);
+        auto *buffer = memInterface->read(static_cast<u64>(address));
         if (in[0] != buffer) {
             memcpy(buffer, in[0], static_cast<size_t>(size));
         }
@@ -196,9 +199,9 @@ void spider::rt::end(const int64_t *paramsIn, int64_t *, void **in, void **) {
     }
 }
 
-void spider::rt::externIn(const int64_t *, int64_t *, void **, void **) { }
+void spider::rt::externIn(const int64_t *, const int64_t *, void **, void **) { }
 
-void spider::rt::externOut(const int64_t *paramsIn, int64_t *, void **in, void **) {
+void spider::rt::externOut(const int64_t *paramsIn, const int64_t *, void **in, void **) {
     const auto bufferIndex = paramsIn[0];
     const auto size = paramsIn[1];
     auto *buffer = archi::platform()->getExternalBuffer(static_cast<size_t>(bufferIndex));

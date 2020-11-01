@@ -49,7 +49,7 @@ namespace spider {
                 return std::not_equal_to<double>{ }(0., v);
             }
 
-#ifdef _WIN32
+#ifndef _SPIDER_JIT_EXPRESSION
 
             /* === Unary functions === */
 
@@ -220,28 +220,40 @@ namespace spider {
                 static inline RPNOperatorType type() { return RPNOperatorType::LOG_OR; }
             };
 
+            struct neq {
+                static inline double apply(const double v0, const double v1) { return v0 != v1 ? 1. : 0.; }
+
+                static inline RPNOperatorType type() { return RPNOperatorType::NOT_EQUAL; }
+            };
+
+            struct eq {
+                static inline double apply(const double v0, const double v1) { return v0 == v1 ? 1. : 0.; }
+
+                static inline RPNOperatorType type() { return RPNOperatorType::EQUAL; }
+            };
+
             struct gt {
                 static inline double apply(const double v0, const double v1) { return v0 > v1 ? 1. : 0.; }
 
-                static inline RPNOperatorType type() { return RPNOperatorType::LOG_OR; }
+                static inline RPNOperatorType type() { return RPNOperatorType::GREATER; }
             };
 
             struct gte {
                 static inline double apply(const double v0, const double v1) { return v0 >= v1 ? 1. : 0.; }
 
-                static inline RPNOperatorType type() { return RPNOperatorType::LOG_OR; }
+                static inline RPNOperatorType type() { return RPNOperatorType::GEQ; }
             };
 
             struct lt {
                 static inline double apply(const double v0, const double v1) { return v0 < v1 ? 1. : 0.; }
 
-                static inline RPNOperatorType type() { return RPNOperatorType::LOG_OR; }
+                static inline RPNOperatorType type() { return RPNOperatorType::LESS; }
             };
 
             struct lte {
                 static inline double apply(const double v0, const double v1) { return v0 <= v1 ? 1. : 0.; }
 
-                static inline RPNOperatorType type() { return RPNOperatorType::LOG_OR; }
+                static inline RPNOperatorType type() { return RPNOperatorType::LEQ; }
             };
 
 #endif
@@ -315,6 +327,15 @@ namespace spider {
                 case RPNOperatorType::MOD:
                     return std::fmod(arg0, arg1);
                 case RPNOperatorType::POW:
+                    if (arg1 < 100. && (std::trunc(arg1) == arg1)) {
+                        auto res{ arg0 };
+                        auto n{ arg1 };
+                        while (n > 1.) {
+                            res *= arg0;
+                            n -= 1;
+                        }
+                        return res;
+                    }
                     return std::pow(arg0, arg1);
                 case RPNOperatorType::MAX:
                     return std::max(arg0, arg1);
@@ -324,6 +345,10 @@ namespace spider {
                     return details::isTrue(arg0) && details::isTrue(arg1) ? 1. : 0.;
                 case RPNOperatorType::LOG_OR:
                     return details::isTrue(arg0) || details::isTrue(arg1) ? 1. : 0.;
+                case RPNOperatorType::NOT_EQUAL:
+                    return arg0 != arg1 ? 1. : 0.;
+                case RPNOperatorType::EQUAL:
+                    return arg0 == arg1 ? 1. : 0.;
                 case RPNOperatorType::GREATER:
                     return arg0 > arg1 ? 1. : 0.;
                 case RPNOperatorType::GEQ:

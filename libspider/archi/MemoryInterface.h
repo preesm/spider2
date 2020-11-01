@@ -37,9 +37,9 @@
 
 /* === Include(s) === */
 
+#include <containers/unordered_map.h>
 #include <api/global-api.h>
 #include <common/Exception.h>
-#include <containers/unordered_map.h>
 
 namespace spider {
 
@@ -49,26 +49,34 @@ namespace spider {
     public:
         explicit MemoryInterface(uint64_t size = 0);
 
-        ~MemoryInterface() = default;
+        ~MemoryInterface();
 
         /* === Method(s) === */
 
         /**
          * @brief Read memory at the given memory virtual address.
          * @remark if count is 0, the value is discarded.
-         * @param virtualAddress  Virtual address to evaluate.
-         * @param count           Number of use of the buffer to set.
+         * @param address  Virtual address to evaluate.
+         * @param count           Number of use of the buffer to add.
          * @return physical address corresponding to the virtual address.
          */
-        void *read(uint64_t virtualAddress, u32 count = 1);
+        void *read(uint64_t address, i32 count = 0);
+
+        /**
+         * @brief Update lifetime of a given buffer.
+         * @param address Virtual address of the buffer.
+         * @param count   Counter update to apply.
+         */
+        void update(uint64_t address, i32 count = 1);
 
         /**
          * @brief Allocate memory to the given virtual address.
-         * @param virtualAddress  Virtual address to evaluate.
-         * @param size            Size of the memory to allocate.
+         * @param address  Virtual address to evaluate.
+         * @param size     Size of the memory to allocate.
+         * @param count    Number of use of the buffer to set.
          * @return physical memory addressed allocated.
          */
-        void *allocate(uint64_t virtualAddress, size_t size);
+        void *allocate(uint64_t address, size_t size, i32 count = 1);
 
         /**
          * @brief Deallocate memory from the given virtual address.
@@ -76,6 +84,11 @@ namespace spider {
          * @param size            Size of the memory to deallocate.
          */
         void deallocate(uint64_t virtualAddress, size_t size);
+
+        /**
+         * @brief Free every existing buffer with non-zero counter.
+         */
+        void collect();
 
         /**
          * @brief Reset the memory interface.
@@ -133,15 +146,15 @@ namespace spider {
         struct buffer_t {
             void *buffer_;
             size_t size_;
-            u32 count_;
+            i32 count_;
         };
         /* = Map associating virtual address to physical ones = */
         spider::unordered_map<uint64_t, buffer_t> virtual2Phys_;
+        std::mutex lock_;
         /* = Total size of the MemoryUnit = */
         uint64_t size_ = 0;
         /* = Currently used memory (strictly less or equal to size_) = */
         uint64_t used_ = 0;
-        std::mutex lock_;
 
         /* === Allocation routines === */
 
@@ -152,11 +165,12 @@ namespace spider {
 
         /**
          * @brief Register a physical address associated with a given virtual address.
-         * @param virtualAddress   Virtual address to evaluate.
-         * @param physicalAddress  Physical address to register.
-         * @param size             Size of the memory to allocate.
+         * @param virtAddress Virtual address to evaluate.
+         * @param phyAddress  Physical address to register.
+         * @param size        Size of the memory to allocate.
+         * @param count       Number of use of the buffer to set.
          */
-        void registerPhysicalAddress(uint64_t virtualAddress, void *physicalAddress, size_t size);
+        void registerPhysicalAddress(uint64_t virtAddress, void *phyAddress, size_t size, i32 count = 1);
 
         /**
          * @brief Retrieve the physical address corresponding to the given virtual address.

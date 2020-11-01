@@ -32,86 +32,69 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdag/visitors/SRDAGCopyVertexVisitor.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/DelayVertex.h>
+#include <graphs/srdag/SRDAGGraph.h>
+#include <graphs/srdag/SRDAGEdge.h>
+#include <graphs/srdag/SRDAGVertex.h>
 #include <api/pisdf-api.h>
 
 /* === Function(s) definition === */
 
-void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::ExecVertex *vertex) {
-    if (vertex->subtype() == pisdf::VertexType::DELAY) {
-        /* == This a trick to ensure proper coherence even with recursive delay init == */
-        /* == For given scenario:   A -> | delay | -> B
-         *                         setter --^ --> getter
-         *    This will produce this:
-         *                          setter -> | delay | -> getter
-         *                               A -> |       | -> B
-         *    But in reality the vertex does not make it after the SR-Transformation.
-         */
-        api::createVertex(srdag_, std::move(buildCloneName(vertex).append("(0)")), 2, 2);
-        ix_ = srdag_->vertexCount() - 1;
-    } else {
-        makeClone(vertex);
+void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Vertex *vertex) {
+    switch (vertex->subtype()) {
+        case pisdf::VertexType::DELAY: {
+            /* == This a trick to ensure proper coherence even with recursive delay init == */
+            /* == For given scenario:   A -> | delay | -> B
+             *                         setter --^ --> getter
+             *    This will produce this:
+             *                          setter -> | delay | -> getter
+             *                               A -> |       | -> B
+             *    But in reality the vertex does not make it after the SR-Transformation.
+             */
+            auto *clone = make<srdag::Vertex, StackID::TRANSFO>(vertex, 0, 2, 2);
+            clone->setExecutable(false);
+            /* == Add clone to the srdag == */
+            srdag_->addVertex(clone);
+            ix_ = srdag_->vertexCount() - 1;
+        }
+            break;
+        default:
+            makeClone(vertex);
+            break;
     }
 }
 
 void spider::srdag::SRDAGCopyVertexVisitor::visit(pisdf::Graph *graph) {
     /* == Clone the vertex == */
-    ix_ = 0;
-    auto name = buildCloneName(graph);
-    for (uint32_t it = 0; it < graph->repetitionValue(); ++it) {
-        auto *clone = api::createNonExecVertex(srdag_,
-                                               name + std::to_string(it) + ")",
-                                               static_cast<uint32_t>(graph->inputEdgeCount()),
-                                               static_cast<uint32_t>(graph->outputEdgeCount()));
-        clone->setRepetitionValue(graph->repetitionValue());
-        /* == Set the instance value of the vertex == */
-        clone->setInstanceValue(it);
-        auto *containingGraph = graph->graph();
-        std::for_each(containingGraph->params().begin(),
-                      containingGraph->params().end(),
-                      [&clone, this](const std::shared_ptr<pisdf::Param> &p) {
-                          clone->addInputParameter(job_.params_[p->ix()]);
-                      });
-    }
-    ix_ = (srdag_->vertexCount() - 1) - (graph->repetitionValue() - 1);
+    makeClone(graph);
 }
 
 /* === Private method(s) === */
 
-std::string spider::srdag::SRDAGCopyVertexVisitor::buildCloneName(const pisdf::Vertex *vertex) const {
-    if (!job_.srdagInstance_) {
-        return std::string(vertex->name()).append("(");
-    }
-    return std::string(job_.srdagInstance_->name()).append(":").append(vertex->name()).append("(");
-}
-
 void spider::srdag::SRDAGCopyVertexVisitor::makeClone(pisdf::Vertex *vertex) {
-    auto name = buildCloneName(vertex);
     for (uint32_t it = 0; it < vertex->repetitionValue(); ++it) {
-        auto *clone = make<pisdf::ExecVertex, StackID::PISDF>(vertex->subtype(),
-                                                              name + std::to_string(it) + ")",
-                                                              vertex->inputEdgeCount(),
-                                                              vertex->outputEdgeCount());
-
-        vertex->setAsReference(clone);
-
+        auto *clone = make<srdag::Vertex, StackID::TRANSFO>(vertex,
+                                                            it,
+                                                            vertex->inputEdgeCount(),
+                                                            vertex->outputEdgeCount());
+        clone->setExecutable(vertex->executable());
         /* == Add clone to the srdag == */
         srdag_->addVertex(clone);
-
-        /* == Change the instance value of the clone == */
-        clone->setInstanceValue(it);
-
         /* == Get the cloned parameters == */
-        for (const auto &param : vertex->inputParamVector()) {
-            clone->addInputParameter(job_.params_[param->ix()]);
+        for (const auto ix : vertex->inputParamIxVector()) {
+            clone->addInputParameter(job_.params_[ix]);
         }
-        for (const auto &param : vertex->refinementParamVector()) {
-            clone->addRefinementParameter(job_.params_[param->ix()]);
+        for (const auto ix : vertex->refinementParamIxVector()) {
+            clone->addRefinementParameter(job_.params_[ix]);
         }
     }
     ix_ = (srdag_->vertexCount() - 1) - (vertex->repetitionValue() - 1);
 }
 
+#endif

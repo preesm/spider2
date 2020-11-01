@@ -34,12 +34,14 @@
  */
 /* === Include(s) === */
 
-#include <archi/MemoryBus.h>
 #include <api/runtime-api.h>
-#include <runtime/platform/RTPlatform.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
+#include <runtime/platform/RTPlatform.h>
 #include <common/Types.h>
+#include <archi/MemoryBus.h>
+#include <archi/Cluster.h>
+#include <archi/MemoryInterface.h>
 
 /* === Static function === */
 
@@ -50,8 +52,8 @@
 spider::MemoryBus::MemoryBus() {
     sendCostRoutine_ = [](u64) -> u64 { return 0; };
     receiveCostRoutine_ = [](u64) -> u64 { return 0; };
-    sendRoutine_ = [](i64, i32, void *) { };
-    receiveRoutine_ = [](i64, i32, void *) { };
+    sendRoutine_ = [](i64, const void *, const void *) { };
+    receiveRoutine_ = [](i64, const void *, const void *) { };
 }
 
 uint64_t spider::MemoryBus::sendCost(uint64_t size) const {
@@ -62,12 +64,12 @@ uint64_t spider::MemoryBus::receiveCost(uint64_t size) const {
     return receiveCostRoutine_(size);
 }
 
-void spider::MemoryBus::dataSend(i64 size, i32 packetIx, void *buffer) {
-    sendRoutine_(size, packetIx, buffer);
+void spider::MemoryBus::dataSend(i64 size, void *bufferSrc, void *bufferDest) {
+    sendRoutine_(size, bufferSrc, bufferDest);
 }
 
-void spider::MemoryBus::dataReceive(i64 size, i32 packetIx, void *buffer) {
-    receiveRoutine_(size, packetIx, buffer);
+void spider::MemoryBus::dataReceive(i64 size, void *bufferSrc, void *bufferDest) {
+    receiveRoutine_(size, bufferSrc, bufferDest);
 }
 
 spider::RTKernel *spider::MemoryBus::sendKernel() const {
@@ -130,18 +132,22 @@ void spider::MemoryBus::setReceiveRoutine(MemoryBusRoutine routine) {
     }
 }
 
-void spider::MemoryBus::send(const int64_t *paramsIN, int64_t *, void *in[], void *[]) {
+void spider::MemoryBus::send(const int64_t *paramsIN, const int64_t *, void *in[], void *out[]) {
     auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
     auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);
-    bus->dataSend(paramsIN[2], static_cast<i32>(paramsIN[3]), in[0]);
+    bus->dataSend(paramsIN[2], in[0], out[0]);
 }
 
-void spider::MemoryBus::receive(const int64_t *paramsIN, int64_t *, void *[], void *out[]) {
+void spider::MemoryBus::receive(const int64_t *paramsIN, const int64_t *, void *[], void *out[]) {
     auto *clusterA = archi::platform()->cluster(static_cast<size_t>(paramsIN[0])); /* = source = */
     auto *clusterB = archi::platform()->cluster(static_cast<size_t>(paramsIN[1])); /* = target = */
+    const auto address = static_cast<uint64_t>(paramsIN[3]);
+    const auto size = paramsIN[2];
+    auto *input = clusterA->memoryInterface()->read(address);
     auto *bus = archi::platform()->getClusterToClusterMemoryBus(clusterA, clusterB);
-    bus->dataReceive(paramsIN[2], static_cast<i32>(paramsIN[3]), out[0]);
+    bus->dataReceive(size, input, out[0]);
+    clusterA->memoryInterface()->deallocate(address, static_cast<size_t>(size));
 }
 
 void spider::MemoryBus::setWriteSpeed(uint64_t value) {

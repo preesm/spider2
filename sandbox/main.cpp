@@ -35,17 +35,19 @@
 #include <iostream>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/InHeritedParam.h>
-#include <graphs/pisdf/DynamicParam.h>
+#include <graphs/pisdf/Vertex.h>
 #include <api/spider.h>
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
-#include <runtime/algorithm/JITMSRuntime.h>
+#include <runtime/algorithm/srdag-based/SRDAGJITMSRuntime.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <scheduling/scheduler/BestFitScheduler.h>
-#include <runtime/interface/Notification.h>
-#include <runtime/interface/Message.h>
+#include <scheduling/task/SRDAGTask.h>
+#include <scheduling/task/PiSDFTask.h>
+#include <scheduling/task/Task.h>
+#include <scheduling/ResourcesAllocator.h>
+#include <scheduling/memory/FifoAllocator.h>
+#include <runtime/message/Notification.h>
+#include <runtime/message/Message.h>
 
 #include <thread/Thread.h>
 #include <thread/Barrier.h>
@@ -54,13 +56,17 @@
 #include <archi/MemoryInterface.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
-#include <scheduling/schedule/ScheduleTask.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <containers/array_handle.h>
 #include <csignal>
 #include <runtime/runner/JITMSRTRunner.h>
-#include <graphs-tools/transformation/srdagless/SRLessHandler.h>
 #include <graphs-tools/expression-parser/Expression.h>
-#include <graphs-tools/expression-parser/ExpressionWindows.h>
+#include <graphs-tools/expression-parser/ExpressionRuntime.h>
+#include <graphs-tools/numerical/detail/DependencyIterator.h>
+#include <runtime/algorithm/pisdf-based/PiSDFJITMSRuntime.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
+
+#include "extra/variant.h"
 
 void createUserPlatform();
 
@@ -104,269 +110,119 @@ void fn2(int32_t id, int32_t affinity) {
     std::cout << "Thread #" << id << ": on CPU " << spider::this_thread::get_affinity() << "\n";
 }
 
-void testGraphRec() {
-    using namespace spider;
+
+void hTest() {
     spider::start();
-    createUserPlatform();
-    /* == Create the graph == */
-    auto *graph = spider::api::createGraph(
-            /* = Name of the application graph = */ "test",
-            /* = Number of actors              = */  14,
-            /* = Number of edges               = */  7,
-            /* = Number of parameters          = */  0,
-            /* = Number of input interfaces    = */  0,
-            /* = Number of output interfaces   = */  0,
-            /* = Number of config actors       = */  0);
-
-    /* === Creates the actor(s) == */
-
-    auto *vertex_I = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "I",
-            /* = Number of input edges  = */  0,
-            /* = Number of output edges = */  1,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex I == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_I, 0, "100");
-
-    auto *vertex_B = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "B",
-            /* = Number of input edges  = */  1,
-            /* = Number of output edges = */  0,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex B == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_B, 0, "100");
-
-    auto *vertex_F = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "F",
-            /* = Number of input edges  = */  1,
-            /* = Number of output edges = */  0,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex F == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_F, 0, "100");
-
-    auto *vertex_A = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "A",
-            /* = Number of input edges  = */  0,
-            /* = Number of output edges = */  1,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex A == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_A, 0, "100");
-
-    auto *vertex_G = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "G",
-            /* = Number of input edges  = */  1,
-            /* = Number of output edges = */  0,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex G == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_G, 0, "100");
-
-    auto *vertex_H = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "H",
-            /* = Number of input edges  = */  0,
-            /* = Number of output edges = */  1,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex H == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_H, 0, "100");
-
-    auto *vertex_S = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "S",
-            /* = Number of input edges  = */  0,
-            /* = Number of output edges = */  1,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex S == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_S, 0, "100");
-
-    auto *vertex_E = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "E",
-            /* = Number of input edges  = */  1,
-            /* = Number of output edges = */  0,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-    /* == Set the timings of the vertex E == */
-    spider::api::setVertexExecutionTimingOnHWType(vertex_E, 0, "100");
-
-    /* === Creates the edge(s) === */
-
-    /* == Edge A[out] -> [in]B == */
-    auto *edge_A_out__B_in = spider::api::createEdge(
-            /* = Source vertex          = */  vertex_A,
-            /* = Source port ix         = */  0,
-            /* = Source rate expression = */ "(4) * 1",
-            /* = Sink vertex            = */  vertex_B,
-            /* = Sink port ix           = */  0,
-            /* = sink rate expression   = */ "(2) * 1");
-
-    /* == Set the delay on the edge == */
-    spider::api::createLocalDelay(/* = Edge of the delay       = */  edge_A_out__B_in,
-            /* = Expression of the delay = */ "(3) * 1",
-                                                                     vertex_S,
-                                                                     0,
-                                                                     "(3) * 1",
-                                                                     vertex_G,
-                                                                     0,
-                                                                     "(3) * 1");
-
-    /* == Edge A_out__B_in[get] -> [in]G == */
-    auto *edge_A_out__B_in_get__G_in = vertex_G->inputEdge(0);
-
-    /* == Set the delay on the edge == */
-    spider::api::createLocalDelay(/* = Edge of the delay       = */
-            edge_A_out__B_in_get__G_in,
-            /* = Expression of the delay = */ "(2) * 1",
-            vertex_I,
-            0,
-            "2",
-            vertex_E,
-            0,
-            "2");
-
-    /* == Edge A_out__B_in_get__G_in[get] -> [in]E == */
-    auto *edge_A_out__B_in_get__G_in_get__E_in = vertex_E->inputEdge(0);
-
-    /* == Set the delay on the edge == */
-    spider::api::createLocalDelay(/* = Edge of the delay       = */ edge_A_out__B_in_get__G_in_get__E_in,
-            /* = Expression of the delay = */ "(5) * 1",
-                                                                    vertex_H,
-                                                                    0,
-                                                                    "1",
-                                                                    vertex_F,
-                                                                    0,
-                                                                    "5");
-
-
-    auto *vertex_Q = spider::api::createVertexFromType(
-            /* = Graph of the vertex    = */  graph,
-            /* = Name of the actor      = */ "Q",
-            /* = Number of input edges  = */  0,
-            /* = Number of output edges = */  1,
-            /* = Type of the vertex     = */  pisdf::VertexType::NORMAL);
-
-
-    auto *edge_H_out = vertex_H->outputEdge(0);
-    spider::api::createLocalDelay(/* = Edge of the delay       = */ edge_H_out,
-            /* = Expression of the delay = */ "(3) * 1",
-                                                                    vertex_Q,
-                                                                    0,
-                                                                    "1");
-
-    spider::api::createThreadRTPlatform();
-    spider::api::exportGraphToDOT(graph);
     spider::api::enableExportSRDAG();
+    spider::api::enableExportGantt();
     spider::api::disableSRDAGOptims();
-    const auto start = time::now();
-    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 100, spider::RuntimeType::FAST_JITMS,
-                                                spider::SchedulingPolicy::SRLESS_LIST_BEST_FIT);
+//    spider::api::enableVerbose();
+    createUserPlatform();
+    auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
+    auto *vertex_0 = spider::api::createVertex(graph, "vertex_0", 0, 1);
+    auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 1, 0);
+    auto *vertex_2 = spider::api::createSubgraph(graph, "vertex_2", 1, 2, 0, 1, 1);
+    auto *vertex_4 = spider::api::createSubgraph(vertex_2, "vertex_4", 1, 2, 0, 1, 1);
+    auto *vertex_5 = spider::api::createVertex(vertex_4, "vertex_5", 1, 1);
+    auto *in_vertex_2 = spider::api::setInputInterfaceName(vertex_2, 0, "in_vertex_2");
+    auto *out_vertex_2 = spider::api::setOutputInterfaceName(vertex_2, 0, "out_vertex_2");
+    auto *in_vertex_4 = spider::api::setInputInterfaceName(vertex_4, 0, "in_vertex_4");
+    auto *out_vertex_4 = spider::api::setOutputInterfaceName(vertex_4, 0, "out_vertex_4");
+    auto *vertex_6 = spider::api::createSubgraph(graph, "vertex_6", 1, 2, 0, 1, 1);
+    auto *vertex_7 = spider::api::createSubgraph(vertex_6, "vertex_7", 1, 2, 0, 1, 1);
+    auto *vertex_8 = spider::api::createVertex(vertex_7, "vertex_8", 1, 1);
+    auto *in_vertex_6 = spider::api::setInputInterfaceName(vertex_6, 0, "in_vertex_6");
+    auto *out_vertex_6 = spider::api::setOutputInterfaceName(vertex_6, 0, "out_vertex_6");
+    auto *in_vertex_7 = spider::api::setInputInterfaceName(vertex_7, 0, "in_vertex_7");
+    auto *out_vertex_7 = spider::api::setOutputInterfaceName(vertex_7, 0, "out_vertex_7");
+    spider::api::createEdge(vertex_0, 0, 3, vertex_2, 0, 2);
+    spider::api::createEdge(vertex_2, 0, 2, vertex_6, 0, 3);
+    spider::api::createEdge(vertex_6, 0, 2, vertex_1, 0, 1);
+    spider::api::createEdge(in_vertex_2, 0, 2, vertex_4, 0, 2);
+    spider::api::createEdge(vertex_4, 0, 2, out_vertex_2, 0, 2);
+    spider::api::createEdge(in_vertex_4, 0, 2, vertex_5, 0, 3);
+    auto *edge = spider::api::createEdge(vertex_5, 0, 3, out_vertex_4, 0, 2);
+    spider::api::createLocalDelay(edge, "3");
+    spider::api::createEdge(in_vertex_6, 0, 3, vertex_7, 0, 2);
+    spider::api::createEdge(vertex_7, 0, 2, out_vertex_6, 0, 2);
+    spider::api::createEdge(in_vertex_7, 0, 2, vertex_8, 0, 2);
+    spider::api::createEdge(vertex_8, 0, 2, out_vertex_7, 0, 2);
+    spider::api::exportGraphToDOT(graph);
+    spider::api::createThreadRTPlatform();
+    spider::api::createRuntimeKernel(vertex_0,
+                                     [](const int64_t *, int64_t *, void *[], void *output[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(output[0]);
+                                         buffer[0] = 3;
+                                         buffer[1] = 1;
+                                         buffer[2] = 4;
+                                         spider::log::info("vertex_0:0 writing: 3 1 4\n");
+                                     });
+
+    spider::api::createRuntimeKernel(vertex_1,
+                                     [](const int64_t *, int64_t *, void *input[], void *[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(input[0]);
+                                         spider::log::info("vertex_1 reading %d\n", buffer[0]);
+                                     });
+
+    spider::api::createRuntimeKernel(vertex_5,
+                                     [](const int64_t *, int64_t *, void *input[], void *output[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(input[0]);
+                                         reinterpret_cast<char *>(output[0])[0] = buffer[0];
+                                         reinterpret_cast<char *>(output[0])[1] = buffer[1];
+                                         reinterpret_cast<char *>(output[0])[2] = buffer[2];
+                                         spider::log::info("vertex_5 reading %d %d %d\n", buffer[0], buffer[1],
+                                                           buffer[2]);
+                                     });
+
+    spider::api::createRuntimeKernel(vertex_8,
+                                     [](const int64_t *, int64_t *, void *input[], void *output[]) -> void {
+                                         auto *buffer = reinterpret_cast<char *>(input[0]);
+                                         reinterpret_cast<char *>(output[0])[0] = buffer[0];
+                                         reinterpret_cast<char *>(output[0])[1] = buffer[1];
+                                         spider::log::info("vertex_8 reading %d %d\n", buffer[0], buffer[1]);
+                                     });
+    auto start = spider::time::now();
+    auto runtimeConfig = spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::PISDF_BASED,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            10u,
+    };
+    auto context = spider::createRuntimeContext(graph, runtimeConfig);
     spider::run(context);
     spider::destroyRuntimeContext(context);
-    const auto end = time::now();
-    std::cout << time::duration::nanoseconds(start, end) << '\n';
-    auto context2 = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 100, spider::RuntimeType::JITMS,
-                                                 spider::SchedulingPolicy::LIST_BEST_FIT);
-    spider::run(context2);
-    spider::destroyRuntimeContext(context2);
+    auto end = spider::time::now();
+    std::cerr << "fast:  " << spider::time::duration::nanoseconds(start, end) << std::endl;
+//    start = spider::time::now();
+//    runtimeConfig = spider::RuntimeConfig{
+//            spider::RunMode::LOOP,
+//            spider::RuntimeType::SRDAG_BASED,
+//            spider::ExecutionPolicy::DELAYED,
+//            spider::SchedulingPolicy::LIST,
+//            spider::MappingPolicy::BEST_FIT,
+//            spider::FifoAllocatorType::DEFAULT,
+//            10u,
+//    };
+//    auto context2 = spider::createRuntimeContext(graph, runtimeConfig);
+//    spider::run(context2);
+//    spider::destroyRuntimeContext(context2);
+//    end = spider::time::now();
+//    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
     spider::api::destroyGraph(graph);
     spider::quit();
 }
 
-spider::Expression test_cpy() {
-    const char *expressionString = "(5.5 + x) + (2 * x - 2 / 3 * y) * (x / 3 + y / 4) + (y + 7.7)";
-    auto param_x = spider::api::createDynamicParam(nullptr, "x");
-    auto param_y = spider::api::createDynamicParam(nullptr, "y");
-    spider::vector<std::shared_ptr<spider::pisdf::Param>> params{ param_x, param_y };
-    auto expr = spider::Expression(expressionString, params);
-    return expr;
-}
 
 int main(int, char **) {
-//    simpleNoExecHTest();
-//    simpleNoExecTest();
-//    testGraphRec();
-//    simpleTest();
-//    spiderSmallTest();
     spiderTest();
-    spider::start();
-    {
-        const char *expressionString = "(5.5 + 7.7) + (2 * x + 2 * 3 * y) * (x * 3 + y * 4) + (y + x)"; //"(5.5 + x) + (2 * x + 2 * 3 * y) * (x * 3 + y * 4) + (y + 7.7)"; // "if(less(x,2),1,geq(y,2))";
-        auto param_x = spider::api::createDynamicParam(nullptr, "x");
-        auto param_y = spider::api::createDynamicParam(nullptr, "y");
-        spider::vector<std::shared_ptr<spider::pisdf::Param>> params{ param_x, param_y };
-        auto expr = spider::Expression(expressionString, params);
-        param_x->setValue(2);
-        param_y->setValue(2);
-        std::cerr << expr.evaluateDBL({ param_x, param_y }) << std::endl;
-        auto expr2 = expr;
-        std::cerr << expr2.evaluateDBL({ param_x, param_y }) << std::endl;
-        const auto nIt = 2000;
-//        std::cerr << "==========" << std::endl;
-//        for (int k = 0; k < 20; ++k) {
-//            auto x = param_x.get();
-//            auto y = param_y.get();
-//            double total = 0;
-//            auto start = spider::time::now();
-//            for (int64_t i = 0; i < nIt; ++i) {
-//                x->setValue(i);
-//                for (int64_t j = 0; j < nIt; ++j) {
-//                    y->setValue(j);
-//                    volatile auto result = expr.evaluateDBL(params);
-//                    total += result;
-//                }
-//            }
-//            auto end = spider::time::now();
-//            std::cerr << "Total: " << total << std::endl;
-//            std::cerr << "Elapsed: " << spider::time::duration::milliseconds(start, end) << std::endl;
-//        }
-//        std::cerr << "==========" << std::endl;
-//        for (int k = 0; k < 20; ++k) {
-//            auto x = param_x.get();
-//            auto y = param_y.get();
-//            double total = 0;
-//            auto start = spider::time::now();
-//            for (int64_t i = 0; i < nIt; ++i) {
-//                x->setValue(i);
-//                for (int64_t j = 0; j < nIt; ++j) {
-//                    y->setValue(j);
-//                    volatile auto result = expr2.evaluateDBL(params);
-//                    total += result;
-//                }
-//            }
-//            auto end = spider::time::now();
-//            std::cerr << "Total: " << total << std::endl;
-//            std::cerr << "Elapsed: " << spider::time::duration::milliseconds(start, end) << std::endl;
-//        }
-//        for (int k = 0; k < 20; ++k) {
-//            auto x = param_x.get();
-//            auto y = param_y.get();
-//            double total = 0;
-//            auto start = spider::time::now();
-//            for (int64_t i = 0; i < nIt; ++i) {
-//                x->setValue(i);
-//                for (int64_t j = 0; j < nIt; ++j) {
-//                    y->setValue(j);
-////                    volatile auto result = std::sqrt(std::pow(x, 2.) + std::pow(y, 2.));
-//                    total += (x->value() < 2. ? std::sqrt(y->value()) : y->value() >= 2.);
-//                }
-//            }
-//            auto end = spider::time::now();
-//            std::cerr << "Total: " << total << std::endl;
-//            std::cerr << "Elapsed: " << spider::time::duration::milliseconds(start, end) << std::endl;
-//        }
-    }
-    spider::quit();
+//    simpleTest();
+//    hTest();
+    std::cerr << sizeof(spider::sched::Task) << '\n';
+    std::cerr << sizeof(spider::sched::SRDAGTask) << '\n';
+    std::cerr << sizeof(spider::sched::PiSDFTask) << '\n';
     return 0;
 }
 
@@ -408,8 +264,16 @@ void simpleNoExecHTest() {
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
                                          spider::log::info("vertex_2 reading %d\n", buffer[0]);
                                      });
-    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
-                                                spider::SchedulingPolicy::LIST_BEST_FIT);
+    auto runtimeConfig = spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::PISDF_BASED,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::GREEDY,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            1u,
+    };
+    auto context = spider::createRuntimeContext(graph, runtimeConfig);
     spider::run(context);
     spider::destroyRuntimeContext(context);
     spider::api::destroyGraph(graph);
@@ -428,8 +292,8 @@ void simpleNoExecTest() {
     auto *vertex_1 = spider::api::createVertex(graph, "vertex_1", 2, 0);
     auto *vertex_2 = spider::api::createVertex(graph, "vertex_2", 1, 1);
     spider::api::createEdge(vertex_0, 0, 2, vertex_1, 0, 1);
-    spider::api::createEdge(vertex_0, 1, 2, vertex_2, 0, 1);
-    spider::api::createEdge(vertex_2, 0, 1, vertex_1, 1, 1);
+    spider::api::createEdge(vertex_0, 1, 0, vertex_2, 0, 0);
+    spider::api::createEdge(vertex_2, 0, 0, vertex_1, 1, 0);
     spider::api::exportGraphToDOT(graph);
     spider::api::createThreadRTPlatform();
     spider::api::createRuntimeKernel(vertex_0,
@@ -454,8 +318,16 @@ void simpleNoExecTest() {
                                      });
 //    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
 //                                                spider::SchedulingPolicy::LIST_BEST_FIT);
-    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::FAST_JITMS,
-                                                spider::SchedulingPolicy::SRLESS_LIST_BEST_FIT);
+    auto runtimeConfig = spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::PISDF_BASED,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::GREEDY,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            1u,
+    };
+    auto context = spider::createRuntimeContext(graph, runtimeConfig);
     spider::run(context);
     spider::destroyRuntimeContext(context);
     spider::api::destroyGraph(graph);
@@ -465,33 +337,25 @@ void simpleNoExecTest() {
 
 void simpleTest() {
     spider::start();
+//    spider::api::enableVerbose();
 //    spider::api::enableExportGantt();
-    spider::api::enableExportSRDAG();
+//    spider::api::enableExportSRDAG();
 //    spider::api::useSVGGanttExporter();
     createUserPlatform();
     auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "A", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "B", 1, 1);
     auto *vertex_2 = spider::api::createVertex(graph, "C", 1, 0);
-//    auto *setter = spider::api::createVertex(graph, "S", 0, 1);
-//    auto *getter = spider::api::createVertex(graph, "G", 1, 0);
-    spider::api::createEdge(vertex_0, 0, 4, vertex_1, 0, 1);
+    auto *edge = spider::api::createEdge(vertex_0, 0, 4, vertex_1, 0, 2);
     spider::api::createEdge(vertex_1, 0, 3, vertex_2, 0, 4);
-//    auto *delay = spider::api::createLocalDelay(edge, "3", setter, 0, "1", getter, 0, "1");
-//    auto *vertex_init = spider::api::createVertex(graph, "I", 0, 1);
-//    auto *vertex_end = spider::api::createVertex(graph, "E", 1, 0);
-//    spider::api::createLocalDelay(delay->vertex()->outputEdge(0), "2", vertex_init, 0, "1", vertex_end, 0, "2");
-//    auto *vertex_d = spider::api::createVertex(graph, "D", 0, 1);
-//    auto *vertex_h = spider::api::createVertex(graph, "H", 1, 0);
-//    spider::api::createLocalDelay(delay->vertex()->inputEdge(0), "5", vertex_d, 0, "1", vertex_h, 0, "1");
-
+    spider::api::createLocalDelay(edge, "1");
     spider::api::createThreadRTPlatform();
     spider::api::exportGraphToDOT(graph);
     spider::api::createRuntimeKernel(vertex_0,
                                      [](const int64_t *, int64_t *, void *[], void *output[]) -> void {
                                          auto *buffer = reinterpret_cast<char *>(output[0]);
-                                         buffer[1] = 3;
-                                         buffer[0] = 14;
+                                         buffer[0] = 3;
+                                         buffer[1] = 14;
                                          buffer[2] = 15;
                                          buffer[3] = 92;
                                      });
@@ -499,22 +363,38 @@ void simpleTest() {
     spider::api::createRuntimeKernel(vertex_1,
                                      [](const int64_t *, int64_t *, void *input[], void *[]) -> void {
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
-                                         spider::log::info("vertex_1 reading %d\n", buffer[0]);
+                                         spider::log::info("vertex_1 reading %d %d\n", buffer[0], buffer[1]);
                                      });
     auto start = spider::time::now();
-    auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::FAST_JITMS,
-                                                spider::SchedulingPolicy::SRLESS_LIST_BEST_FIT);
+    auto runtimeConfig = spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::PISDF_BASED,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::GREEDY,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            10u,
+    };
+    auto context = spider::createRuntimeContext(graph, runtimeConfig);
     spider::run(context);
     spider::destroyRuntimeContext(context);
     auto end = spider::time::now();
     std::cerr << "fast-jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
-    start = spider::time::now();
-    auto context2 = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
-                                                 spider::SchedulingPolicy::LIST_BEST_FIT);
-    spider::run(context2);
-    spider::destroyRuntimeContext(context2);
-    end = spider::time::now();
-    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
+//    start = spider::time::now();
+//    runtimeConfig = spider::RuntimeConfig{
+//            spider::RunMode::LOOP,
+//            spider::RuntimeType::SRDAG_BASED,
+//            spider::ExecutionPolicy::DELAYED,
+//            spider::SchedulingPolicy::LIST,
+//            spider::MappingPolicy::BEST_FIT,
+//            spider::FifoAllocatorType::DEFAULT,
+//            10000u,
+//    };
+//    auto context2 = spider::createRuntimeContext(graph, runtimeConfig);
+//    spider::run(context2);
+//    spider::destroyRuntimeContext(context2);
+//    end = spider::time::now();
+//    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
     spider::api::destroyGraph(graph);
     spider::quit();
 }
@@ -532,7 +412,7 @@ void spiderSmallTest() {
     auto *output = spider::api::setOutputInterfaceName(subgraph, 0, "output");
     auto *vertex_2 = spider::api::createVertex(subgraph, "vertex_2", 2, 2);
     spider::api::createEdge(vertex_0, 0, 3, vertex_1, 0, 1);
-    spider::api::createEdge(vertex_1, 0, 2, subgraph, 0, 1);
+    spider::api::createEdge(vertex_1, 0, 3, subgraph, 0, 2);
     spider::api::createEdge(input, 0, 1, vertex_2, 0, 1);
     spider::api::createEdge(vertex_2, 0, 1, output, 0, 1);
     spider::api::createEdge(subgraph, 0, 1, vertex_3, 0, 1);
@@ -542,11 +422,19 @@ void spiderSmallTest() {
     size_t i = 0;
     spider::api::setVertexExecutionTimingOnHWType(vertex_2, i, "50");
     spider::api::setVertexExecutionTimingOnHWType(vertex_3, i, "200");
-    spider::api::setVertexMappableOnPE(vertex_3, i++, false);
+//    spider::api::setVertexMappableOnPE(vertex_3, i++, false);
     spider::api::enableExportSRDAG();
     spider::api::enableExportGantt();
     {
-        spider::JITMSRuntime runtime(graph, spider::SchedulingPolicy::LIST_BEST_FIT);
+        spider::PiSDFJITMSRuntime runtime(graph, spider::RuntimeConfig{
+                spider::RunMode::LOOP,
+                spider::RuntimeType::SRDAG_BASED,
+                spider::ExecutionPolicy::DELAYED,
+                spider::SchedulingPolicy::LIST,
+                spider::MappingPolicy::BEST_FIT,
+                spider::FifoAllocatorType::DEFAULT,
+                1u,
+        }, true);
         runtime.execute();
     }
     spider::api::destroyGraph(graph);
@@ -558,7 +446,7 @@ void spiderTest() {
     spider::start();
     spider::api::enableLogger(spider::log::Type::TRANSFO);
 //    spider::api::enableLogger(spider::log::Type::OPTIMS);
-    spider::api::enableLogger(spider::log::Type::LRT);
+//    spider::api::enableLogger(spider::log::Type::LRT);
 //    spider::api::enableLogger(spider::log::Type::SCHEDULE);
 //    spider::api::enableVerbose();
 
@@ -657,16 +545,12 @@ void spiderTest() {
         auto inherited_width = spider::api::createInheritedParam(subsubgraph, "width", width);
         auto width_derived = spider::api::createDerivedParam(subsubgraph, "width_derived", "width * sub_width");
 
-        width->setValue(1);
-        sub_width->setValue(2);
-        std::cerr << width_derived->value({ width, sub_width }) << std::endl;
-
         /* === Set param to vertex === */
 
-        spider::api::addOutputParamToVertex(width_setter, width);
-        spider::api::addOutputParamToVertex(sub_setter, sub_width);
-        spider::api::addInputParamToVertex(vertex_2, width);
-        spider::api::addInputParamToVertex(vertex_6, sub_width);
+        spider::api::addOutputParamsToVertex(width_setter, { width });
+        spider::api::addOutputParamsToVertex(sub_setter, { sub_width });
+        spider::api::addInputParamsToVertex(vertex_2, { width });
+        spider::api::addInputParamsToVertex(vertex_6, { sub_width });
         spider::api::addInputRefinementParamToVertex(vertex_6, width_derived);
 
         /* === Creating edges === */
@@ -685,10 +569,19 @@ void spiderTest() {
         /* === Export dot === */
         spider::api::exportGraphToDOT(graph, "./original.dot");
         fprintf(stderr, "%zu\n", graph->totalActorCount());
+        spider::api::enableLogger(spider::log::MEMORY);
         try {
             const auto &start = spider::time::now();
-            auto context = spider::createRuntimeContext(graph, spider::RunMode::LOOP, 1, spider::RuntimeType::JITMS,
-                                                        spider::SchedulingPolicy::LIST_BEST_FIT);
+            const auto runtimeConfig = spider::RuntimeConfig{
+                    spider::RunMode::LOOP,
+                    spider::RuntimeType::SRDAG_BASED,
+                    spider::ExecutionPolicy::DELAYED,
+                    spider::SchedulingPolicy::LIST,
+                    spider::MappingPolicy::ROUND_ROBIN,
+                    spider::FifoAllocatorType::DEFAULT,
+                    1u,
+            };
+            auto context = spider::createRuntimeContext(graph, runtimeConfig);
             spider::run(context);
             spider::destroyRuntimeContext(context);
             const auto &end = spider::time::now();

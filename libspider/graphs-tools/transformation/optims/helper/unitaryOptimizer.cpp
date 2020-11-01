@@ -32,21 +32,23 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
-#include <graphs/pisdf/Vertex.h>
-#include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/Graph.h>
 #include <graphs-tools/transformation/optims/helper/unitaryOptimizer.h>
+#include <graphs/srdag/SRDAGGraph.h>
+#include <graphs/srdag/SRDAGEdge.h>
+#include <graphs/srdag/SRDAGVertex.h>
 
 /* === Function(s) definition === */
 
-bool spider::optims::optimizeUnitaryVertex(pisdf::Vertex *vertex) {
-    auto removeVertex = [](pisdf::Vertex *v) -> bool {
+bool spider::optims::optimizeUnitaryVertex(srdag::Vertex *vertex) {
+    auto removeVertex = [](srdag::Vertex *v) -> bool {
         auto *inputEdge = v->inputEdge(0);
         auto *outputEdge = v->outputEdge(0);
-        if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
-            inputEdge->setSink(outputEdge->sink(), outputEdge->sinkPortIx(), outputEdge->sinkRateExpression());
+        if (inputEdge->rate() == outputEdge->rate()) {
+            inputEdge->setSink(outputEdge->sink(), outputEdge->sinkPortIx());
             /* == Remove edge and vertex == */
             auto *graph = v->graph();
             graph->removeEdge(outputEdge);
@@ -71,3 +73,4 @@ bool spider::optims::optimizeUnitaryVertex(pisdf::Vertex *vertex) {
     }
     return false;
 }
+#endif

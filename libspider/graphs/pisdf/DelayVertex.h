@@ -37,7 +37,7 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 
 namespace spider {
     namespace pisdf {
@@ -48,12 +48,12 @@ namespace spider {
 
         /* === Class definition === */
 
-        class DelayVertex final : public ExecVertex {
+        class DelayVertex final : public Vertex {
         public:
-            explicit DelayVertex(std::string name, pisdf::Delay *delay) : ExecVertex(VertexType::DELAY,
-                                                                                     std::move(name),
-                                                                                     1u,
-                                                                                     1u),
+            explicit DelayVertex(std::string name, pisdf::Delay *delay) : Vertex(VertexType::DELAY,
+                                                                                 std::move(name),
+                                                                                 1u,
+                                                                                 1u),
                                                                           delay_{ delay } { }
 
             ~DelayVertex() override = default;

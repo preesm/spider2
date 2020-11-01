@@ -86,7 +86,7 @@ u64 LinearStaticAllocator::deallocate(void *ptr) {
     }
     checkPointerAddress(ptr);
     /* == Return the size in case some external code is checking alloc / dealloc == */
-    auto *headerBuffer = reinterpret_cast<size_t *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(size_t));
+    const auto *headerBuffer = reinterpret_cast<size_t *>(reinterpret_cast<uintptr_t>(ptr) - sizeof(size_t));
     return (*headerBuffer);
     /*!< LinearStaticAllocator does not free memory per block */
 }

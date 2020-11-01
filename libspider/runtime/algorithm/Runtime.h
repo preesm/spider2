@@ -40,7 +40,6 @@
 #include <common/Exception.h>
 #include <common/Time.h>
 #include <api/global-api.h>
-#include <scheduling/allocator/FifoAllocator.h>
 
 /* === Define(s) === */
 
@@ -76,7 +75,17 @@ namespace spider {
 
     class Monitor;
 
-    class Schedule;
+#ifndef _NO_BUILD_LEGACY_RT
+    namespace srdag {
+        class Graph;
+    }
+#endif
+
+    namespace sched {
+        class Schedule;
+    }
+
+    struct RuntimeConfig;
 
     /* === Class definition === */
 
@@ -112,24 +121,21 @@ namespace spider {
          * @param schedule Pointer to the schedule.
          * @param path     Path of the file.
          */
-        void exportPreExecGantt(Schedule *schedule, const std::string &path = "./sched-gantt");
+        void exportPreExecGantt(const sched::Schedule *schedule, const std::string &path = "./sched-gantt");
 
         /**
          * @brief Export the Gantt of the real execution trace of the application for 1 graph iteration.
          * @remark Requires to have enable the execution traces with @refitem spider::enableExportTrace.
-         * @param graph    Pointer to the graph to be used as referece.
          * @param schedule Pointer to the schedule.
          * @param offset   Time offset to apply.
          * @param path     Path of the file.
          */
-        void exportPostExecGantt(pisdf::Graph *graph,
-                                 Schedule *schedule,
-                                 time::time_point offset = time::min(),
-                                 const std::string &path = "./exec-gantt");
-
-        static FifoAllocator *makeFifoAllocator(FifoAllocatorType type);
-
-        static FifoAllocator *makeSRLessFifoAllocator(FifoAllocatorType type);
+        void useExecutionTraces(const sched::Schedule *schedule,
+                                time::time_point offset = time::min(),
+                                const std::string &path = "./exec-gantt");
+#ifndef _NO_BUILD_LEGACY_RT
+        static void exportSRDAG(srdag::Graph *graph, const std::string &path);
+#endif
     };
 }
 #endif //SPIDER2_RUNTIME_H

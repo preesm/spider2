@@ -46,8 +46,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <archi/MemoryInterface.h>
 #include <api/spider.h>
 
@@ -66,10 +65,10 @@ protected:
         spider::api::setSpiderGRTPE(x86PECore0);
 
         graph_ = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 4, 3, 0, 0, 0);
-        auto *v0 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v0", 0, 1);
-        auto *v1 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v1", 1, 0);
-        auto *setter = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("setter", 0, 1);
-        auto *getter = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("getter", 1, 0);
+        auto *v0 = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL,"v0", 0, 1);
+        auto *v1 = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL,"v1", 1, 0);
+        auto *setter = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL,"setter", 0, 1);
+        auto *getter = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL,"getter", 1, 0);
         graph_->addVertex(v0);
         graph_->addVertex(v1);
         graph_->addVertex(setter);

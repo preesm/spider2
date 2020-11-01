@@ -45,8 +45,6 @@
 #include <memory/memory.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Param.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <api/spider.h>
 
@@ -75,15 +73,15 @@ TEST_F(pisdfParamTest, paramCreationTest) {
                                     << "Param::type() should be equal to spider::pisdf::ParamType::STATIC";
     }
     {
-        ASSERT_NO_THROW(spider::pisdf::DynamicParam("param")) << "DynamicParam(std::string, Graph*) should not throw";
-        ASSERT_NO_THROW(spider::pisdf::DynamicParam("param", spider::Expression(0)))
-                                    << "DynamicParam(std::string, Graph*, Expression &&) should not throw";
-        ASSERT_NO_THROW(spider::pisdf::DynamicParam("param", spider::Expression("31415")))
-                                    << "DynamicParam(std::string, Graph*, Expression &&) should not throw";
-        ASSERT_THROW(spider::pisdf::DynamicParam("param", spider::Expression("width*31415")), spider::Exception)
-                                    << "DynamicParam(std::string, Graph*, Expression &&) should throw with invalid parameter";
-        auto param = spider::pisdf::DynamicParam("param");
-        ASSERT_EQ(param.expression().evaluate(), 0) << "DynamicParam::expression().evaluate() should be equal to 0";
+        ASSERT_NO_THROW(spider::pisdf::Param("param")) << "Param(std::string, Graph*) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::Param("param", spider::Expression(0)))
+                                    << "Param(std::string, Graph*, Expression &&) should not throw";
+        ASSERT_NO_THROW(spider::pisdf::Param("param", spider::Expression("31415")))
+                                    << "Param(std::string, Graph*, Expression &&) should not throw";
+        ASSERT_THROW(spider::pisdf::Param("param", spider::Expression("width*31415")), spider::Exception)
+                                    << "Param(std::string, Graph*, Expression &&) should throw with invalid parameter";
+        auto param = spider::pisdf::Param("param");
+        ASSERT_EQ(param.expression().evaluate(), 0) << "Param::expression().evaluate() should be equal to 0";
         param.setValue(31415);
         ASSERT_EQ(param.expression().evaluate(), 31415)
                                     << "DynamicParam::expression().evaluate() should be equal to 31415";
@@ -92,38 +90,36 @@ TEST_F(pisdfParamTest, paramCreationTest) {
     }
     {
         auto param = spider::make_shared<spider::pisdf::Param>("param", 31415);
-        ASSERT_NO_THROW(spider::pisdf::InHeritedParam("param", param))
-                                    << "InHeritedParam(std::string, Graph*, Param *) should not throw";
-        ASSERT_THROW(spider::pisdf::InHeritedParam("param", nullptr), spider::Exception)
-                                    << "InHeritedParam(std::string, Graph*, Param *) should throw with nullptr parent.";
+        ASSERT_NO_THROW(spider::pisdf::Param("param", param))
+                                    << "Param(std::string, Param *) should not throw";
+        ASSERT_THROW(spider::pisdf::Param("param", nullptr), spider::Exception)
+                                    << "Param(std::string, Param *) should throw with nullptr parent.";
     }
     {
-        auto param = spider::make_shared<spider::pisdf::DynamicParam>("width");
-        ASSERT_THROW(spider::pisdf::Param("param", spider::Expression("width*31415", { param })), spider::Exception)
-                                    << "Param(std::string, Graph*, Expression &&) should throw with dynamic parameter";
+        auto param = spider::make_shared<spider::pisdf::Param>("width");
+        ASSERT_NO_THROW(spider::pisdf::Param("param", spider::Expression("width*31415", { param })))
+                                    << "Param(std::string, Expression &&) should not throw with dynamic parameter";
     }
 }
 
 struct ParamVisitorTest final : public spider::pisdf::DefaultVisitor {
     int type = -1;
 
-    void visit(spider::pisdf::Param *) override {
-        type = 0;
-    }
-
-    void visit(spider::pisdf::DynamicParam *) override {
-        type = 1;
-    }
-
-    void visit(spider::pisdf::InHeritedParam *) override {
-        type = 2;
+    void visit(spider::pisdf::Param *p) override {
+        if (!p->dynamic() && !p->parent()) {
+            type = 0;
+        } else if (!p->parent()) {
+            type = 1;
+        } else {
+            type = 2;
+        }
     }
 };
 
 TEST_F(pisdfParamTest, paramTest) {
     ASSERT_THROW(spider::pisdf::Param("pi", 31415), spider::Exception);
-    ASSERT_THROW(spider::pisdf::DynamicParam("pi"), spider::Exception);
-    ASSERT_THROW(spider::pisdf::InHeritedParam("pi", nullptr), spider::Exception);
+    ASSERT_THROW(spider::pisdf::Param("pi"), spider::Exception);
+    ASSERT_THROW(spider::pisdf::Param("pi", nullptr), spider::Exception);
     {
         auto param = spider::pisdf::Param("param", 31415);
         ASSERT_THROW(param.setValue(272), spider::Exception) << "Static param should throw when calling setValue()";
@@ -135,16 +131,14 @@ TEST_F(pisdfParamTest, paramTest) {
         auto *graph = new spider::pisdf::Graph();
         auto param = spider::make_shared<spider::pisdf::Param>("PArAM", 31415);
         ASSERT_EQ(param->name(), "param") << "name of param should be lower case converted.";
-        ASSERT_NE(param->graph(), graph) << "param::graph() failed";
         ASSERT_EQ(param->ix(), SIZE_MAX) << "param::ix() should be equal to SIZE_MAX on init.";
         graph->addParam(param);
-        ASSERT_EQ(param->graph(), graph) << "param::setGraph() failed";
         ASSERT_EQ(param->ix(), 0) << "param::ix() failed";
         delete graph;
     }
     {
         auto param = spider::make_shared<spider::pisdf::Param>("param", 31415);
-        auto param2 = spider::pisdf::InHeritedParam("param", param);
+        auto param2 = spider::pisdf::Param("param", param);
         ASSERT_EQ(param2.parent(), param.get()) << "InheritedParam::parent() failed.";
         ASSERT_EQ(param2.dynamic(), false) << "InheritedParam with static parent should be static.";
         ASSERT_EQ(param2.value(), param->value()) << "InheritedParam should have same value as parent.";
@@ -161,7 +155,7 @@ TEST_F(pisdfParamTest, paramTest) {
     }
     {
         auto visitor = ParamVisitorTest();
-        auto param = spider::pisdf::DynamicParam("param");
+        auto param = spider::pisdf::Param("param");
         param.visit(&visitor);
         ASSERT_EQ(visitor.type, 1) << "Dynamic param visitor failed.";
     }

@@ -80,10 +80,9 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> CONFIGURATIONS "Debug" "RelWithDebInfo" DESTINATION "${CMAKE_INSTALL_BINDIR}")
 else ()
-    #    set(SPIDER_EXTRA_FLAGS "-Wall -Wextra -pedantic-errors -Wnon-virtual-dtor -Wconversion -Wformat -Wredundant-decls -Wold-style-cast")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 --coverage")
-    message(STATUS "Using Link Time Optimization (-flto) on GNU platforms.")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 --coverage -ftest-coverage -fprofile-arcs")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O2 -DNDEBUG -fno-rtti -flto")
+    message(STATUS "Using Link Time Optimization (-flto) on GNU platforms.")
     if (${CMAKE_GENERATOR} MATCHES "MinGW Makefiles")
         # To prevent a redefinition conflict
         message(STATUS "Add definition _TIMESPEC_DEFINED")
@@ -190,12 +189,45 @@ if (BUILD_TESTING MATCHES "ON")
             EXCLUDE_FROM_ALL)
 endif ()
 
+# Build legacy runtime (default is yes) ?
+option(BUILD_LEGACY_RUNTIME "Build the code related to the legacy runtime of SPIDER." ON)
+if (NOT BUILD_LEGACY_RUNTIME)
+    add_definitions(-D_NO_BUILD_LEGACY_RT)
+    message(STATUS "Legacy runtime will not be built.")
+endif ()
+
+# Build gantt exporter(s) (default is yes) ?
+option(BUILD_GANTT_EXPORTER "Build the code related to the gantt exporter(s)." ON)
+if (NOT BUILD_GANTT_EXPORTER)
+    add_definitions(-D_NO_BUILD_GANTT_EXPORTER)
+    message(STATUS "Gantt exporter(s) will not be built.")
+endif ()
+
+# Build graph exporter(s) (default is yes) ?
+option(BUILD_GRAPH_EXPORTER "Build the code related to the graph exporter(s)." ON)
+if (NOT BUILD_GRAPH_EXPORTER)
+    add_definitions(-D_NO_BUILD_GRAPH_EXPORTER)
+    message(STATUS "Graph exporter(s) will not be built.")
+endif ()
+
 # Enable RPATH support for installed binaries and libraries
 include(AddInstallRPATHSupport)
 add_install_rpath_support(BIN_DIRS "${CMAKE_INSTALL_FULL_BINDIR}"
         LIB_DIRS "${CMAKE_INSTALL_FULL_LIBDIR}"
         INSTALL_NAME_DIR "${CMAKE_INSTALL_FULL_LIBDIR}"
         USE_LINK_PATH)
+
+# Use JIT-Compiled expression (default is yes) ?
+option(USE_JIT_EXPRESSION "Enable the JIT-Compiled expression parser (only on Linux)." ON)
+if (USE_JIT_EXPRESSION)
+    if (NOT MSVC AND NOT MINGW)
+        add_definitions(-D_SPIDER_JIT_EXPRESSION)
+        message(STATUS "Using just-in-time compiled expression parser.")
+    else ()
+        message(STATUS "Defaulting to runtime expression parser on Windows.")
+    endif ()
+endif ()
+unset(USE_JIT_EXPRESSION CACHE)
 
 # Use PAPI library?
 option(USE_PAPI "Enable PAPI library support." OFF)
@@ -209,6 +241,7 @@ if (USE_PAPI)
         set(PAPI_INCLUDE_DIR "")
     endif ()
 endif ()
+unset(USE_PAPI CACHE)
 
 # Encourage user to specify a build type (e.g. Release, Debug, etc.), otherwise set it to Release.
 if (NOT CMAKE_CONFIGURATION_TYPES)

@@ -48,15 +48,15 @@
 
 namespace spider {
     namespace test {
-        void runtimeStaticFlat(RuntimeType type, SchedulingPolicy algorithm);
+        void runtimeStaticFlat(spider::RuntimeConfig cfg);
 
-        void runtimeStaticHierarchical(RuntimeType type, SchedulingPolicy algorithm);
+        void runtimeStaticHierarchical(spider::RuntimeConfig cfg);
 
-        void runtimeStaticFlatNoExec(RuntimeType type, SchedulingPolicy algorithm);
+        void runtimeStaticFlatNoExec(spider::RuntimeConfig cfg);
 
-        void runtimeStaticHierarchicalNoExec(RuntimeType type, SchedulingPolicy algorithm);
+        void runtimeStaticHierarchicalNoExec(spider::RuntimeConfig cfg);
 
-        void runtimeDynamicHierarchical(RuntimeType type, SchedulingPolicy algorithm);
+        void runtimeDynamicHierarchical(spider::RuntimeConfig cfg);
     }
 }
 

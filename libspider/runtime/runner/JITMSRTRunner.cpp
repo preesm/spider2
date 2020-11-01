@@ -37,7 +37,7 @@
 #include <thread/Thread.h>
 #include <api/runtime-api.h>
 #include <runtime/runner/JITMSRTRunner.h>
-#include <runtime/interface/RTCommunicator.h>
+#include <runtime/communicator/RTCommunicator.h>
 #include <runtime/platform/RTPlatform.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
@@ -87,7 +87,7 @@
 
 #define LOG_JOB_START() \
     if (log::enabled<log::LRT>()) {\
-        log::info<log::LRT>("Runner #%zu -> starting job %zu.\n", ix(), job.ix_);\
+        log::info<log::LRT>("Runner #%zu -> starting job %zu.\n", ix(), job.execIx_);\
     }
 
 #define LOG_JOB_END() \
@@ -126,63 +126,25 @@
 
 #define LOG_JOB() \
     if (log::enabled<log::LRT>() && spider::api::verboseEnabled()) {\
-        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Task: %zu\n", ix(), job.ix_);\
+        log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Task: %zu\n", ix(), job.execIx_);\
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Constraints:\n", ix());\
         for (const auto &constraint : job.execConstraints_) {\
             log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> job %zu on runner #%zu\n", ix(),\
                     constraint.jobToWait_, constraint.lrtToWait_);\
         }\
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Input Fifo(s):\n", ix());\
-        for (auto &fifo : job.inputFifoArray_) {\
-            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
-            fifo.virtualAddress_, fifo.offset_);\
+        for (auto &fifo : job.fifos_->inputFifos()) {\
+            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %8zu -- address: %8zu -- offset: %8zu\n", ix(), fifo.size_,\
+            fifo.address_, fifo.offset_);\
         }\
         log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> Output Fifo(s):\n", ix());\
-        for (auto &fifo : job.outputFifoArray_) {\
-            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %zu -- address: %zu -- offset: %zu\n", ix(), fifo.size_,\
-            fifo.virtualAddress_, fifo.offset_);\
+        for (auto &fifo : job.fifos_->outputFifos()) {\
+            log::print<log::LRT>(log::blue, "INFO", "Runner #%zu -> >> size: %8zu -- address: %8zu -- offset: %8zu\n", ix(), fifo.size_,\
+            fifo.address_, fifo.offset_);\
         }\
     }
 
 /* === Static function === */
-
-spider::array<void *> createInputFifos(const spider::array<spider::RTFifo> &fifos,
-                                       spider::MemoryInterface *memoryInterface) {
-    spider::array<void *> inputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
-    std::transform(std::begin(fifos), std::end(fifos), std::begin(inputBuffersArray),
-                   [&memoryInterface](const spider::RTFifo &fifo) -> void * {
-                       if (!fifo.size_) {
-                           return nullptr;
-                       }
-                       void *buffer = nullptr;
-                       if (fifo.attribute_ == spider::FifoAttribute::READ_EXT) {
-                           buffer = spider::archi::platform()->getExternalBuffer(fifo.virtualAddress_);
-                       } else {
-                           buffer = memoryInterface->read(fifo.virtualAddress_, fifo.count_);
-                       }
-                       return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
-                   });
-    return inputBuffersArray;
-}
-
-spider::array<void *> createOutputFifos(const spider::array<spider::RTFifo> &fifos,
-                                        spider::MemoryInterface *memoryInterface) {
-    spider::array<void *> outputBuffersArray{ fifos.size(), nullptr, StackID::RUNTIME };
-    std::transform(std::begin(fifos), std::end(fifos), std::begin(outputBuffersArray),
-                   [&memoryInterface](const spider::RTFifo &fifo) -> void * {
-                       if (fifo.attribute_ == spider::FifoAttribute::WRITE_OWN) {
-                           return memoryInterface->allocate(fifo.virtualAddress_, fifo.size_);
-                       }
-                       void *buffer = nullptr;
-                       if (fifo.attribute_ == spider::FifoAttribute::WRITE_EXT) {
-                           buffer = spider::archi::platform()->getExternalBuffer(fifo.virtualAddress_);
-                       } else {
-                           buffer = memoryInterface->read(fifo.virtualAddress_);
-                       }
-                       return reinterpret_cast<void *>(reinterpret_cast<uintptr_t>(buffer) + fifo.offset_);
-                   });
-    return outputBuffersArray;
-}
 
 /* === Method(s) implementation === */
 
@@ -196,7 +158,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
     bool waitForJob = false;
     while (run && !stop_) {
         /* == Check for notifications == */
-        bool blockingPop = (infiniteLoop && finished_) || waitForJob;
+        auto blockingPop = (infiniteLoop && finished_) || waitForJob;
         while (!stop_ && readNotification(blockingPop)) {
             blockingPop = pause_;
         }
@@ -204,7 +166,6 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             LOG_STOP();
             return;
         }
-
         /* == If there is a job available, do it == */
         if (start_ && (jobQueueCurrentPos_ != jobQueue_.size())) {
             auto &job = jobQueue_[jobQueueCurrentPos_];
@@ -213,7 +174,7 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 /* == Run the job == */
                 LOG_JOB_START();
                 runJob(job);
-                lastJobStamp_ = job.ix_;
+                lastJobStamp_ = job.execIx_;
                 jobQueueCurrentPos_++;
                 LOG_JOB_END();
             }
@@ -226,10 +187,6 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
                 shouldBroadcast_ = false;
                 broadcastCurrentJobStamp();
             }
-
-            /* == Send finished notification (after broadcast to avoid potential miss-synchronization) == */
-            sendFinishedNotification();
-
             /* == Reset state == */
             if (!repeat_) {
                 clearJobQueue();
@@ -237,10 +194,10 @@ void spider::JITMSRTRunner::run(bool infiniteLoop) {
             finished_ = true;
             start_ = false;
             receivedEnd_ = false;
-
+            /* == Send finished notification (after broadcast to avoid potential miss-synchronization) == */
+            sendFinishedNotification();
             /* == log == */
             LOG_END_ITER();
-
             /* == Exit condition based on infinite loop flag == */
             if (!infiniteLoop) {
                 return;
@@ -254,7 +211,7 @@ void spider::JITMSRTRunner::begin() {
     if (affinity_ >= 0) {
         this_thread::set_affinity(affinity_);
     }
-    auto *platform = archi::platform();
+    const auto *platform = archi::platform();
     if (attachedPE_ != platform->spiderGRTPE()) {
         run(true);
     }
@@ -266,18 +223,17 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     LOG_JOB();
     TraceMessage msgMemory{ };
     if (trace_) {
-        msgMemory.taskIx_ = job.vertexIx_;
+        msgMemory.taskIx_ = job.taskIx_;
         msgMemory.startTime_ = time::now();
     }
     /* == Create input buffers == */
-    auto inputBuffersArray = createInputFifos(job.inputFifoArray_, attachedPE_->cluster()->memoryInterface());
+    auto inputBuffersArray = getInputBuffers(job.fifos_->inputFifos(), attachedPE_->cluster()->memoryInterface());
 
     /* == Create output buffers == */
-    auto outputBuffersArray = createOutputFifos(job.outputFifoArray_, attachedPE_->cluster()->memoryInterface());
+    auto outputBuffersArray = getOutputBuffers(job.fifos_->outputFifos(), attachedPE_->cluster()->memoryInterface());
 
     /* == Allocate output parameter memory == */
-    array<int64_t> outputParams{ static_cast<size_t>(job.outputParamCount_), 0, StackID::RUNTIME };
-
+    array<int64_t> outputParams{ static_cast<size_t>(job.nParamsOut_), 0, StackID::RUNTIME };
     if (trace_) {
         msgMemory.endTime_ = time::now();
         auto *communicator = rt::platform()->communicator();
@@ -286,14 +242,14 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Run the job == */
-    const auto &kernel = (rt::platform()->getKernel(job.kernelIx_));
+    const auto &kernel = rt::platform()->getKernel(job.kernelIx_);
     if (kernel) {
         TraceMessage msgExec{ };
         if (trace_) {
-            msgExec.taskIx_ = job.vertexIx_;
+            msgExec.taskIx_ = job.taskIx_;
             msgExec.startTime_ = time::now();
         }
-        (*kernel)(job.inputParams_.data(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
+        (*kernel)(job.inputParams_.get(), outputParams.data(), inputBuffersArray.data(), outputBuffersArray.data());
         if (trace_) {
             msgExec.endTime_ = time::now();
             auto *communicator = rt::platform()->communicator();
@@ -303,19 +259,26 @@ void spider::JITMSRTRunner::runJob(const JobMessage &job) {
     }
 
     /* == Deallocate input buffers == */
-    for (auto &inputFIFO : job.inputFifoArray_) {
-        if (inputFIFO.attribute_ == FifoAttribute::READ_OWN) {
+    for (auto &fifo : job.fifos_->inputFifos()) {
+        if (fifo.attribute_ == FifoAttribute::RW_OWN || fifo.attribute_ == FifoAttribute::R_MERGE) {
             auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
-            memoryInterface->deallocate(inputFIFO.virtualAddress_, inputFIFO.size_);
+            memoryInterface->deallocate(fifo.address_, fifo.size_);
+        }
+    }
+    /* == Deallocate output buffers (only buffers to sinks) == */
+    for (auto &fifo : job.fifos_->outputFifos()) {
+        if (fifo.attribute_ == FifoAttribute::W_SINK) {
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->deallocate(fifo.address_, fifo.size_);
         }
     }
 
     /* == Notify other runtimes that need to know == */
-    updateJobStamp(ix(), job.ix_);
-    sendJobStampNotification(job.notificationFlagsArray_.get(), job.ix_);
+    updateJobStamp(ix(), job.execIx_);
+    sendJobStampNotification(job.synchronizationFlags_.get(), job.execIx_);
 
     /* == Send output parameters == */
-    sendParameters(job.vertexIx_, outputParams);
+    sendParameters(job.taskIx_, outputParams);
 
     /* == Send traces == */
 }
@@ -367,6 +330,7 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
             break;
         case NotificationType::LRT_CLEAR_ITERATION:
             clear();
+            attachedPE_->cluster()->memoryInterface()->collect();
             break;
         case NotificationType::LRT_RST_ITERATION:
             reset();
@@ -422,6 +386,20 @@ bool spider::JITMSRTRunner::readNotification(bool blocking) {
                                      ix(), notification.senderIx_);
             }
             updateJobStamp(notification.senderIx_, notification.notificationIx_);
+            break;
+        case NotificationType::MEM_UPDATE_COUNT: {
+            const auto fifoAddress = notification.notificationIx_;
+            rt::platform()->communicator()->pop(notification, ix());
+            while (notification.type_ != NotificationType::MEM_UPDATE_COUNT) {
+                rt::platform()->communicator()->push(notification, ix());
+                if (!rt::platform()->communicator()->try_pop(notification, ix())) {
+                    throwSpiderException("Expected a secondary notification.");
+                }
+            }
+            const auto countUpdate = notification.notificationIx_;
+            auto *memoryInterface = attachedPE_->cluster()->memoryInterface();
+            memoryInterface->update(fifoAddress, static_cast<i32>(countUpdate));
+        }
             break;
         default:
             LOG_UNHANDLED();

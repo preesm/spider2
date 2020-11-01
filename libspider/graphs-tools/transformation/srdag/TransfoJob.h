@@ -35,10 +35,13 @@
 #ifndef SPIDER2_SRDAGJOB_H
 #define SPIDER2_SRDAGJOB_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <containers/vector.h>
 #include <graphs/pisdf/Graph.h>
+#include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/pisdf/Param.h>
 
 namespace spider {
@@ -50,7 +53,7 @@ namespace spider {
         struct TransfoJob {
             spider::vector<std::shared_ptr<pisdf::Param>> params_;
             pisdf::Graph *reference_ = nullptr;
-            pisdf::Vertex *srdagInstance_ = nullptr;
+            srdag::Vertex *srdagInstance_ = nullptr;
             uint32_t firingValue_ = UINT32_MAX;
 
             TransfoJob(TransfoJob &&) = default;
@@ -62,7 +65,7 @@ namespace spider {
             TransfoJob &operator=(TransfoJob &&) = default;
 
             explicit TransfoJob(pisdf::Graph *graph,
-                                pisdf::Vertex *srdagInstance = nullptr,
+                                srdag::Vertex *srdagInstance = nullptr,
                                 uint32_t firing = 0) : params_{
                     factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
                                                        reference_{ graph },
@@ -77,4 +80,5 @@ namespace spider {
         };
     }
 }
+#endif
 #endif //SPIDER2_JOB_H

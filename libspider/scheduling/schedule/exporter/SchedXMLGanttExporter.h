@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SCHEDXMLGANTTEXPORTER_H
 #define SPIDER2_SCHEDXMLGANTTEXPORTER_H
 
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 /* === Include(s) === */
 
 #include <common/Exporter.h>
@@ -45,9 +47,12 @@ namespace spider {
 
     /* === Forward declaration(s) === */
 
-    class ScheduleTask;
+    namespace sched {
 
-    class Schedule;
+        class Task;
+
+        class Schedule;
+    }
 
     namespace pisdf {
         class Graph;
@@ -58,8 +63,8 @@ namespace spider {
     class SchedXMLGanttExporter final : public Exporter {
     public:
 
-        explicit SchedXMLGanttExporter(const Schedule *schedule) : Exporter(),
-                                                                   schedule_{ schedule } { }
+        explicit SchedXMLGanttExporter(const sched::Schedule *schedule) : Exporter(),
+                                                                          schedule_{ schedule } { }
 
         ~SchedXMLGanttExporter() override = default;
 
@@ -77,12 +82,13 @@ namespace spider {
          */
         void printFromFile(FILE *file) const override;
 
-        void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
+        static void printFromTasks(const vector<GanttTask> &taskVector, const std::string &path = "./gantt.xml");
 
     private:
-        const Schedule *schedule_ = nullptr;
+        const sched::Schedule *schedule_ = nullptr;
 
-        void printTask(FILE *file, const ScheduleTask *task) const;
+        static void printTask(FILE *file, const sched::Task *task) ;
     };
 }
+#endif
 #endif //SPIDER2_SCHEDXMLGANTTEXPORTER_H

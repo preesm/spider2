@@ -38,12 +38,18 @@
 #include <memory/Stack.h>
 #include <memory/memory.h>
 #include <common/Logger.h>
-#include <archi/Platform.h>
 #include <runtime/platform/RTPlatform.h>
 #include <graphs/pisdf/Graph.h>
 #include <runtime/algorithm/Runtime.h>
-#include <runtime/algorithm/JITMSRuntime.h>
-#include <runtime/algorithm/FastJITMSRuntime.h>
+#include <runtime/algorithm/pisdf-based/PiSDFJITMSRuntime.h>
+#include <graphs-tools/helper/pisdf-helper.h>
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+#include <runtime/algorithm/srdag-based/SRDAGJITMSRuntime.h>
+#include <runtime/algorithm/srdag-based/StaticRuntime.h>
+
+#endif
 
 /* === Static variable(s) definition === */
 
@@ -145,7 +151,7 @@ void spider::start(const StartUpConfig &cfg) {
         quit();
         throwSpiderException("spider::start() function should be called only once.");
     }
-#ifdef __linux__
+#if defined(__linux__) && defined(_SPIDER_JIT_EXPRESSION)
     expr::details::cleanFolder();
 #endif
 
@@ -194,34 +200,42 @@ bool spider::isInit() {
 }
 
 static spider::Runtime *getRuntimeFromType(spider::pisdf::Graph *graph,
-                                           spider::RuntimeType type,
-                                           spider::SchedulingPolicy policy) {
-    switch (type) {
-        case spider::RuntimeType::JITMS:
-            return spider::make<spider::JITMSRuntime>(StackID::GENERAL, graph, policy);
-        case spider::RuntimeType::FAST_JITMS:
-            return spider::make<spider::FastJITMSRuntime>(StackID::GENERAL, graph, policy);
+                                           const spider::RuntimeConfig &cfg) {
+    const auto isStatic = spider::pisdf::isGraphFullyStatic(graph);
+    switch (cfg.runtimeType_) {
+        case spider::RuntimeType::SRDAG_BASED:
+#ifndef _NO_BUILD_LEGACY_RT
+            if (isStatic) {
+                return spider::make<spider::StaticRuntime>(StackID::GENERAL, graph, cfg);
+            }
+            return spider::make<spider::SRDAGJITMSRuntime>(StackID::GENERAL, graph, cfg);
+#else
+            spider::printer::fprintf(stderr,"JITMS runtime was not compiled and can not be used.\n");
+            return nullptr;
+#endif
+        case spider::RuntimeType::PISDF_BASED:
+            return spider::make<spider::PiSDFJITMSRuntime>(StackID::GENERAL, graph, cfg, isStatic);
         default:
             return nullptr;
     }
 }
 
-
-spider::RuntimeContext
-spider::createRuntimeContext(pisdf::Graph *graph, RunMode mode, size_t loopCount, RuntimeType type,
-                             SchedulingPolicy policy) {
+spider::RuntimeContext spider::createRuntimeContext(pisdf::Graph *graph, RuntimeConfig config) {
     if (!isInit()) {
         log::warning("SPIDER has not been initialized, returning.\n");
         return RuntimeContext{ };
     }
+    if (!graph) {
+        throwSpiderException("nullptr graph.");
+    }
     RuntimeContext context{ };
-    context.graph_ = graph;
-    context.algorithm_ = getRuntimeFromType(graph, type, policy);
+    context.algorithm_ = getRuntimeFromType(graph, config);
     if (!context.algorithm_) {
         throwSpiderException("could not create runtime algorithm.");
     }
-    context.loopSize_ = loopCount;
-    context.mode_ = mode;
+    context.loopSize_ = config.loopCount_;
+    context.mode_ = config.mode_;
+    context.graph_ = graph;
     return context;
 }
 
@@ -232,11 +246,15 @@ void spider::run(spider::RuntimeContext &context) {
                 while (!spider2StopRunning) {
                     context.algorithm_->execute();
                 }
+                /* == Runners should clear their parameters == */
+                rt::platform()->sendClearToRunners();
                 break;
             case RunMode::LOOP:
                 for (size_t i = 0; (i < context.loopSize_) && !spider2StopRunning; ++i) {
                     context.algorithm_->execute();
                 }
+                /* == Runners should clear their parameters == */
+                rt::platform()->sendClearToRunners();
                 break;
             case RunMode::EXTERN_LOOP:
                 context.algorithm_->execute();
@@ -244,7 +262,7 @@ void spider::run(spider::RuntimeContext &context) {
             default:
                 break;
         }
-    } catch (spider::Exception &e) {
+    } catch (const spider::Exception &e) {
         throw std::runtime_error(e.what());
     }
 }
@@ -284,7 +302,7 @@ void spider::quit() {
 
     /* == Reset start flag == */
     startFlag = false;
-#ifdef __linux__
+#if defined(__linux__) && defined(_SPIDER_JIT_EXPRESSION)
     expr::details::cleanFolder();
 #endif
 }

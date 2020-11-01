@@ -39,7 +39,7 @@
 
 #include <memory/unique_ptr.h>
 #include <common/Exception.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Interface.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
@@ -50,7 +50,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class Graph : public Vertex {
+        class Graph final : public Vertex {
         public:
 
             explicit Graph(std::string name = "unnamed-graph",
@@ -130,12 +130,6 @@ namespace spider {
             void moveEdge(Edge *edge, Graph *graph);
 
             /**
-             * @brief Override automatic property of Graph.
-             * @param value Value to set.
-             */
-            void overrideDynamicProperty(bool value);
-
-            /**
              * @brief Adds an input interface to the graph.
              * @remark This will increase input edge vector size.
              * @remark If interface is nullptr, nothing happens.
@@ -168,7 +162,7 @@ namespace spider {
              * @param name Name of the parameter to find.
              * @return pointer to the found Param, nullptr else.
              */
-            std::shared_ptr<spider::pisdf::Param> paramFromName(const std::string &name);
+            std::shared_ptr<spider::pisdf::Param> paramFromName(const std::string &name) const;
 
             /**
              * @brief Checks if a graph is the top-level graph.
@@ -191,6 +185,12 @@ namespace spider {
             bool dynamic() const;
 
             /* === Getter(s) === */
+
+            /**
+             * @brief Ensure that any vertex inheriting from Graph will not be able to override this method.
+             * @return false.
+             */
+            inline bool executable() const final { return false; };
 
             /**
              * @brief A const reference on the vector of vertex. Useful for iterating on the vertices.

@@ -40,6 +40,7 @@
 #include <cstdint>
 #include <string>
 #include <memory>
+#include <vector>
 #include <api/global-api.h>
 
 /* === API methods === */
@@ -81,13 +82,6 @@ namespace spider {
          * @return converted pointer to @refitem pisdf::Vertex.
          */
         pisdf::Vertex *convertGraphToVertex(pisdf::Graph *graph);
-
-        /**
-         * @brief This functions converts every broadcast as they are expressed in the Preesm tool in convertible
-         *        pattern for Spider to understand.
-         * @param graph Pointer to the graph.
-         */
-        void convertPreesmBroadcast(pisdf::Graph *graph);
 
         /**
          * @brief Creates a @refitem pisdf::Graph with a parent graph.
@@ -142,18 +136,6 @@ namespace spider {
                                     std::string name,
                                     size_t edgeINCount = 0,
                                     size_t edgeOUTCount = 0);
-
-        /**
-         * @brief Creates a @refitem pisdf::NonExecVertex.
-         * @param graph         Pointer to the parent graph the vertex should be added.
-         * @param name          Name of the vertex.
-         * @param edgeINCount   Number of input edges (can NOT be modified afterwards).
-         * @param edgeOUTCount  Number of output edges (can NOT be modified afterwards).
-         * @return pointer to the created @refitem pisdf::Vertex.
-         * @throws @refitem spider::Exception if the parent graph is nullptr.
-         */
-        pisdf::Vertex *
-        createNonExecVertex(pisdf::Graph *graph, std::string name, size_t edgeINCount = 0, size_t edgeOUTCount = 0);
 
         /**
          * @brief Creates a @refitem pisdf::ForkVertex.
@@ -277,7 +259,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *getInputInterface(pisdf::Graph *graph, size_t ix);
+        pisdf::Vertex *getInputInterface(const pisdf::Graph *graph, size_t ix);
 
         /**
          * @brief Get an input @refitem pisdf::Interface of a given graph.
@@ -286,7 +268,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *getOutputInterface(pisdf::Graph *graph, size_t ix);
+        pisdf::Vertex *getOutputInterface(const pisdf::Graph *graph, size_t ix);
 
         /**
          * @brief Change the name of an input @refitem pisdf::Interface.
@@ -296,7 +278,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
+        pisdf::Vertex *setInputInterfaceName(const pisdf::Graph *graph, size_t ix, std::string name);
 
         /**
          * @brief Change the name of an output @refitem pisdf::Interface.
@@ -306,7 +288,7 @@ namespace spider {
          * @return pointer to the corresponding @refitem pisdf::Vertex.
          * @throws spider::Exception if graph is nullptr or interface is not found.
          */
-        pisdf::Vertex *setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name);
+        pisdf::Vertex *setOutputInterfaceName(const pisdf::Graph *graph, size_t ix, std::string name);
 
         /* === Param API === */
 
@@ -354,30 +336,34 @@ namespace spider {
         createInheritedParam(pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent);
 
         /**
-         * @brief Add an input parameter to a given Vertex.
-         * @remark If param or vertex is nullptr, nothing happen.
+         * @brief Add input parameter(s) to a given Vertex.
+         * @remark If params is empty or vertex is nullptr, nothing happen.
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
+         * @throws spider::Exception if one the parameter is not part of the same graph as the vertex.
          */
-        void addInputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
+        void addInputParamsToVertex(pisdf::Vertex *vertex,
+                                    const std::vector<std::shared_ptr<spider::pisdf::Param>> &params);
 
         /**
-         * @brief Add an input parameter to a given Vertex for its refinement.
-         * @remark If param or vertex is nullptr, nothing happen.
+         * @brief Add output parameter(s) to a given Vertex.
+         * @remark If params is empty or vertex is nullptr, nothing happen.
+         * @param vertex  Pointer to the vertex to evaluate.
+         * @param param   Vector of parameters to add.
+         * @throws spider::Exception if vertex is not of type @refitem VertexType::CONFIG or if one of the parameter
+         *        is not part of the same graph as the vertex.
+         */
+        void addOutputParamsToVertex(pisdf::Vertex *vertex,
+                                     const std::vector<std::shared_ptr<spider::pisdf::Param>> &params);
+
+        /**
+         * @brief Add input parameter(s) used for the execution refinement of a given Vertex.
+         * @remark If params is empty or vertex is nullptr, nothing happen.
          * @remark A secondary call to vertex->addInputParam is done.
          * @param vertex  Pointer to the vertex to evaluate.
          * @param param   Pointer to the parameter to add.
          */
         void addInputRefinementParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
-
-        /**
-         * @brief Add an output parameter to a given Vertex.
-         * @remark If param or vertex is nullptr, nothing happen.
-         * @param vertex  Pointer to the vertex to evaluate.
-         * @param param   Pointer to the parameter to add.
-         * @throw spider::Exception if vertex is not of type @refitem VertexType::ConfigVertex.
-         */
-        void addOutputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param);
 
         /* === Edge API === */
 

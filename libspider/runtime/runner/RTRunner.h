@@ -39,7 +39,8 @@
 
 #include <containers/array.h>
 #include <containers/vector.h>
-#include <runtime/interface/Message.h>
+#include <runtime/message/Message.h>
+#include <runtime/message/JobMessage.h>
 
 namespace spider {
 

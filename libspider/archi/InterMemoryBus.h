@@ -78,7 +78,7 @@ namespace spider {
          * @return pointer to appropriate @refitem MemoryBus, nullptr if A or B is not related to this InterMemoryBus.
          * @throws spider::Exception if either of clusterA or clusterB is nullptr.
          */
-        MemoryBus *get(Cluster *clusterA, Cluster *clusterB);
+        MemoryBus *get(const Cluster *clusterA, const Cluster *clusterB);
 
     private:
         Cluster *clusterA_ = nullptr;

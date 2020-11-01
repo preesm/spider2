@@ -47,8 +47,7 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Param.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <api/spider.h>
 
 class pisdfGraphTest : public ::testing::Test {
@@ -167,8 +166,8 @@ TEST_F(pisdfGraphTest, graphTest) {
 
 
     /* == Remove param test == */
-    ASSERT_NO_THROW(graph->addParam(spider::make_shared<spider::pisdf::DynamicParam, StackID::PISDF>("dyna1")));
-    ASSERT_NO_THROW(graph->addParam(spider::make_shared<spider::pisdf::DynamicParam, StackID::PISDF>("dyna2")));
+    ASSERT_NO_THROW(graph->addParam(spider::make_shared<spider::pisdf::Param, StackID::PISDF>("dyna1")));
+    ASSERT_NO_THROW(graph->addParam(spider::make_shared<spider::pisdf::Param, StackID::PISDF>("dyna2")));
     ASSERT_EQ(graph->paramCount(), 4);
     ASSERT_NO_THROW(graph->removeParam(graph->params()[2]));
 

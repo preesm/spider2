@@ -35,8 +35,6 @@
 /* === Include(s) === */
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 
@@ -46,17 +44,15 @@ void spider::pisdf::DefaultVisitor::visit(Graph *) {
     throwSpiderException("unsupported visitor type: Graph.");
 }
 
-void spider::pisdf::DefaultVisitor::visit(ExecVertex *) { }
+void spider::pisdf::DefaultVisitor::visit(Vertex *) { }
 
 void spider::pisdf::DefaultVisitor::visit(ExternInterface *vertex) {
-    visit(static_cast<ExecVertex *>(vertex));
+    visit(static_cast<Vertex *>(vertex));
 }
 
 void spider::pisdf::DefaultVisitor::visit(DelayVertex *vertex) {
-    visit(static_cast<ExecVertex *>(vertex));
+    visit(static_cast<Vertex *>(vertex));
 }
-
-void spider::pisdf::DefaultVisitor::visit(NonExecVertex *) { }
 
 void spider::pisdf::DefaultVisitor::visit(Interface *) {
     throwSpiderException("unsupported visitor type: Interface.");
@@ -66,10 +62,8 @@ void spider::pisdf::DefaultVisitor::visit(Param *) {
     throwSpiderException("unsupported visitor type: Param.");
 }
 
-void spider::pisdf::DefaultVisitor::visit(DynamicParam *param) {
-    this->visit(static_cast<Param *>(param));
+void spider::pisdf::DefaultVisitor::visit(srdag::Graph *) {
+    throwSpiderException("unsupported visitor type: Graph.");
 }
 
-void spider::pisdf::DefaultVisitor::visit(InHeritedParam *param) {
-    this->visit(static_cast<Param *>(param));
-}
+void spider::pisdf::DefaultVisitor::visit(srdag::Vertex *) { }

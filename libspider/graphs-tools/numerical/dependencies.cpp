@@ -35,10 +35,56 @@
 /* === Include(s) === */
 
 #include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
+#include <graphs-tools/numerical/brv.h>
+#include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs/pisdf/DelayVertex.h>
 #include <common/Math.h>
 #include <algorithm>
 
+/* === Static variable(s) === */
+
+/* === Static funtions definition === */
+
 /* === Function(s) definition === */
+
+i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
+                                              u32 firing,
+                                              size_t edgeIx,
+                                              const GraphFiring *handler) {
+#ifndef NDEBUG
+    if (!handler || !vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = handler->getSnkRate(edge);
+    if (!snkRate) {
+        return 0;
+    }
+    return detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, nullptr);
+}
+
+
+i32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
+                                              u32 firing,
+                                              size_t edgeIx,
+                                              const pisdf::GraphFiring *handler) {
+#ifndef NDEBUG
+    if (!handler || !vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->outputEdge(edgeIx);
+    const auto srcRate = handler->getSrcRate(edge);
+    if (!srcRate) {
+        return 0;
+    }
+    return detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, nullptr);
+}
 
 ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
     return std::max(static_cast<ifast64>(-1), math::floorDiv(firing * consumption - delay, production));
@@ -46,28 +92,4 @@ ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 producti
 
 ifast64 spider::pisdf::computeConsUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
     return std::max(static_cast<ifast64>(-1), math::floorDiv((firing + 1) * consumption - delay - 1, production));
-}
-
-ifast64 spider::pisdf::computeProdLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
-    return math::floorDiv(firing * production + delay, consumption);
-}
-
-ifast64 spider::pisdf::computeProdUpperDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
-    return math::floorDiv((firing + 1) * production + delay - 1, consumption);
-}
-
-ifast64 spider::pisdf::computeProdLowerDep(ifast64 consumption,
-                                           ifast64 production,
-                                           ifast32 firing,
-                                           ifast64 delay,
-                                           ifast64 sinkRepetitionValue) {
-    return std::min(sinkRepetitionValue, math::floorDiv(firing * production + delay, consumption));
-}
-
-ifast64 spider::pisdf::computeProdUpperDep(ifast64 consumption,
-                                           ifast64 production,
-                                           ifast32 firing,
-                                           ifast64 delay,
-                                           ifast64 sinkRepetitionValue) {
-    return std::min(sinkRepetitionValue, math::floorDiv((firing + 1) * production + delay - 1, consumption));
 }

@@ -78,7 +78,7 @@ namespace spider {
          * @param packetIx Ix of the packet sent.
          * @param buffer   Buffer to send.
          */
-        void dataSend(i64 size, i32 packetIx, void *buffer);
+        void dataSend(i64 size, void *bufferSrc, void *bufferDest);
 
         /**
          * @brief Receive data over the bus.
@@ -86,7 +86,7 @@ namespace spider {
          * @param packetIx Ix of the packet to receive.
          * @param buffer   Buffer of the receive data.
          */
-        void dataReceive(i64 size, i32 packetIx, void *buffer);
+        void dataReceive(i64 size, void *bufferSrc, void *bufferDest);
 
         /* === Getter(s) === */
 
@@ -170,9 +170,9 @@ namespace spider {
 
         /* === Private method(s) === */
 
-        static void send(const int64_t *paramsIN, int64_t *, void *in[], void *[]);
+        static void send(const int64_t *paramsIN, const int64_t *, void *in[], void *[]);
 
-        static void receive(const int64_t *paramsIN, int64_t *, void *[], void *out[]);
+        static void receive(const int64_t *paramsIN, const int64_t *, void *[], void *out[]);
     };
 }
 #endif //SPIDER2_MEMORYBUS_H

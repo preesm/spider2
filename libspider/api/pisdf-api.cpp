@@ -40,16 +40,13 @@
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/ExecVertex.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/InHeritedParam.h>
-#include <graphs/pisdf/NonExecVertex.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <runtime/special-kernels/specialKernels.h>
+#include <containers/vector.h>
 
 /* === Static function(s) === */
 
-static void checkGraph(spider::pisdf::Graph *graph) {
+static void checkGraph(const spider::pisdf::Graph *const graph) {
     if (!graph) {
         throwNullptrException();
     }
@@ -61,42 +58,6 @@ static spider::Platform *safeGetPlatform() {
         throwSpiderException("Physical plateform should be defined before creating application graph.");
     }
     return platform;
-}
-
-static void findAndReplacePREESMBroadcast(spider::pisdf::Graph *) {
-//    const auto checkBroadcast = [](const spider::pisdf::Vertex *vertex) {
-//        const auto &inputExpression = vertex->inputEdge(0)->sinkRateExpression();
-//        for (const auto &edge : vertex->outputEdgeVector()) {
-//            if (edge->sourceRateExpression() != inputExpression) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    };
-//    auto broadcastVector = spider::factory::vector<spider::pisdf::Vertex *>(StackID::TRANSFO);
-//    for (const auto &vertex : graph->vertices()) {
-//        if (vertex->subtype() == spider::pisdf::VertexType::DUPLICATE && checkBroadcast(vertex.get())) {
-//            broadcastVector.emplace_back(vertex.get());
-//        }
-//    }
-//    for (auto *vertex : broadcastVector) {
-//        auto *repeat = spider::api::createRepeat(graph, "repeat::" + vertex->name());
-//        auto *fork = spider::api::createFork(graph, "fork::" + vertex->name(), vertex->outputEdgeCount());
-//        auto *inputEdge = vertex->inputEdge(0);
-//        inputEdge->setSink(repeat, 0, inputEdge->sinkRateExpression());
-//        spider::Expression expression{ };
-//        for (const auto &edge : vertex->outputEdgeVector()) {
-//            expression += edge->sourceRateExpression();
-//            edge->setSource(fork, edge->sourcePortIx(), edge->sourceRateExpression());
-//        }
-//        auto *edge = spider::make<spider::pisdf::Edge, StackID::PISDF>(repeat, 0u, expression, fork, 0u,
-//                                                                       std::move(expression));
-//        graph->addEdge(edge);
-//        graph->removeVertex(vertex);
-//    }
-//    for (const auto &subgraph : graph->subgraphs()) {
-//        findAndReplacePREESMBroadcast(subgraph);
-//    }
 }
 
 /* === Methods implementation === */
@@ -144,11 +105,6 @@ spider::pisdf::Graph *spider::api::createSubgraph(pisdf::Graph *graph,
 spider::pisdf::Vertex *spider::api::convertGraphToVertex(pisdf::Graph *graph) {
     return graph;
 }
-
-void spider::api::convertPreesmBroadcast(pisdf::Graph *graph) {
-    findAndReplacePREESMBroadcast(graph);
-}
-
 
 spider::pisdf::Vertex *spider::api::createVertexFromType(pisdf::Graph *graph,
                                                          std::string name,
@@ -200,32 +156,18 @@ spider::pisdf::Vertex *spider::api::createVertex(pisdf::Graph *graph,
                                                  size_t edgeINCount,
                                                  size_t edgeOUTCount) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::NORMAL,
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::NORMAL,
                                                            std::move(name),
                                                            edgeINCount,
                                                            edgeOUTCount);
-    vertex->makeRTInformation();
-    graph->addVertex(vertex);
-    return vertex;
-}
-
-spider::pisdf::Vertex *spider::api::createNonExecVertex(pisdf::Graph *graph,
-                                                        std::string name,
-                                                        size_t edgeINCount,
-                                                        size_t edgeOUTCount) {
-    checkGraph(graph);
-    auto *vertex = make<pisdf::NonExecVertex, StackID::PISDF>(pisdf::VertexType::NORMAL,
-                                                              std::move(name),
-                                                              edgeINCount,
-                                                              edgeOUTCount);
     graph->addVertex(vertex);
     return vertex;
 }
 
 spider::pisdf::Vertex *spider::api::createFork(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::FORK, std::move(name), 1u, edgeOUTCount);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::FORK, std::move(name), 1u, edgeOUTCount);
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::FORK_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -233,8 +175,8 @@ spider::pisdf::Vertex *spider::api::createFork(pisdf::Graph *graph, std::string 
 
 spider::pisdf::Vertex *spider::api::createJoin(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::JOIN, std::move(name), edgeINCount, 1u);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::JOIN, std::move(name), edgeINCount, 1u);
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::JOIN_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -242,8 +184,8 @@ spider::pisdf::Vertex *spider::api::createJoin(pisdf::Graph *graph, std::string 
 
 spider::pisdf::Vertex *spider::api::createHead(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::HEAD, std::move(name), edgeINCount, 1u);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::HEAD, std::move(name), edgeINCount, 1u);
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::HEAD_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -251,8 +193,8 @@ spider::pisdf::Vertex *spider::api::createHead(pisdf::Graph *graph, std::string 
 
 spider::pisdf::Vertex *spider::api::createTail(pisdf::Graph *graph, std::string name, size_t edgeINCount) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::TAIL, std::move(name), edgeINCount, 1u);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::TAIL, std::move(name), edgeINCount, 1u);
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::TAIL_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -260,9 +202,9 @@ spider::pisdf::Vertex *spider::api::createTail(pisdf::Graph *graph, std::string 
 
 spider::pisdf::Vertex *spider::api::createDuplicate(pisdf::Graph *graph, std::string name, size_t edgeOUTCount) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::DUPLICATE, std::move(name), 1u,
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::DUPLICATE, std::move(name), 1u,
                                                            edgeOUTCount);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::DUPLICATE_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -270,8 +212,8 @@ spider::pisdf::Vertex *spider::api::createDuplicate(pisdf::Graph *graph, std::st
 
 spider::pisdf::Vertex *spider::api::createRepeat(pisdf::Graph *graph, std::string name) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::REPEAT, std::move(name), 1u, 1u);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::REPEAT, std::move(name), 1u, 1u);
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::REPEAT_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -279,8 +221,8 @@ spider::pisdf::Vertex *spider::api::createRepeat(pisdf::Graph *graph, std::strin
 
 spider::pisdf::Vertex *spider::api::createInit(pisdf::Graph *graph, std::string name) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::INIT, std::move(name), 0u, 1u);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::INIT, std::move(name), 0u, 1u);
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::INIT_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -288,8 +230,8 @@ spider::pisdf::Vertex *spider::api::createInit(pisdf::Graph *graph, std::string 
 
 spider::pisdf::Vertex *spider::api::createEnd(pisdf::Graph *graph, std::string name) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::END, std::move(name), 1u, 0u);
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::END, std::move(name), 1u, 0u);
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::END_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -300,9 +242,9 @@ spider::pisdf::Vertex *spider::api::createConfigActor(pisdf::Graph *graph,
                                                       size_t edgeINCount,
                                                       size_t edgeOUTCount) {
     checkGraph(graph);
-    auto *vertex = make<pisdf::ExecVertex, StackID::PISDF>(pisdf::VertexType::CONFIG, std::move(name), edgeINCount,
+    auto *vertex = make<pisdf::Vertex, StackID::PISDF>(pisdf::VertexType::CONFIG, std::move(name), edgeINCount,
                                                            edgeOUTCount);
-    vertex->makeRTInformation();
+    vertex->runtimeInformation();
     graph->addVertex(vertex);
     return vertex;
 }
@@ -316,7 +258,7 @@ spider::api::createExternInputInterface(pisdf::Graph *graph, std::string name, v
     auto *platform = safeGetPlatform();
     const auto index = platform->registerExternalBuffer(buffer);
     auto *vertex = make<pisdf::ExternInterface, StackID::PISDF>(pisdf::VertexType::EXTERN_IN, index, std::move(name));
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::EXTERN_IN_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
@@ -331,13 +273,13 @@ spider::api::createExternOutputInterface(pisdf::Graph *graph, std::string name, 
     auto *platform = safeGetPlatform();
     const auto index = platform->registerExternalBuffer(buffer);
     auto *vertex = make<pisdf::ExternInterface, StackID::PISDF>(pisdf::VertexType::EXTERN_OUT, index, std::move(name));
-    auto *runtimeInfo = vertex->makeRTInformation();
+    auto *runtimeInfo = vertex->runtimeInformation();
     runtimeInfo->setKernelIx(rt::EXTERN_OUT_KERNEL_IX);
     graph->addVertex(vertex);
     return vertex;
 }
 
-spider::pisdf::Vertex *spider::api::getInputInterface(spider::pisdf::Graph *graph, size_t ix) {
+spider::pisdf::Vertex *spider::api::getInputInterface(const pisdf::Graph *graph, size_t ix) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -348,7 +290,7 @@ spider::pisdf::Vertex *spider::api::getInputInterface(spider::pisdf::Graph *grap
     return interface;
 }
 
-spider::pisdf::Vertex *spider::api::getOutputInterface(spider::pisdf::Graph *graph, size_t ix) {
+spider::pisdf::Vertex *spider::api::getOutputInterface(const pisdf::Graph *graph, size_t ix) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -359,7 +301,7 @@ spider::pisdf::Vertex *spider::api::getOutputInterface(spider::pisdf::Graph *gra
     return interface;
 }
 
-spider::pisdf::Vertex *spider::api::setInputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
+spider::pisdf::Vertex *spider::api::setInputInterfaceName(const pisdf::Graph *graph, size_t ix, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -371,7 +313,7 @@ spider::pisdf::Vertex *spider::api::setInputInterfaceName(pisdf::Graph *graph, s
     return interface;
 }
 
-spider::pisdf::Vertex *spider::api::setOutputInterfaceName(pisdf::Graph *graph, size_t ix, std::string name) {
+spider::pisdf::Vertex *spider::api::setOutputInterfaceName(const pisdf::Graph *graph, size_t ix, std::string name) {
     if (!graph) {
         throwSpiderException("nullptr for graph.");
     }
@@ -397,22 +339,17 @@ spider::api::createStaticParam(pisdf::Graph *graph, std::string name, int64_t va
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createDynamicParam(pisdf::Graph *graph, std::string name) {
     if (graph) {
-        auto param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
+        auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name));
         graph->addParam(param);
         return param;
     }
-    return make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), Expression(0));
+    return make_shared<pisdf::Param, StackID::PISDF>(std::move(name));
 }
 
 std::shared_ptr<spider::pisdf::Param>
 spider::api::createDerivedParam(pisdf::Graph *graph, std::string name, std::string expression) {
     auto expr = graph ? Expression(std::move(expression), graph->params()) : Expression(std::move(expression));
-    std::shared_ptr<pisdf::Param> param;
-    if (expr.dynamic()) {
-        param = make_shared<pisdf::DynamicParam, StackID::PISDF>(std::move(name), std::move(expr));
-    } else {
-        param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), expr.value());
-    }
+    auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), std::move(expr));
     if (graph) {
         graph->addParam(param);
     }
@@ -420,62 +357,72 @@ spider::api::createDerivedParam(pisdf::Graph *graph, std::string name, std::stri
 }
 
 std::shared_ptr<spider::pisdf::Param>
-spider::api::createInheritedParam(spider::pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent) {
+spider::api::createInheritedParam(pisdf::Graph *graph, std::string name, std::shared_ptr<pisdf::Param> parent) {
     if (!parent) {
         throwSpiderException("Cannot instantiate inherited parameter [%s] with null parent.", name.c_str());
     }
     if (!parent->dynamic()) {
         return createStaticParam(graph, std::move(name), parent->value());
     }
-    auto param = make_shared<pisdf::InHeritedParam, StackID::PISDF>(std::move(name), std::move(parent));
+    auto param = make_shared<pisdf::Param, StackID::PISDF>(std::move(name), std::move(parent));
     if (graph) {
         graph->addParam(param);
     }
     return param;
 }
 
-void spider::api::addInputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param) {
-    if (!param || !vertex) {
+void spider::api::addInputParamsToVertex(spider::pisdf::Vertex *vertex,
+                                         const std::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    if (params.empty() || !vertex) {
         return;
     }
-    if (param->graph() != vertex->graph()) {
-        throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
-                             param->name().c_str(),
-                             vertex->name().c_str());
+    const auto *graph = vertex->graph();
+    for (auto &p : params) {
+        if (p) {
+            if (graph->paramFromName(p->name()) != p) {
+                throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
+                                     p->name().c_str(),
+                                     vertex->name().c_str());
+
+            }
+            vertex->addInputParameter(p);
+        }
     }
-    vertex->addInputParameter(std::move(param));
+}
+
+void spider::api::addOutputParamsToVertex(spider::pisdf::Vertex *vertex,
+                                          const std::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
+    if (params.empty() || !vertex) {
+        return;
+    }
+    const auto *graph = vertex->graph();
+    for (auto &p : params) {
+        if (p) {
+            if (graph->paramFromName(p->name()) != p) {
+                throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
+                                     p->name().c_str(),
+                                     vertex->name().c_str());
+
+            }
+            vertex->addOutputParameter(p);
+        }
+    }
 }
 
 void spider::api::addInputRefinementParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param) {
     if (!param || !vertex) {
         return;
     }
-    if (param->graph() != vertex->graph()) {
+    const auto *graph = vertex->graph();
+    if (graph->paramFromName(param->name()) != param) {
         throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
                              param->name().c_str(),
                              vertex->name().c_str());
+
     }
     vertex->addRefinementParameter(param);
     vertex->addInputParameter(std::move(param));
 }
-
-void spider::api::addOutputParamToVertex(pisdf::Vertex *vertex, std::shared_ptr<spider::pisdf::Param> param) {
-    if (!param || !vertex) {
-        return;
-    }
-    if (vertex->subtype() != pisdf::VertexType::CONFIG) {
-        throwSpiderException("Failed to set parameter [%s] as output param of vertex [%s]: not a config actor.",
-                             param->name().c_str(),
-                             vertex->name().c_str());
-    }
-    if (param->graph() != vertex->graph()) {
-        throwSpiderException("parameter [%s] and vertex [%s] are not in the same graph.",
-                             param->name().c_str(),
-                             vertex->name().c_str());
-    }
-    vertex->addOutputParameter(std::move(param));
-}
-
 
 /* === Edge API === */
 
@@ -496,8 +443,8 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
 
         source->graph()->addEdge(edge);
         return edge;
-    } catch (spider::Exception &e) {
-        throw e;
+    } catch (const spider::Exception &) {
+        throw;
     }
 }
 
@@ -508,27 +455,22 @@ spider::pisdf::Edge *spider::api::createEdge(pisdf::Vertex *source,
                                              size_t snkPortIx,
                                              int64_t snkRate) {
     try {
-        auto *edge = make<pisdf::Edge, StackID::PISDF>(
-                source,
-                srcPortIx,
-                Expression(srcRate),
-                sink,
-                snkPortIx,
-                Expression(snkRate));
+        auto *edge = make<pisdf::Edge, StackID::PISDF>(source, srcPortIx, Expression(srcRate),
+                                                       sink, snkPortIx, Expression(snkRate));
         source->graph()->addEdge(edge);
         return edge;
-    } catch (spider::Exception &e) {
-        throw e;
+    } catch (const spider::Exception &) {
+        throw;
     }
 
 }
 
-static int64_t checkAndGetValue(spider::pisdf::Edge *edge, std::string delayExpression) {
+static int64_t checkAndGetValue(const spider::pisdf::Edge *edge, std::string delayExpression) {
     if (!edge) {
         throwSpiderException("Can not create Delay on nullptr edge.");
     }
-    auto *graph = edge->graph();
-    auto expression = spider::Expression(std::move(delayExpression), graph->params());
+    const auto *graph = edge->graph();
+    const auto expression = spider::Expression(std::move(delayExpression), graph->params());
     if (expression.dynamic()) {
         throwSpiderException("Spider 2.0 does not support dynamic delays.");
     }

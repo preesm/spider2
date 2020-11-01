@@ -37,8 +37,8 @@
 #include <runtime/runner/RTRunner.h>
 #include <api/runtime-api.h>
 #include <runtime/platform/RTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
-#include <runtime/interface/Notification.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <runtime/message/Notification.h>
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
@@ -105,7 +105,7 @@ void spider::RTRunner::sendFinishedNotification() const {
 }
 
 void spider::RTRunner::sendJobStampNotification(bool *notificationFlags, size_t jobIx) const {
-    if (jobIx == SIZE_MAX) {
+    if (jobIx == SIZE_MAX || !notificationFlags) {
         return;
     }
     size_t lrtIx = 0;

@@ -32,28 +32,29 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/optims/helper/patternOptimizer.h>
-#include <graphs/pisdf/Vertex.h>
-#include <graphs/pisdf/Edge.h>
-#include <graphs/pisdf/Graph.h>
+#include <graphs/srdag/SRDAGGraph.h>
 
 /* === Function(s) definition === */
 
 bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
-                                      pisdf::Graph *graph,
+                                      srdag::Graph *graph,
                                       VertexMaker makeNewVertex,
                                       NextVertexGetter getNextVertex,
                                       EdgeRemover removeEdge,
+                                      EdgeCounter countEdges,
                                       EdgeConnecter reconnect) {
-    auto verticesToOptimize = factory::vector<pisdf::Vertex *>(StackID::TRANSFO);
+    auto verticesToOptimize = factory::vector<srdag::Vertex *>(StackID::TRANSFO);
 
     /* == Search for the pair of fork to optimize == */
     for (auto &vertex : graph->vertices()) {
         auto *vertexA = vertex.get();
         if (vertex->subtype() == type && vertex->scheduleTaskIx() == SIZE_MAX) {
-            auto *vertexB = getNextVertex(vertexA);
+            const auto *vertexB = getNextVertex(vertexA);
             if (vertexB->subtype() == type && vertexB->scheduleTaskIx() == SIZE_MAX) {
                 verticesToOptimize.emplace_back(vertexA);
             }
@@ -65,11 +66,6 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
         auto *vertexA = (*it);                  /* = Second fork or first join = */
         auto *vertexB = getNextVertex(vertexA); /* = First fork or second join = */
 
-        /* == Remove edge == */
-        /* == If type is JOIN, then it gets the output edge of the first join
-         *    else if type if FORK, it gets the input edge of the second fork == */
-        const auto offset = removeEdge(vertexA, vertexB);
-
         /* == Creates new vertex == */
         auto *newVertex = makeNewVertex(vertexA, vertexB);
 
@@ -77,26 +73,34 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
         const auto vertexAEdgeCount = std::max(vertexA->inputEdgeCount(), vertexA->outputEdgeCount());
         const auto vertexBEdgeCount = std::max(vertexB->inputEdgeCount(), vertexB->outputEdgeCount());
 
+        /* == Remove edge == */
+        /* == If type is JOIN, then it gets the output edge of the first join
+         *    else if type if FORK, it gets the input edge of the second fork == */
+        const auto offset = removeEdge(vertexA, vertexB);
+
         /* == Link edges of vertexB into newVertex == */
         /* == If type is JOIN, connects every input edges of the first join into the new join
          *    else if type if FORK, connects every output edges of the second fork into the new fork == */
+        size_t ix = 0;
         for (size_t i = 0; i < offset; ++i) {
-            reconnect(vertexB, i, newVertex, i);
+            reconnect(vertexB, i, newVertex, ix++);
         }
+        auto savedIx = ix;
+        ix += countEdges(vertexA);
         for (size_t i = offset + 1; i < vertexBEdgeCount; ++i) {
-            reconnect(vertexB, i, newVertex, i + vertexAEdgeCount - 1);
+            reconnect(vertexB, i, newVertex, ix++);
         }
 
         /* == Link edges of vertexA into newVertex == */
         /* == If type is JOIN, connects every input edges of the second join into the new join
          *    else if type if FORK, connects every output edges of the first fork into the new fork == */
+        ix = savedIx;
         for (size_t i = 0; i < vertexAEdgeCount; ++i) {
-            reconnect(vertexA, i, newVertex, i + offset);
+            reconnect(vertexA, i, newVertex, ix++);
         }
-
         /* == Search for the pair to modify (if any) == */
         for (auto it2 = std::next(it); it2 != std::end(verticesToOptimize); ++it2) {
-            auto *secVertexA = (*it2);
+            const auto *secVertexA = (*it2);
             if (secVertexA == vertexA || secVertexA == vertexB) {
                 (*it2) = newVertex;
             }
@@ -111,3 +115,4 @@ bool spider::optims::reduceFFJJWorker(pisdf::VertexType type,
     }
     return verticesToOptimize.empty();
 }
+#endif

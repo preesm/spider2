@@ -35,19 +35,24 @@
 /* === Include(s) === */
 
 #include <runtime/algorithm/Runtime.h>
-#include <scheduling/schedule/Schedule.h>
+
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Vertex.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/interface/RTCommunicator.h>
-#include <runtime/interface/Notification.h>
 #include <api/config-api.h>
+
+#endif
+
+#include <scheduling/schedule/exporter/GanttTask.h>
+#include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/Task.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <runtime/message/Notification.h>
+#include <archi/Platform.h>
 #include <api/runtime-api.h>
-#include <scheduling/allocator/FifoAllocator.h>
-#include <scheduling/allocator/DefaultFifoAllocator.h>
-#include <scheduling/allocator/SRLessDefaultFifoAllocator.h>
+#include <graphs-tools/exporter/SRDAGDOTExporter.h>
 
 /* === Static variable === */
 
@@ -65,7 +70,9 @@ static u64 getTime(spider::time::time_point value, spider::time::time_point offs
 
 /* === Function(s) definition === */
 
-void spider::Runtime::exportPreExecGantt(Schedule *schedule, const std::string &path) {
+#ifndef _NO_BUILD_GANTT_EXPORTER
+
+void spider::Runtime::exportPreExecGantt(const sched::Schedule *schedule, const std::string &path) {
     if (api::useSVGOverXMLGantt()) {
         SchedSVGGanttExporter exporter{ schedule };
         exporter.printFromPath(path + ".svg");
@@ -73,20 +80,27 @@ void spider::Runtime::exportPreExecGantt(Schedule *schedule, const std::string &
         SchedXMLGanttExporter exporter{ schedule };
         exporter.printFromPath(path + ".xml");
     }
+#else
+
+    void spider::Runtime::exportPreExecGantt(const sched::Schedule *, const std::string &) {
+        printer::fprintf(stderr, "Gantt exporter is not built. Recompile spider2 with -DBUILD_GANTT_EXPORTER=ON.\n");
+#endif
 }
 
-void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
-                                          Schedule *schedule,
-                                          time::time_point offset,
-                                          const std::string &path) {
-    if (!graph || !schedule) {
-        return;
-    }
+void spider::Runtime::useExecutionTraces(const sched::Schedule *schedule,
+                                         time::time_point offset,
+#ifndef _NO_BUILD_GANTT_EXPORTER
+                                         const std::string &path) {
+#else
+    const std::string &) {
+#endif
     u64 applicationMinTime = UINT64_MAX;
     u64 applicationMaxTime = 0;
     u64 spiderTime = 0;
     u64 applicationRealTime = 0;
+#ifndef _NO_BUILD_GANTT_EXPORTER
     auto ganttTasks = factory::vector<GanttTask>();
+#endif
     /* == Get execution traces and update schedule info == */
     Notification notification;
     while (rt::platform()->communicator()->popTraceNotification(notification)) {
@@ -98,9 +112,9 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
         task.pe_ = notification.senderIx_;
         switch (notification.type_) {
             case NotificationType::TRACE_TASK: {
-                auto *vertex = graph->vertex(msg.taskIx_);
-                if (vertex) {
-                    task.name_ = vertex->name();
+                const auto *schedTask = schedule->task(msg.taskIx_);
+                if (schedTask) {
+                    task.name_ = schedTask->name();
                     task.color_ = VERTEX_TASK_COLOR;
                     applicationMinTime = std::min(applicationMinTime, task.start_);
                     applicationMaxTime = std::max(applicationMaxTime, task.end_);
@@ -131,7 +145,9 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
             default:
                 throwSpiderException("received unexpected notification type");
         }
+#ifndef _NO_BUILD_GANTT_EXPORTER
         ganttTasks.emplace_back(std::move(task));
+#endif
     }
 
     /* == Print exec time == */
@@ -148,35 +164,30 @@ void spider::Runtime::exportPostExecGantt(pisdf::Graph *graph,
                              static_cast<double>(applicationRealTime)));
 
     /* == Export the schedule == */
-    if (api::useSVGOverXMLGantt()) {
-        SchedSVGGanttExporter exporter{ schedule };
-        exporter.printFromPath(path + ".svg");
-    } else {
-        SchedXMLGanttExporter exporter{ schedule };
-        exporter.printFromTasks(ganttTasks, path + ".xml");
+#ifndef _NO_BUILD_GANTT_EXPORTER
+    if (api::exportGanttEnabled()) {
+        if (api::useSVGOverXMLGantt()) {
+            SchedSVGGanttExporter exporter{ schedule };
+            exporter.printFromPath(path + ".svg");
+        } else {
+            SchedXMLGanttExporter exporter{ schedule };
+            exporter.printFromTasks(ganttTasks, path + ".xml");
+        }
     }
+#endif
 }
 
-spider::FifoAllocator *spider::Runtime::makeFifoAllocator(FifoAllocatorType type) {
-    switch (type) {
-        case spider::FifoAllocatorType::DEFAULT:
-            return spider::make<DefaultFifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::ARCHI_AWARE:
-            break;
-        default:
-            throwSpiderException("unsupported type of FifoAllocator.");
-    }
-    return nullptr;
+
+#ifndef _NO_BUILD_LEGACY_RT
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+void spider::Runtime::exportSRDAG(srdag::Graph *graph, const std::string &path) {
+    /* == Print the Graph == */
+    auto exporter = pisdf::SRDAGDOTExporter(graph);
+    exporter.printFromPath(path);
+#else
+void spider::Runtime::exportSRDAG(srdag::Graph *, const std::string &) {
+    printer::fprintf(stderr, "Graph exporter is not built. Recompile spider2 with -DBUILD_GRAPH_EXPORTER=ON option.\n");
+#endif
 }
 
-spider::FifoAllocator *spider::Runtime::makeSRLessFifoAllocator(FifoAllocatorType type) {
-    switch (type) {
-        case spider::FifoAllocatorType::DEFAULT:
-            return spider::make<SRLessDefaultFifoAllocator, StackID::RUNTIME>();
-        case spider::FifoAllocatorType::ARCHI_AWARE:
-            break;
-        default:
-            throwSpiderException("unsupported type of FifoAllocator.");
-    }
-    return nullptr;
-}
+#endif

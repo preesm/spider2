@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SINGLERATETRANSFORMER_H
 #define SPIDER2_SINGLERATETRANSFORMER_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
@@ -62,7 +64,7 @@ namespace spider {
         public:
             SingleRateTransformer() = delete;
 
-            SingleRateTransformer(TransfoJob &job, pisdf::Graph *srdag);
+            SingleRateTransformer(TransfoJob &job, srdag::Graph *srdag);
 
             ~SingleRateTransformer() = default;
 
@@ -73,7 +75,7 @@ namespace spider {
         private:
 
             struct TransfoVertex {
-                pisdf::Vertex *vertex_ = nullptr;
+                srdag::Vertex *vertex_ = nullptr;
                 int64_t rate_ = -1;
                 uint32_t portIx_ = UINT32_MAX;
                 uint32_t lowerDep_ = UINT32_MAX;
@@ -81,7 +83,7 @@ namespace spider {
 
                 TransfoVertex() = default;
 
-                TransfoVertex(int64_t rate, uint32_t portIx, pisdf::Vertex *vertex) : vertex_{ vertex },
+                TransfoVertex(int64_t rate, uint32_t portIx, srdag::Vertex *vertex) : vertex_{ vertex },
                                                                                       rate_{ rate },
                                                                                       portIx_{ portIx } { }
             };
@@ -92,7 +94,7 @@ namespace spider {
 
             vector<size_t> ref2Clone_;
             TransfoJob &job_;
-            pisdf::Graph *srdag_ = nullptr;
+            srdag::Graph *srdag_ = nullptr;
 
             /* === Private method(s) === */
 
@@ -115,11 +117,7 @@ namespace spider {
              */
             static void updateParams(TransfoJob &job);
 
-            /**
-             * @brief Insert @refitem RepeatVertex and @refitem TailVertex for every input and output interfaces of
-             *        a given subgraph instance, respectively.
-             */
-            void replaceInterfaces();
+            static bool isInterfaceTransparent(const TransfoJob &job, const pisdf::Interface *interface);
 
             /**
              * @brief Create the future @refitem TransfoJob from the subgraphs of current job_.reference_.
@@ -140,7 +138,7 @@ namespace spider {
              * @param edge  Pointer to the edge.
              * @return true if null edge, false else.
              */
-            bool checkForNullEdge(pisdf::Edge *edge);
+            bool checkForNullEdge(const pisdf::Edge *edge);
 
             /**
              * @brief Perform single rate linkage for a given Edge.
@@ -154,12 +152,12 @@ namespace spider {
              * @param srcVector   Vector of @refitem TransfoVertex corresponding to the sources of the edge of the job.
              * @param snkVector   Vector of @refitem TransfoVertex corresponding to the sinks of the edge of the job.
              */
-            void computeDependencies(pisdf::Edge *edge,
+            static void computeDependencies(const pisdf::Edge *edge,
                                      spider::vector<TransfoVertex> &srcVector,
                                      spider::vector<TransfoVertex> &snkVector);
 
             template<class ConnectEdge>
-            void connectForkOrJoin(pisdf::Vertex *vertex,
+            void connectForkOrJoin(srdag::Vertex *vertex,
                                    vector<TransfoVertex> &workingVector,
                                    vector<TransfoVertex> &oppositeVector,
                                    const ConnectEdge &edgeConnector) const;
@@ -196,14 +194,14 @@ namespace spider {
              * @param edge Edge to evaluate.
              * @return vector of TransfoVertex.
              */
-            TransfoVertexVector buildSinkLinkerVector(pisdf::Edge *edge);
+            TransfoVertexVector buildSinkLinkerVector(const pisdf::Edge *edge);
 
             /**
              * @brief Build a vector of @refitem TransfoVertex of the source clones of a given edge.
              * @param edge Edge to evaluate.
              * @return vector of TransfoVertex.
              */
-            TransfoVertexVector buildSourceLinkerVector(pisdf::Edge *edge);
+            TransfoVertexVector buildSourceLinkerVector(const pisdf::Edge *edge);
 
             /**
              * @brief Populate vector from delay vertex and removes the edge.
@@ -212,9 +210,9 @@ namespace spider {
              * @param edge       Corresponding edge in the four possible (in_0: setter, in_1: producer, out_0:getter, out_1:consumer)
              * @param isSink     Boolean corresponding to type (true if calling for sink, false else)
              */
-            void populateFromDelayVertex(spider::vector<TransfoVertex> &vector, pisdf::Edge *edge, bool isSink);
+            static void populateFromDelayVertex(spider::vector<TransfoVertex> &vector, srdag::Edge *edge, bool isSink);
         };
     }
 }
-
+#endif
 #endif //SPIDER2_SINGLERATETRANSFORMER_H

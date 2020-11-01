@@ -41,12 +41,6 @@
 #include <stdexcept>
 #include <common/Printer.h>
 
-#ifdef _SPIDER_NO_TYPESAFETY_PRINT
-
-#include <cstdarg>
-
-#endif
-
 /* === Defines === */
 
 /* == Size of 50 minimum is required for the error message associated == */
@@ -65,7 +59,7 @@ namespace spider {
     }
 
     constexpr bool str_slant(const char *str) {
-        return *str == '/' ? true : (*str ? str_slant(str + 1) : false);
+        return *str == '/' || (*str != 0 && str_slant(str + 1));
     }
 
     constexpr const char *r_slant(const char *str) {

@@ -35,6 +35,8 @@
 #ifndef SPIDER2_SRDAGCOPYVERTEXVISITOR_H
 #define SPIDER2_SRDAGCOPYVERTEXVISITOR_H
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 /* === Include(s) === */
 
 #include <graphs-tools/transformation/srdag/TransfoJob.h>
@@ -47,23 +49,21 @@ namespace spider {
 
         struct SRDAGCopyVertexVisitor final : public pisdf::DefaultVisitor {
         public:
-            SRDAGCopyVertexVisitor(const TransfoJob &job, pisdf::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
+            SRDAGCopyVertexVisitor(const TransfoJob &job, srdag::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
 
             ~SRDAGCopyVertexVisitor() override = default;
 
-            void visit(pisdf::ExecVertex *vertex) override;
+            void visit(pisdf::Vertex *vertex) override;
 
             void visit(pisdf::Graph *graph) override;
 
             const TransfoJob &job_;
-            pisdf::Graph *srdag_ = nullptr;
+            srdag::Graph *srdag_ = nullptr;
             size_t ix_ = SIZE_MAX;
         private:
-            std::string buildCloneName(const pisdf::Vertex *vertex) const;
-
             void makeClone(pisdf::Vertex *vertex);
         };
     }
 }
-
+#endif
 #endif //SPIDER2_SRDAGCOPYVERTEXVISITOR_H

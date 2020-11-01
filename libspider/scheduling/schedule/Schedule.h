@@ -38,148 +38,129 @@
 /* === Include(s) === */
 
 #include <containers/vector.h>
-#include <scheduling/schedule/ScheduleTask.h>
-#include <scheduling/schedule/ScheduleStats.h>
-#include <functional>
 #include <memory/unique_ptr.h>
+#include <scheduling/schedule/ScheduleStats.h>
+#include <scheduling/task/Task.h>
 
 namespace spider {
 
-    /* === Class definition === */
+    namespace sched {
 
-    class Schedule {
-    public:
+        class FifoAllocator;
 
-        Schedule() : taskVector_{ factory::vector<unique_ptr<ScheduleTask>>(StackID::SCHEDULE) } { }
+        /* === Class definition === */
 
-        ~Schedule() = default;
+        class Schedule {
+        public:
+            Schedule() : tasks_{ factory::vector<spider::unique_ptr<sched::Task>>(StackID::SCHEDULE) } {
 
-        /* === Method(s) === */
+            };
 
-        /**
-         * @brief Clear schedule tasks.
-         */
-        void clear();
+            ~Schedule() = default;
 
-        /**
-         * @brief Reset schedule tasks.
-         * @remark Set all task state to @refitem TaskState::PENDING.
-         * @remark Statistics of the platform are not modified.
-         */
-        void reset();
+            Schedule(const Schedule &) = delete;
 
-        /**
-         * @brief Send every tasks currently in JobState::READY.
-         */
-        void sendReadyTasks();
+            Schedule &operator=(const Schedule &) = delete;
 
-        /**
-         * @brief Print the Schedule in the console with the format:
-         *        task: index
-         *          ----> dependency on lrt[0]
-         *          ...
-         *          ----> dependency on lrt[n]
-         * @remark requires the SCHEDULE log to be enabled.
-         */
-        void print() const;
+            Schedule(Schedule &&) = default;
 
-        /**
-         * @brief Add a new schedule task to the schedule.
-         * @remark if task has an index >= 0, nothing happens.
-         * @remark if task is nullptr, nothing happens.
-         * @param task Pointer to the task.
-         */
-        void addScheduleTask(ScheduleTask *task);
+            Schedule &operator=(Schedule &&) = default;
 
-        /**
-         * @brief Updates a task information and set its state as JobState::READY
-         * @param taskIx    Ix of the task to update.
-         * @param slave     Slave (cluster and pe) to execute on.
-         * @param startTime Start time of the task.
-         * @param endTime   End time of the task.
-         * @throw std::out_of_range if bad ix.
-         */
-        void updateTaskAndSetReady(size_t taskIx, size_t slave, uint64_t startTime, uint64_t endTime);
+            /* === Method(s) === */
 
-        /* === Getter(s) === */
+            /**
+             * @brief Reserve memory for task insertion.
+             * @param size Size to reserve.
+             */
+            void reserve(size_t size);
 
-        /**
-         * @brief Get the number of tasks in the schedule.
-         * @return number of tasks.
-         */
-        inline size_t taskCount() const {
-            return taskVector_.size();
-        }
+            /**
+             * @brief Clear schedule tasks.
+             */
+            void clear();
 
-        /**
-         * @brief Get the task vector of the schedule.
-         * @return const reference to the task vector
-         */
-        inline const vector<unique_ptr<ScheduleTask>> &tasks() const {
-            return taskVector_;
-        }
+            /**
+             * @brief Reset schedule tasks.
+             * @remark Set all vertexTask state to @refitem sched::State::PENDING.
+             * @remark Statistics of the platform are not modified.
+             */
+            void reset();
 
-        /**
-         * @brief Get the ready task vector of the schedule.
-         * @return  const reference to the ready task vector.
-         */
-        inline const vector<ScheduleTask *> &readyTasks() const {
-            return readyTaskVector_;
-        }
+            /**
+             * @brief Updates a vertexTask information and set its state as JobState::READY
+             * @param task      Pointer to the vertexTask.
+             * @param slave     Slave (cluster and pe) to execute on.
+             * @param startTime Start time of the vertexTask.
+             * @param endTime   End time of the vertexTask.
+             * @throw std::out_of_range if bad ix.
+             */
+            void updateTaskAndSetReady(sched::Task *task, const PE *slave, u64 startTime, u64 endTime);
 
-        /**
-         * @brief Get a task from its ix.
-         * @param ix  Ix of the task to fetch.
-         * @return pointer to the task.
-         * @throws @refitem std::out_of_range if ix is out of range.
-         */
-        inline ScheduleTask *task(size_t ix) const {
-            return taskVector_.at(ix).get();
-        }
+            /**
+             * @brief Add a task to the schedule
+             * @remark Once added, memory of the task is handled by the schedule, DO NOT FREE it yourself.
+             * @param task  Pointer to the task.
+             */
+            inline void addTask(sched::Task *task) {
+                task->setIx(static_cast<u32>(tasks_.size()));
+                tasks_.emplace_back(task);
+            }
 
-        /**
-         * @brief Get the different statistics of the platform.
-         * @return const reference to @refitem Stats
-         */
-        inline const Stats &stats() const {
-            return stats_;
-        }
+            /* === Getter(s) === */
 
-        /**
-         * @brief Get the different statistics of the platform.
-         * @return const reference to @refitem Stats
-         */
-        inline Stats &stats() {
-            return stats_;
-        }
+            inline spider::vector<spider::unique_ptr<Task>> &tasks() {
+                return tasks_;
+            }
 
-        /**
-         * @brief Return the scheduled start time of a given PE.
-         * @param ix  PE to check.
-         * @return start time of given PE.
-         * @throws @refitem std::out_of_range if PE out of range.
-         */
-        inline uint64_t startTime(size_t ix) const {
-            return stats().startTime(ix);
-        }
+            inline const spider::vector<spider::unique_ptr<Task>> &tasks() const {
+                return tasks_;
+            }
 
-        /**
-         * @brief Return the scheduled end time of a given PE.
-         * @param ix  PE to check.
-         * @return end time of given PE.
-         * @throws @refitem std::out_of_range if PE out of range.
-         */
-        inline uint64_t endTime(size_t ix) const {
-            return stats().endTime(ix);
-        }
+            inline sched::Task *task(size_t ix) const {
+                if (ix >= tasks_.size()) {
+                    return nullptr;
+                }
+                return tasks_.at(ix).get();
+            }
 
-        /* === Setter(s) === */
+            /**
+             * @brief Get the different statistics of the platform.
+             * @return const reference to @refitem Stats
+             */
+            inline const Stats &stats() const { return stats_; }
 
-    private:
-        vector<unique_ptr<ScheduleTask>> taskVector_;
-        vector<ScheduleTask *> readyTaskVector_;
-        Stats stats_;
-    };
+            /**
+             * @brief Return the scheduled start time of a given PE.
+             * @param ix  PE to check.
+             * @return start time of given PE.
+             * @throws @refitem std::out_of_range if PE out of range.
+             */
+            inline uint64_t startTime(size_t ix) const {
+                return stats().startTime(ix);
+            }
+
+            /**
+             * @brief Return the scheduled end time of a given PE.
+             * @param ix  PE to check.
+             * @return end time of given PE.
+             * @throws @refitem std::out_of_range if PE out of range.
+             */
+            inline uint64_t endTime(size_t ix) const {
+                return stats().endTime(ix);
+            }
+
+            /**
+             * @brief Get the number of vertexTask in the schedule (including already launched tasks).
+             * @return number of tasks in the schedule.
+             */
+            inline size_t taskCount() const {
+                return tasks_.size();
+            }
+
+        private:
+            spider::vector<spider::unique_ptr<sched::Task>> tasks_;
+            Stats stats_;
+        };
+    }
 }
-
 #endif //SPIDER2_SCHEDULE_H

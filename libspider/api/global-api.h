@@ -136,15 +136,9 @@ namespace spider {
 
         class DelayVertex;
 
-        class NonExecVertex;
-
         class Graph;
 
         class Param;
-
-        class DynamicParam;
-
-        class InHeritedParam;
 
         class Edge;
 
@@ -168,10 +162,10 @@ namespace spider {
      * @brief Spider runtime algorithms.
      */
     enum class RuntimeType {
-        JITMS = 0,  /*!< Use the Just In Time Multicore Scheduling runtime
-                     *   see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
-                     */
-        FAST_JITMS, /*!< Use a faster version of the JITMS runtime by not computing the Single Rate intermediate graph.
+        SRDAG_BASED = 0,  /*!< Use the Just In Time Multicore Scheduling runtime
+                           *   see: https://tel.archives-ouvertes.fr/tel-01301642/file/These_HEULOT_Julien.pdf
+                           */
+        PISDF_BASED, /*!< Use a faster version of the JITMS runtime which does not compute the Single Rate intermediate graph.
                      *   see: https://hal-univ-rennes1.archives-ouvertes.fr/hal-02355636
                      */
     };
@@ -180,9 +174,33 @@ namespace spider {
      * @brief Spider scheduling algorithms.
      */
     enum class SchedulingPolicy {
-        LIST_BEST_FIT,        /*!< Use a list based algorithm with best fit mapping decision */
-        LIST_ROUND_ROBIN,     /*!< Use a list based algorithm with round robin mapping decision */
-        GREEDY,               /*!< Greedy algorithm with no heuristics */
+        LIST,        /*!< List-based algorithm using critical path based heuristic */
+        GREEDY,      /*!< Greedy scheduling algorithm with no heuristics */
+    };
+
+    /**
+     * @brief Spider mapping policy.
+     */
+    enum class MappingPolicy {
+        BEST_FIT,        /*!< Map actors according to a best fit policy */
+        ROUND_ROBIN,     /*!< Map actors according to a round robin policy */
+    };
+
+    /**
+     * @brief Fifo memory allocator type.
+     */
+    enum class FifoAllocatorType {
+        DEFAULT,        /*!< Default Fifo allocator */
+        DEFAULT_NOSYNC, /*!< Default Fifo allocator with Fork/Duplicate/Extern_IN no-sync optimization */
+        ARCHI_AWARE,    /*!< Architecture aware Fifo allocator */
+    };
+
+    /**
+     * @brief Spider execution policy.
+     */
+    enum class ExecutionPolicy {
+        JIT,        /*!< Just-in-Time execution policy: send jobs as soon as they are scheduled. */
+        DELAYED,    /*!< Delayed execution policy: wait for all jobs to be scheduled to send them. */
     };
 
     /**
@@ -286,7 +304,7 @@ namespace spider {
      * @brief Memory bus send / receive routine.
      */
     using MemoryBusRoutine = std::function<void(int_least64_t  /* = Size in bytes = */,
-                                                int_least32_t, /* = Packet id = */
+                                                void *,        /* = Buffer to send / receive = */
                                                 void *         /* = Buffer to send / receive = */)>;
 
     /**

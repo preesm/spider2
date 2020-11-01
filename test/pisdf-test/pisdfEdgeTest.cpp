@@ -46,8 +46,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Delay.h>
-#include <graphs/pisdf/DynamicParam.h>
-#include <graphs/pisdf/ExecVertex.h>
+#include <graphs/pisdf/Vertex.h>
 #include <api/spider.h>
 
 class pisdEdgeTest : public ::testing::Test {
@@ -63,13 +62,10 @@ protected:
 
 TEST_F(pisdEdgeTest, edgeTest) {
     auto *graph = spider::make<spider::pisdf::Graph, StackID::PISDF>("graph", 4, 3, 0, 0, 0);
-    auto *v0 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v0", 0, 1);
-    auto *v1 = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("v1", 1, 0);
-    auto *setter = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("setter", 0, 1);
-    auto *getter = spider::make<spider::pisdf::ExecVertex, StackID::PISDF>("getter", 1, 0);
-    graph->addVertex(v0);
-    graph->addVertex(setter);
-    graph->addVertex(getter);
+    auto *v0 = spider::api::createVertex(graph, "v0", 0, 1);
+    auto *v1 = spider::make<spider::pisdf::Vertex, StackID::PISDF>(spider::pisdf::VertexType::NORMAL, "v1", 1, 0);
+    auto *setter = spider::api::createVertex(graph, "setter", 0, 1);
+    auto *getter = spider::api::createVertex(graph, "getter", 1, 0);
     ASSERT_THROW(spider::pisdf::Edge(nullptr, 0, spider::Expression(), v1, 0, spider::Expression()), spider::Exception)
                                 << "Edge(nullptr, ..) should throw";
     ASSERT_THROW(spider::pisdf::Edge(v0, 0, spider::Expression(), nullptr, 0, spider::Expression()), spider::Exception)

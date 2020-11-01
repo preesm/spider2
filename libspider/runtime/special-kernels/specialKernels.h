@@ -67,7 +67,7 @@ namespace spider {
          * @param in       Input buffers.
          * @param out      Output buffers.
          */
-        void fork(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+        void fork(const int64_t *paramsIn, const int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::JOIN actors.
@@ -79,7 +79,7 @@ namespace spider {
          * @param in       Input buffers.
          * @param out      Output buffers.
          */
-        void join(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+        void join(const int64_t *paramsIn, const int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::HEAD actors.
@@ -90,7 +90,7 @@ namespace spider {
          * @param in       Input buffers.
          * @param out      Output buffers.
          */
-        void head(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+        void head(const int64_t *paramsIn, const int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::TAIL actors.
@@ -104,7 +104,7 @@ namespace spider {
          * @param in       Input buffers.
          * @param out      Output buffers.
          */
-        void tail(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+        void tail(const int64_t *paramsIn, const int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::REPEAT actors.
@@ -121,7 +121,7 @@ namespace spider {
          * @param in       Input buffers.
          * @param out      Output buffers.
          */
-        void repeat(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+        void repeat(const int64_t *paramsIn, const int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::DUPLICATE actors.
@@ -132,7 +132,7 @@ namespace spider {
          * @param in       Input buffers.
          * @param out      Output buffers.
          */
-        void duplicate(const int64_t *paramsIn, int64_t *, void *in[], void *out[]);
+        void duplicate(const int64_t *paramsIn, const int64_t *, void *in[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::INIT actors.
@@ -144,7 +144,7 @@ namespace spider {
          * @param paramsIn Input parameters.
          * @param out      Output buffers.
          */
-        void init(const int64_t *paramsIn, int64_t *, void *[], void *out[]);
+        void init(const int64_t *paramsIn, const int64_t *, void *[], void *out[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::END actors.
@@ -156,17 +156,17 @@ namespace spider {
          * @param paramsIn Input parameters.
          * @param in       Input buffers.
          */
-        void end(const int64_t *paramsIn, int64_t *, void *in[], void *[]);
+        void end(const int64_t *paramsIn, const int64_t *, void *in[], void *[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::EXTERN_IN actors.
          */
-        void externIn(const int64_t *, int64_t *, void *[], void *[]);
+        void externIn(const int64_t *, const int64_t *, void *[], void *[]);
 
         /**
          * @brief Default special kernel for @refitem pisdf::VertexType::EXTERN_OUT actors.
          */
-        void externOut(const int64_t *, int64_t *, void *[], void *[]);
+        void externOut(const int64_t *, const int64_t *, void *[], void *[]);
     }
 }
 

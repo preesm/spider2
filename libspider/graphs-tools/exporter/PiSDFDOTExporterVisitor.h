@@ -35,12 +35,12 @@
 #ifndef SPIDER2_PISDFDOTEXPORTERVISITOR_H
 #define SPIDER2_PISDFDOTEXPORTERVISITOR_H
 
+#ifndef _NO_BUILD_GRAPH_EXPORTER
+
 /* === Include(s) === */
 
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
-#include <graphs/pisdf/InHeritedParam.h>
-#include <graphs/pisdf/DynamicParam.h>
 #include <utility>
 
 namespace spider {
@@ -58,15 +58,17 @@ namespace spider {
 
             void visit(Graph *graph) override;
 
-            void visit(ExecVertex *vertex) override;
-
-            void visit(NonExecVertex *vertex) override;
+            void visit(Vertex *vertex) override;
 
             void visit(Interface *interface) override;
 
             void visit(Param *param) override;
+#ifndef _NO_BUILD_LEGACY_RT
+            void visit(srdag::Graph *graph) override;
+#endif
 
         private:
+            Graph *graph_ = nullptr;
             const spider::vector<std::shared_ptr<Param>> *params_ = nullptr;
             FILE *file_;
             std::string offset_;
@@ -83,20 +85,24 @@ namespace spider {
                                      int_fast32_t border = 2,
                                      const std::string &style = "") const;
 
-            int_fast32_t computeMaxDigitCount(const Vertex *vertex) const;
+
+            template<class T>
+            int_fast32_t computeMaxDigitCount(const T *vertex) const;
 
             /**
              * @brief Prints a vertex name to DOT with stripped size.
              * @param vertex       Pointer to the vertex.
              * @param columnCount  Number of column in the html table.
              */
-            void vertexNamePrinter(const Vertex *vertex, size_t columnCount) const;
+            template<class T>
+            void vertexNamePrinter(const T *vertex, size_t columnCount) const;
 
             /**
              * @brief Prints a vertex into DOT format.
              * @param vertex   Pointer to the vertex.
              */
-            void vertexPrinter(const Vertex *vertex) const;
+            template<class T>
+            void vertexPrinter(const T *vertex) const;
 
             /**
              * @brief Prints a graph interface into DOT format.
@@ -124,8 +130,8 @@ namespace spider {
              * @param color     Color of the port (green for input, red for output)
              * @param direction direction of the data port (true for input, false for output)
              */
-            void
-            portPrinter(const Edge *edge, int_fast32_t width, const std::string &color, bool direction = true) const;
+            template<class T>
+            void portPrinter(const T *edge, int_fast32_t width, const std::string &color, bool direction = true) const;
 
             /**
              * @brief Prints a dummy data port.
@@ -147,4 +153,5 @@ namespace spider {
         };
     }
 }
+#endif
 #endif //SPIDER2_PISDFDOTEXPORTERVISITOR_H
