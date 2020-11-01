@@ -40,11 +40,11 @@
 
 /* === Include(s) === */
 
-#include "spider2-application.h"
+#include "spider2-stabilization.h"
 
 /* === Function(s) declaration === */
 
-void spider::createUserApplicationKernels() {
+void spider::stab::createUserApplicationKernels() {
     /* == Register READYUV kernel == */
     spider::api::createRuntimeKernel(readyuvRTKernel);
 
@@ -69,91 +69,93 @@ void spider::createUserApplicationKernels() {
     /* == Register COMPUTEBLOCKMOTIONVECTOR kernel == */
     spider::api::createRuntimeKernel(computeblockmotionvectorRTKernel);
 }
-    
+
 /* === readYUV === */
-    
-void spider::readyuvRTKernel(const int64_t [], int64_t [], void *[], void *[]) {
+
+void spider::stab::readyuvRTKernel(const int64_t [], int64_t [], void *[], void *[]) {
     fprintf(stderr, "[stabilization] read success!\n");
 }
-    
+
 /* === yuvDisplay === */
-    
-void spider::yuvdisplayRTKernel(const int64_t [], int64_t [], void *[], void *[]) {
+
+void spider::stab::yuvdisplayRTKernel(const int64_t [], int64_t [], void *[], void *[]) {
     fprintf(stderr, "[stabilization] display success!\n");
 }
-    
+
 /* === yuvWrite === */
-    
-void spider::yuvwriteRTKernel(const int64_t [], int64_t [], void *[], void *[]) {
+
+void spider::stab::yuvwriteRTKernel(const int64_t [], int64_t [], void *[], void *[]) {
     fprintf(stderr, "[stabilization] write success!\n");
 }
-    
+
 /* === findDominatingMotionVector === */
-    
-void spider::finddominatingmotionvectorRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
+
+void spider::stab::finddominatingmotionvectorRTKernel(const int64_t inputParams[], int64_t [], void *inputs[],
+                                                      void *outputs[]) {
     findDominatingMotionVector(
-    /* = nbVectors        = */ static_cast<int>(inputParams[0]),
-    /* = vectors          = */ reinterpret_cast<const coord *>(inputs[0]),
-    /* = dominatingVector = */ reinterpret_cast<coordf *>(outputs[0]));
+            /* = nbVectors        = */ static_cast<int>(inputParams[0]),
+            /* = vectors          = */ reinterpret_cast<const coord *>(inputs[0]),
+            /* = dominatingVector = */ reinterpret_cast<coordf *>(outputs[0]));
 }
-    
+
 /* === renderFrame === */
-    
-void spider::renderframeRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
+
+void spider::stab::renderframeRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
     renderFrame(
-    /* = frameWidth  = */ static_cast<int>(inputParams[0]),
-    /* = frameHeight = */ static_cast<int>(inputParams[1]),
-    /* = dispWidth   = */ static_cast<int>(inputParams[2]),
-    /* = dispHeight  = */ static_cast<int>(inputParams[3]),
-    /* = delta       = */ reinterpret_cast<const coordf *>(inputs[0]),
-    /* = deltaPrev   = */ reinterpret_cast<const coordf *>(inputs[1]),
-    /* = yIn         = */ reinterpret_cast<const unsigned char *>(inputs[2]),
-    /* = uIn         = */ reinterpret_cast<const unsigned char *>(inputs[3]),
-    /* = vIn         = */ reinterpret_cast<const unsigned char *>(inputs[4]),
-    /* = yPrev       = */ reinterpret_cast<const unsigned char *>(inputs[5]),
-    /* = uPrev       = */ reinterpret_cast<const unsigned char *>(inputs[6]),
-    /* = vPrev       = */ reinterpret_cast<const unsigned char *>(inputs[7]),
-    /* = yOut        = */ reinterpret_cast<unsigned char *>(outputs[0]),
-    /* = uOut        = */ reinterpret_cast<unsigned char *>(outputs[1]),
-    /* = vOut        = */ reinterpret_cast<unsigned char *>(outputs[2]));
+            /* = frameWidth  = */ static_cast<int>(inputParams[0]),
+            /* = frameHeight = */ static_cast<int>(inputParams[1]),
+            /* = dispWidth   = */ static_cast<int>(inputParams[2]),
+            /* = dispHeight  = */ static_cast<int>(inputParams[3]),
+            /* = delta       = */ reinterpret_cast<const coordf *>(inputs[0]),
+            /* = deltaPrev   = */ reinterpret_cast<const coordf *>(inputs[1]),
+            /* = yIn         = */ reinterpret_cast<const unsigned char *>(inputs[2]),
+            /* = uIn         = */ reinterpret_cast<const unsigned char *>(inputs[3]),
+            /* = vIn         = */ reinterpret_cast<const unsigned char *>(inputs[4]),
+            /* = yPrev       = */ reinterpret_cast<const unsigned char *>(inputs[5]),
+            /* = uPrev       = */ reinterpret_cast<const unsigned char *>(inputs[6]),
+            /* = vPrev       = */ reinterpret_cast<const unsigned char *>(inputs[7]),
+            /* = yOut        = */ reinterpret_cast<unsigned char *>(outputs[0]),
+            /* = uOut        = */ reinterpret_cast<unsigned char *>(outputs[1]),
+            /* = vOut        = */ reinterpret_cast<unsigned char *>(outputs[2]));
 }
-    
+
 /* === accumulateMotion === */
-    
-void spider::accumulatemotionRTKernel(const int64_t [], int64_t [], void *inputs[], void *outputs[]) {
+
+void spider::stab::accumulatemotionRTKernel(const int64_t [], int64_t [], void *inputs[], void *outputs[]) {
     accumulateMotion(
-    /* = motionVector         = */ reinterpret_cast<const coordf *>(inputs[0]),
-    /* = accumulatedMotionIn  = */ reinterpret_cast<const coordf *>(inputs[1]),
-    /* = filteredMotionIn     = */ reinterpret_cast<coordf *>(inputs[2]),
-    /* = filteredMotionOut    = */ reinterpret_cast<coordf *>(outputs[0]),
-    /* = accumulatedMotionOut = */ reinterpret_cast<coordf *>(outputs[1]));
+            /* = motionVector         = */ reinterpret_cast<const coordf *>(inputs[0]),
+            /* = accumulatedMotionIn  = */ reinterpret_cast<const coordf *>(inputs[1]),
+            /* = filteredMotionIn     = */ reinterpret_cast<coordf *>(inputs[2]),
+            /* = filteredMotionOut    = */ reinterpret_cast<coordf *>(outputs[0]),
+            /* = accumulatedMotionOut = */ reinterpret_cast<coordf *>(outputs[1]));
 }
-    
+
 /* === divideBlocks === */
-    
-void spider::divideblocksRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
+
+void spider::stab::divideblocksRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
     divideBlocks(
-    /* = width       = */ static_cast<int>(inputParams[0]),
-    /* = height      = */ static_cast<int>(inputParams[1]),
-    /* = blockWidth  = */ static_cast<int>(inputParams[2]),
-    /* = blockHeight = */ static_cast<int>(inputParams[3]),
-    /* = frame       = */ reinterpret_cast<const unsigned char *>(inputs[0]),
-    /* = blocksCoord = */ reinterpret_cast<coord *>(outputs[0]),
-    /* = blocksData  = */ reinterpret_cast<unsigned char *>(outputs[1]));
+            /* = width       = */ static_cast<int>(inputParams[0]),
+            /* = height      = */ static_cast<int>(inputParams[1]),
+            /* = blockWidth  = */ static_cast<int>(inputParams[2]),
+            /* = blockHeight = */ static_cast<int>(inputParams[3]),
+            /* = frame       = */ reinterpret_cast<const unsigned char *>(inputs[0]),
+            /* = blocksCoord = */ reinterpret_cast<coord *>(outputs[0]),
+            /* = blocksData  = */ reinterpret_cast<unsigned char *>(outputs[1]));
 }
-    
+
 /* === computeBlockMotionVector === */
-    
-void spider::computeblockmotionvectorRTKernel(const int64_t inputParams[], int64_t [], void *inputs[], void *outputs[]) {
+
+void spider::stab::computeblockmotionvectorRTKernel(const int64_t inputParams[], int64_t [], void *inputs[],
+                                                    void *outputs[]) {
     computeBlockMotionVector(
-    /* = width         = */ static_cast<int>(inputParams[0]),
-    /* = height        = */ static_cast<int>(inputParams[1]),
-    /* = blockWidth    = */ static_cast<int>(inputParams[2]),
-    /* = blockHeight   = */ static_cast<int>(inputParams[3]),
-    /* = maxDeltaX     = */ static_cast<int>(inputParams[4]),
-    /* = maxDeltaY     = */ static_cast<int>(inputParams[5]),
-    /* = blockCoord    = */ reinterpret_cast<const coord *>(inputs[0]),
-    /* = blockData     = */ reinterpret_cast<const unsigned char *>(inputs[1]),
-    /* = previousFrame = */ reinterpret_cast<const unsigned char *>(inputs[2]),
-    /* = vector        = */ reinterpret_cast<coord *>(outputs[0]));
+            /* = width         = */ static_cast<int>(inputParams[0]),
+            /* = height        = */ static_cast<int>(inputParams[1]),
+            /* = blockWidth    = */ static_cast<int>(inputParams[2]),
+            /* = blockHeight   = */ static_cast<int>(inputParams[3]),
+            /* = maxDeltaX     = */ static_cast<int>(inputParams[4]),
+            /* = maxDeltaY     = */ static_cast<int>(inputParams[5]),
+            /* = blockCoord    = */ reinterpret_cast<const coord *>(inputs[0]),
+            /* = blockData     = */ reinterpret_cast<const unsigned char *>(inputs[1]),
+            /* = previousFrame = */ reinterpret_cast<const unsigned char *>(inputs[2]),
+            /* = vector        = */ reinterpret_cast<coord *>(outputs[0]));
 }

@@ -37,17 +37,13 @@
 
 #include <gtest/gtest.h>
 #include <common/Exception.h>
-#include <memory/allocator.h>
-#include <memory/memory.h>
-#include <memory/dynamic-policies/FreeListAllocatorPolicy.h>
 #include <memory/dynamic-policies/GenericAllocatorPolicy.h>
-#include <memory/static-policies/LinearStaticAllocator.h>
 #include <api/spider.h>
 #include <graphs/pisdf/Graph.h>
 #include <scheduling/scheduler/Scheduler.h>
-#include <scheduling/scheduler/srdag-based/ListScheduler.h>
 #include <runtime/algorithm/srdag-based/SRDAGJITMSRuntime.h>
-#include "appTest/stabilization/spider2-application.h"
+#include "appTest/stabilization/spider2-stabilization.h"
+#include "appTest/reinforcement/spider2-reinforcement.h"
 
 extern bool spider2StopRunning;
 
@@ -55,31 +51,47 @@ constexpr auto LOOP_COUNT = 5U;
 
 /* === Function(s) definition === */
 
+/* === Constants declaration === */
+
+constexpr size_t CLUSTER_COUNT = 1;
+
+constexpr size_t PE_COUNT = 1;
+
+enum HardwareType : uint32_t {
+    TYPE_X86,
+};
+
+enum HardwareID : uint32_t {
+    PE_X86_CORE0,
+};
+
 class runtimeAppTest : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
-        /* == Creates the architecture == */
-        spider::createUserPhysicalPlatform();
-        /* == Creates the application graph == */
-        graph_ = spider::createUserApplicationGraph();
+        /* == Creates the main platform == */
+        spider::api::createPlatform(CLUSTER_COUNT, PE_COUNT);
+        /* == Creates the intra MemoryInterface of the cluster == */
+        auto *x86MemoryInterface = spider::api::createMemoryInterface(1073741824);
+        /* == Creates the actual Cluster == */
+        auto *x86Cluster = spider::api::createCluster(1, x86MemoryInterface);
+        /* == Creates the processing element(s) of the cluster == */
+        auto *x86Core0 = spider::api::createProcessingElement(TYPE_X86, PE_X86_CORE0, x86Cluster, "Core0", spider::PEType::LRT, 0);
+        /* == Set the GRT == */
+        spider::api::setSpiderGRTPE(x86Core0);
         /* == Creates the runtime platform == */
         spider::api::createThreadRTPlatform();
-        /* == Creates the application kernels == */
-        spider::createUserApplicationKernels();
     }
 
     void TearDown() override {
-        /* == Destroy the graph == */
-        spider::api::destroyGraph(graph_);
         spider::quit();
     }
-
-    spider::pisdf::Graph *graph_;
 };
 
 TEST_F(runtimeAppTest, TestStabilization) {
-    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+    auto *graph = spider::stab::createStabilization();
+    spider::stab::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::SRDAG_BASED,
             spider::ExecutionPolicy::DELAYED,
@@ -90,10 +102,13 @@ TEST_F(runtimeAppTest, TestStabilization) {
     });
     ASSERT_NO_THROW(spider::run(context));
     spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
 }
 
 TEST_F(runtimeAppTest, TestStabilizationJIT) {
-    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+    auto *graph = spider::stab::createStabilization();
+    spider::stab::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::SRDAG_BASED,
             spider::ExecutionPolicy::JIT,
@@ -104,10 +119,13 @@ TEST_F(runtimeAppTest, TestStabilizationJIT) {
     });
     ASSERT_NO_THROW(spider::run(context));
     spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
 }
 
 TEST_F(runtimeAppTest, TestStabilizationSRLess) {
-    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+    auto *graph = spider::stab::createStabilization();
+    spider::stab::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
@@ -118,10 +136,13 @@ TEST_F(runtimeAppTest, TestStabilizationSRLess) {
     });
     ASSERT_NO_THROW(spider::run(context));
     spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
 }
 
 TEST_F(runtimeAppTest, TestStabilizationSRLessJIT) {
-    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+    auto *graph = spider::stab::createStabilization();
+    spider::stab::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::JIT,
@@ -132,10 +153,13 @@ TEST_F(runtimeAppTest, TestStabilizationSRLessJIT) {
     });
     ASSERT_NO_THROW(spider::run(context));
     spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
 }
 
 TEST_F(runtimeAppTest, TestStabilizationNoSync) {
-    auto context = spider::createRuntimeContext(graph_, spider::RuntimeConfig{
+    auto *graph = spider::stab::createStabilization();
+    spider::stab::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::SRDAG_BASED,
             spider::ExecutionPolicy::DELAYED,
@@ -146,4 +170,90 @@ TEST_F(runtimeAppTest, TestStabilizationNoSync) {
     });
     ASSERT_NO_THROW(spider::run(context));
     spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
+}
+
+TEST_F(runtimeAppTest, TestReinforcement) {
+    auto *graph = spider::rl::createReinforcementLearning();
+    spider::rl::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::SRDAG_BASED,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
+}
+
+TEST_F(runtimeAppTest, TestReinforcementJIT) {
+    auto *graph = spider::rl::createReinforcementLearning();
+    spider::rl::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::SRDAG_BASED,
+            spider::ExecutionPolicy::JIT,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
+}
+
+TEST_F(runtimeAppTest, TestReinforcementSRLess) {
+    auto *graph = spider::rl::createReinforcementLearning();
+    spider::rl::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::PISDF_BASED,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
+}
+
+TEST_F(runtimeAppTest, TestReinforcementSRLessJIT) {
+    auto *graph = spider::rl::createReinforcementLearning();
+    spider::rl::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::PISDF_BASED,
+            spider::ExecutionPolicy::JIT,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
+}
+
+TEST_F(runtimeAppTest, TestReinforcementNoSync) {
+    auto *graph = spider::rl::createReinforcementLearning();
+    spider::rl::createUserApplicationKernels();
+    auto context = spider::createRuntimeContext(graph, spider::RuntimeConfig{
+            spider::RunMode::LOOP,
+            spider::RuntimeType::SRDAG_BASED,
+            spider::ExecutionPolicy::DELAYED,
+            spider::SchedulingPolicy::LIST,
+            spider::MappingPolicy::BEST_FIT,
+            spider::FifoAllocatorType::DEFAULT_NOSYNC,
+            LOOP_COUNT,
+    });
+    ASSERT_NO_THROW(spider::run(context));
+    spider::destroyRuntimeContext(context);
+    spider::api::destroyGraph(graph);
 }

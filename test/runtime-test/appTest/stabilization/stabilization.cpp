@@ -15,6 +15,7 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+#include <algorithm>
 
 #include "stabilization.h"
 
@@ -36,10 +37,10 @@ void renderFrame(const int frameWidth, const int frameHeight,
     // find position
     int deltaPrevX = static_cast<int>(roundf(deltaPrev->x) * 2); // Multiply by 2 for Y
     int deltaPrevY = static_cast<int>(roundf(deltaPrev->y) * 2);
-    int xPrevLeft = MIN(MAX(0, -deltaPrevX), dispWidth);
-    int yPrevTop = MIN(MAX(0, -deltaPrevY), dispHeight);
-    int xPrevRight = MIN(dispWidth, dispWidth - deltaPrevX);
-    int yPrevBot = MIN(dispHeight, dispHeight - deltaPrevY);
+    int xPrevLeft = std::min(std::max(0, -deltaPrevX), dispWidth);
+    int yPrevTop = std::min(std::max(0, -deltaPrevY), dispHeight);
+    int xPrevRight = std::min(dispWidth, dispWidth - deltaPrevX);
+    int yPrevBot = std::min(dispHeight, dispHeight - deltaPrevY);
 
     static int first = 1;
 
@@ -74,10 +75,10 @@ void renderFrame(const int frameWidth, const int frameHeight,
     int yBot = yTop + frameHeight;
 
     // Clip previous values to stay within the rendered frame
-    int xLeftClip = MAX(MIN(xLeft, dispWidth), 0);
-    int yTopClip = MAX(MIN(yTop, dispHeight), 0);
-    int xRightClip = MIN(MAX(xRight, 0), dispWidth);
-    int yBotClip = MIN(MAX(yBot, 0), dispHeight);
+    int xLeftClip = std::max(std::min(xLeft, dispWidth), 0);
+    int yTopClip = std::max(std::min(yTop, dispHeight), 0);
+    int xRightClip = std::min(std::max(xRight, 0), dispWidth);
+    int yBotClip = std::min(std::max(yBot, 0), dispHeight);
 
     for (int y = yTopClip; y < yBotClip; y++) {
         // Render Y
@@ -138,10 +139,10 @@ unsigned int computeMeanSquaredError(const int width, const int height,
                                      const unsigned char *const blockData,
                                      const unsigned char *const previousFrame) {
     // Clip previous values to stay within the previousFrame
-    int yMinClip = MIN(MAX(0 - deltaY, 0), blockHeight);
-    int xMinClip = MIN(MAX(0 - deltaX, 0), blockWidth);
-    int yMaxClip = MAX(MIN(height - deltaY, blockHeight), 0);
-    int xMaxClip = MAX(MIN(width - deltaX, blockWidth), 0);
+    int yMinClip = std::min(std::max(0 - deltaY, 0), blockHeight);
+    int xMinClip = std::min(std::max(0 - deltaX, 0), blockWidth);
+    int yMaxClip = std::max(std::min(height - deltaY, blockHeight), 0);
+    int xMaxClip = std::max(std::min(width - deltaX, blockWidth), 0);
 
     // Compute MSE
     unsigned int cost;
@@ -264,7 +265,7 @@ void findDominatingMotionVector(const int nbVectors,
         float threshold = 0.0f;
         int i;
         for (i = 0; i < nbVectors; i++) {
-            threshold = MAX(threshold, probas[i]);
+            threshold = std::max(threshold, probas[i]);
         }
 
         // Lower thresold
