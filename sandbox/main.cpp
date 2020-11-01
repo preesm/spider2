@@ -38,12 +38,12 @@
 #include <graphs/pisdf/Vertex.h>
 #include <api/spider.h>
 #include <graphs-tools/exporter/PiSDFDOTExporter.h>
-#include <runtime/algorithm/JITMSRuntime.h>
+#include <runtime/algorithm/srdag-based/SRDAGJITMSRuntime.h>
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
-#include <scheduling/task/SRLessTask.h>
+#include <scheduling/task/SRDAGTask.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/task/Task.h>
-#include <scheduling/task/VertexTask.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <runtime/message/Notification.h>
@@ -56,15 +56,15 @@
 #include <archi/MemoryInterface.h>
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
-#include <graphs-tools/transformation/srless/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <containers/array_handle.h>
 #include <csignal>
 #include <runtime/runner/JITMSRTRunner.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs-tools/expression-parser/ExpressionRuntime.h>
 #include <graphs-tools/numerical/detail/DependencyIterator.h>
-#include <runtime/algorithm/FastRuntime.h>
-#include <graphs-tools/transformation/srless/GraphHandler.h>
+#include <runtime/algorithm/pisdf-based/PiSDFJITMSRuntime.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
 
 #include "extra/variant.h"
 
@@ -141,7 +141,8 @@ void hTest() {
     spider::api::createEdge(in_vertex_2, 0, 2, vertex_4, 0, 2);
     spider::api::createEdge(vertex_4, 0, 2, out_vertex_2, 0, 2);
     spider::api::createEdge(in_vertex_4, 0, 2, vertex_5, 0, 3);
-    spider::api::createEdge(vertex_5, 0, 3, out_vertex_4, 0, 2);
+    auto *edge = spider::api::createEdge(vertex_5, 0, 3, out_vertex_4, 0, 2);
+    spider::api::createLocalDelay(edge, "3");
     spider::api::createEdge(in_vertex_6, 0, 3, vertex_7, 0, 2);
     spider::api::createEdge(vertex_7, 0, 2, out_vertex_6, 0, 2);
     spider::api::createEdge(in_vertex_7, 0, 2, vertex_8, 0, 2);
@@ -183,7 +184,7 @@ void hTest() {
     auto start = spider::time::now();
     auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_LESS,
+            spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
@@ -195,32 +196,33 @@ void hTest() {
     spider::destroyRuntimeContext(context);
     auto end = spider::time::now();
     std::cerr << "fast:  " << spider::time::duration::nanoseconds(start, end) << std::endl;
-    start = spider::time::now();
-    runtimeConfig = spider::RuntimeConfig{
-            spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
-            spider::ExecutionPolicy::DELAYED,
-            spider::SchedulingPolicy::LIST,
-            spider::MappingPolicy::BEST_FIT,
-            spider::FifoAllocatorType::DEFAULT,
-            10u,
-    };
-    auto context2 = spider::createRuntimeContext(graph, runtimeConfig);
-    spider::run(context2);
-    spider::destroyRuntimeContext(context2);
-    end = spider::time::now();
-    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
+//    start = spider::time::now();
+//    runtimeConfig = spider::RuntimeConfig{
+//            spider::RunMode::LOOP,
+//            spider::RuntimeType::SRDAG_BASED,
+//            spider::ExecutionPolicy::DELAYED,
+//            spider::SchedulingPolicy::LIST,
+//            spider::MappingPolicy::BEST_FIT,
+//            spider::FifoAllocatorType::DEFAULT,
+//            10u,
+//    };
+//    auto context2 = spider::createRuntimeContext(graph, runtimeConfig);
+//    spider::run(context2);
+//    spider::destroyRuntimeContext(context2);
+//    end = spider::time::now();
+//    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
     spider::api::destroyGraph(graph);
     spider::quit();
 }
 
 
 int main(int, char **) {
-    std::cerr << sizeof(spider::srless::GraphHandler) << '\n';
-    std::cerr << sizeof(spider::srless::GraphFiring) << '\n';
-    std::cerr << sizeof(spider::pisdf::DependencyInfo) << '\n';
-//    spiderTest();
+    spiderTest();
+//    simpleTest();
 //    hTest();
+    std::cerr << sizeof(spider::sched::Task) << '\n';
+    std::cerr << sizeof(spider::sched::SRDAGTask) << '\n';
+    std::cerr << sizeof(spider::sched::PiSDFTask) << '\n';
     return 0;
 }
 
@@ -264,7 +266,7 @@ void simpleNoExecHTest() {
                                      });
     auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_LESS,
+            spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -318,7 +320,7 @@ void simpleNoExecTest() {
 //                                                spider::SchedulingPolicy::LIST_BEST_FIT);
     auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_LESS,
+            spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
@@ -335,34 +337,25 @@ void simpleNoExecTest() {
 
 void simpleTest() {
     spider::start();
+//    spider::api::enableVerbose();
 //    spider::api::enableExportGantt();
-    spider::api::enableExportSRDAG();
+//    spider::api::enableExportSRDAG();
 //    spider::api::useSVGGanttExporter();
     createUserPlatform();
     auto *graph = spider::api::createGraph("topgraph", 1, 0, 0);
     auto *vertex_0 = spider::api::createVertex(graph, "A", 0, 1);
     auto *vertex_1 = spider::api::createVertex(graph, "B", 1, 1);
     auto *vertex_2 = spider::api::createVertex(graph, "C", 1, 0);
-//    auto *setter = spider::api::createVertex(graph, "S", 0, 1);
-//    auto *getter = spider::api::createVertex(graph, "G", 1, 0);
     auto *edge = spider::api::createEdge(vertex_0, 0, 4, vertex_1, 0, 2);
     spider::api::createEdge(vertex_1, 0, 3, vertex_2, 0, 4);
     spider::api::createLocalDelay(edge, "1");
-//    auto *delay = spider::api::createLocalDelay(edge, "3", setter, 0, "1", getter, 0, "1");
-//    auto *vertex_init = spider::api::createVertex(graph, "I", 0, 1);
-//    auto *vertex_end = spider::api::createVertex(graph, "E", 1, 0);
-//    spider::api::createLocalDelay(delay->vertex()->outputEdge(0), "2", vertex_init, 0, "1", vertex_end, 0, "2");
-//    auto *vertex_d = spider::api::createVertex(graph, "D", 0, 1);
-//    auto *vertex_h = spider::api::createVertex(graph, "H", 1, 0);
-//    spider::api::createLocalDelay(delay->vertex()->inputEdge(0), "5", vertex_d, 0, "1", vertex_h, 0, "1");
-
     spider::api::createThreadRTPlatform();
     spider::api::exportGraphToDOT(graph);
     spider::api::createRuntimeKernel(vertex_0,
                                      [](const int64_t *, int64_t *, void *[], void *output[]) -> void {
                                          auto *buffer = reinterpret_cast<char *>(output[0]);
-                                         buffer[1] = 3;
-                                         buffer[0] = 14;
+                                         buffer[0] = 3;
+                                         buffer[1] = 14;
                                          buffer[2] = 15;
                                          buffer[3] = 92;
                                      });
@@ -370,50 +363,38 @@ void simpleTest() {
     spider::api::createRuntimeKernel(vertex_1,
                                      [](const int64_t *, int64_t *, void *input[], void *[]) -> void {
                                          auto *buffer = reinterpret_cast<char *>(input[0]);
-                                         spider::log::info("vertex_1 reading %d\n", buffer[0]);
+                                         spider::log::info("vertex_1 reading %d %d\n", buffer[0], buffer[1]);
                                      });
-//    {
-//        auto graphHandler = spider::srless::GraphHandler(graph, graph->params(), 1u);
-//        auto *handler = graphHandler.firings()[0];
-//        auto it = spider::pisdf::make_iterator2(graph->vertex(4), 0, 0, handler);
-//        auto dep = it->begin();
-//        while(dep != it->end()) {
-//            fprintf(stderr, "vertex: %s\nfirst: %u\nlast: %u\n", dep->vertex_->name().c_str(), dep->firingStart_,
-//                    dep->firingEnd_);
-//            dep = (*it)++;
-//        }
-//        spider::destroy(it);
-//    }
     auto start = spider::time::now();
     auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_LESS,
+            spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
             spider::SchedulingPolicy::GREEDY,
             spider::MappingPolicy::BEST_FIT,
             spider::FifoAllocatorType::DEFAULT,
-            1u,
+            10u,
     };
     auto context = spider::createRuntimeContext(graph, runtimeConfig);
     spider::run(context);
     spider::destroyRuntimeContext(context);
     auto end = spider::time::now();
     std::cerr << "fast-jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
-    start = spider::time::now();
-    runtimeConfig = spider::RuntimeConfig{
-            spider::RunMode::LOOP,
-            spider::RuntimeType::SRDAG_BASED,
-            spider::ExecutionPolicy::DELAYED,
-            spider::SchedulingPolicy::LIST,
-            spider::MappingPolicy::BEST_FIT,
-            spider::FifoAllocatorType::DEFAULT,
-            1u,
-    };
-    auto context2 = spider::createRuntimeContext(graph, runtimeConfig);
-    spider::run(context2);
-    spider::destroyRuntimeContext(context2);
-    end = spider::time::now();
-    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
+//    start = spider::time::now();
+//    runtimeConfig = spider::RuntimeConfig{
+//            spider::RunMode::LOOP,
+//            spider::RuntimeType::SRDAG_BASED,
+//            spider::ExecutionPolicy::DELAYED,
+//            spider::SchedulingPolicy::LIST,
+//            spider::MappingPolicy::BEST_FIT,
+//            spider::FifoAllocatorType::DEFAULT,
+//            10000u,
+//    };
+//    auto context2 = spider::createRuntimeContext(graph, runtimeConfig);
+//    spider::run(context2);
+//    spider::destroyRuntimeContext(context2);
+//    end = spider::time::now();
+//    std::cerr << "jitms: " << spider::time::duration::nanoseconds(start, end) << std::endl;
     spider::api::destroyGraph(graph);
     spider::quit();
 }
@@ -445,7 +426,7 @@ void spiderSmallTest() {
     spider::api::enableExportSRDAG();
     spider::api::enableExportGantt();
     {
-        spider::FastRuntime runtime(graph, spider::RuntimeConfig{
+        spider::PiSDFJITMSRuntime runtime(graph, spider::RuntimeConfig{
                 spider::RunMode::LOOP,
                 spider::RuntimeType::SRDAG_BASED,
                 spider::ExecutionPolicy::DELAYED,
@@ -463,7 +444,7 @@ void spiderSmallTest() {
 
 void spiderTest() {
     spider::start();
-//    spider::api::enableLogger(spider::log::Type::TRANSFO);
+    spider::api::enableLogger(spider::log::Type::TRANSFO);
 //    spider::api::enableLogger(spider::log::Type::OPTIMS);
 //    spider::api::enableLogger(spider::log::Type::LRT);
 //    spider::api::enableLogger(spider::log::Type::SCHEDULE);
@@ -593,10 +574,10 @@ void spiderTest() {
             const auto &start = spider::time::now();
             const auto runtimeConfig = spider::RuntimeConfig{
                     spider::RunMode::LOOP,
-                    spider::RuntimeType::SRDAG_LESS,
+                    spider::RuntimeType::SRDAG_BASED,
                     spider::ExecutionPolicy::DELAYED,
-                    spider::SchedulingPolicy::GREEDY,
-                    spider::MappingPolicy::BEST_FIT,
+                    spider::SchedulingPolicy::LIST,
+                    spider::MappingPolicy::ROUND_ROBIN,
                     spider::FifoAllocatorType::DEFAULT,
                     1u,
             };
