@@ -352,7 +352,9 @@ spider::Fifo spider::sched::FifoAllocator::buildOutputFifo(const JobFifos *fifos
 }
 
 i32 spider::sched::FifoAllocator::getFifoCount(const spider::pisdf::DependencyIterator &depIt) {
-    if (depIt.begin()->rate_ < 0) {
+    if (!depIt.count()) {
+        return INT32_MAX;
+    } else if (depIt.begin()->rate_ < 0) {
         return -1;
     }
     i32 count = 0;
