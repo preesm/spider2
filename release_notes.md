@@ -1,8 +1,8 @@
 Spider2 Changelog
 ================
 
-## Release version X.Y.Z
-*XXXX.XX.XX*
+## Release version 1.0.0
+*2020.11.01*
 
 ### New Feature
 * Adding new DEFAULT_NOSYNC allocator (which only work post scheduling) that removes synchronisation points on forks, duplicates and extern interfaces. Default remains DEFAULT allocator.
