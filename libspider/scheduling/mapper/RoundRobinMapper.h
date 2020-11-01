@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_BESTFITMAPPER_H
-#define SPIDER2_BESTFITMAPPER_H
+#ifndef SPIDER2_ROUNDROBINMAPPER_H
+#define SPIDER2_ROUNDROBINMAPPER_H
 
 /* === Include(s) === */
 
@@ -49,11 +49,11 @@ namespace spider {
 
         /* === Class definition === */
 
-        class BestFitMapper final : public Mapper {
+        class RoundRobinMapper final : public Mapper {
         public:
-            BestFitMapper() : Mapper() { };
+            RoundRobinMapper();
 
-            ~BestFitMapper() noexcept override = default;
+            ~RoundRobinMapper() noexcept override = default;
 
             /* === Method(s) === */
 
@@ -66,6 +66,7 @@ namespace spider {
             /* === Setter(s) === */
 
         private:
+            spider::unique_ptr<size_t> currentPeIx_;
 
             using StartTimeFct = ufast64 (*)(const Task *, const Schedule *);
             using ComCostFct = std::pair<ufast64, ufast64>(*)(const Task *, const PE *mappedPE, const Schedule *);
@@ -90,4 +91,6 @@ namespace spider {
     }
 }
 
-#endif //SPIDER2_BESTFITMAPPER_H
+
+
+#endif //SPIDER2_ROUNDROBINMAPPER_H

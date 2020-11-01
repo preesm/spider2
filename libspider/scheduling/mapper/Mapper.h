@@ -90,6 +90,15 @@ namespace spider {
             inline void setStartTime(ufast64 time) { startTime_ = time; }
 
         protected:
+
+            struct MappingResult {
+                const PE *mappingPE{ nullptr };
+                ufast64 startTime{ UINT_FAST64_MAX };
+                ufast64 endTime{ UINT_FAST64_MAX };
+                ufast64 scheduleCost{ UINT_FAST64_MAX };
+                bool needToAddCommunication{ false };
+            };
+
             ufast64 startTime_{ 0U };
 
             /* === Protected method(s) === */

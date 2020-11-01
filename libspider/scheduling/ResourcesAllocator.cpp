@@ -59,6 +59,7 @@
 #include <api/archi-api.h>
 #include <archi/PE.h>
 #include <common/Time.h>
+#include <scheduling/mapper/RoundRobinMapper.h>
 
 /* === Static function === */
 
@@ -238,6 +239,8 @@ spider::sched::Mapper *spider::sched::ResourcesAllocator::allocateMapper(Mapping
     switch (policy) {
         case MappingPolicy::BEST_FIT:
             return spider::make<sched::BestFitMapper, StackID::SCHEDULE>();
+        case MappingPolicy::ROUND_ROBIN:
+            return spider::make<sched::RoundRobinMapper, StackID::SCHEDULE>();
         default:
             throwSpiderException("unsupported mapping policy.");
     }

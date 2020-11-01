@@ -7,6 +7,7 @@ Spider2 Changelog
 ### New Feature
 * Adding new DEFAULT_NOSYNC allocator (which only work post scheduling) that removes synchronisation points on forks, duplicates and extern interfaces. Default remains DEFAULT allocator.
 * Adding full support of SR-DAG less execution of both static and dynamic applications (see: https://hal.archives-ouvertes.fr/hal-02355636 for more details).
+* Adding support of round-robin mapper.
 
 ### Changes
 * Changed Semaphore.h to use POSIX semaphore on Linux.
