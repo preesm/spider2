@@ -177,7 +177,7 @@ void spider::sched::FifoAllocator::updateDynamicBuffersCount() {
             const auto address = task->handler()->getEdgeAddress(edge, task->firing());
             auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx, address };
             auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx,
-                                                  static_cast<size_t>(count) };
+                                                  static_cast<size_t>(count - 1) };
             rt::platform()->communicator()->push(addrNotifcation, sndIx);
             rt::platform()->communicator()->push(countNotifcation, sndIx);
             spider::out_of_order_erase(dynamicBuffers_, it);
@@ -336,9 +336,6 @@ spider::Fifo spider::sched::FifoAllocator::buildOutputFifo(const JobFifos *fifos
         fifo.address_ = inputFifo.address_;
         fifo.offset_ = inputFifo.offset_ * (inputFifo.attribute_ != FifoAttribute::R_MERGE);
         fifo.attribute_ = FifoAttribute::RW_ONLY;
-//        if (inputFifo.attribute_ != FifoAttribute::R_MERGE) {
-//            inputFifo.attribute_ = FifoAttribute::RW_ONLY;
-//        }
         if (sourceSubType == pisdf::VertexType::FORK) {
             const auto *vertex = edge->source();
             for (size_t i = 0; i < edge->sourcePortIx(); ++i) {
