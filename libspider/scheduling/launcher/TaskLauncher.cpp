@@ -139,12 +139,8 @@ void spider::sched::TaskLauncher::sendTask(Task *task, JobMessage &message) {
     const auto grtIx = archi::platform()->getGRTIx();
     auto *communicator = rt::platform()->communicator();
     const auto mappedLRTIx = task->mappedLRT()->virtualIx();
-    auto start = time::now();
     const auto messageIx = communicator->push(std::move(message), mappedLRTIx);
-    auto end = time::now();
     communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, mappedLRTIx);
-    const auto duration = time::duration::nanoseconds(start, end);
-    push_ += duration;
     /* == Set job in TaskState::RUNNING == */
     task->setState(TaskState::RUNNING);
 }
@@ -163,12 +159,13 @@ spider::sched::TaskLauncher::buildJobNotificationFlags(const Task *task, Args &&
 }
 
 spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraints(const Task *task) {
-    /* == Now build the actual array of synchronization info == */
     const auto lrtCount = archi::platform()->LRTCount();
     size_t constraintsCount = 0;
+    /* == Count the number of dependencies == */
     for (size_t i = 0; i < lrtCount; ++i) {
         constraintsCount += task->syncExecIxOnLRT(i) != UINT32_MAX;
     }
+    /* == Now build the actual array of synchronization info == */
     auto result = spider::array<SyncInfo>(constraintsCount, StackID::RUNTIME);
     if (constraintsCount) {
         auto resultIt = std::begin(result);
@@ -222,6 +219,7 @@ bool spider::sched::TaskLauncher::setFlagsFromSink(const Task *task, const Task 
         std::fill(flags, flags + archi::platform()->LRTCount(), true);
         return true;
     }
+    /* == Check if we are the one the sink task is synchronized on == */
     const auto snkMappedLRTIx = sinkTask->mappedLRT()->virtualIx();
     auto &currentFlag = flags[snkMappedLRTIx];
     if (!currentFlag && snkMappedLRTIx != mappedLRTIx) {

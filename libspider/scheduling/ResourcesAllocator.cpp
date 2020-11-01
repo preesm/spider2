@@ -50,6 +50,7 @@
 #include <scheduling/scheduler/pisdf-based/PiSDFGreedyScheduler.h>
 #include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
+#include <scheduling/mapper/RoundRobinMapper.h>
 #include <scheduling/memory/pisdf-based/PiSDFFifoAllocator.h>
 #include <scheduling/launcher/TaskLauncher.h>
 #include <graphs/pisdf/ExternInterface.h>
@@ -57,8 +58,6 @@
 #include <scheduling/task/PiSDFTask.h>
 #include <api/archi-api.h>
 #include <archi/PE.h>
-#include <common/Time.h>
-#include <scheduling/mapper/RoundRobinMapper.h>
 
 /* === Static function === */
 
@@ -99,10 +98,7 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
-    auto start = time::now();
     const auto result = scheduler_->schedule(graph);
-    auto end = time::now();
-    log::info("scheduling: %lld ns\n", time::duration::nanoseconds(start, end));
     /* == Map, Allocate and Send tasks == */
     execute(result);
 }
@@ -111,10 +107,7 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
 
 void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
-    auto start = time::now();
     const auto result = scheduler_->schedule(graphHandler);
-    auto end = time::now();
-    log::info("scheduling: %lld ns\n", time::duration::nanoseconds(start, end));
     /* == Map, Allocate and Send tasks == */
     execute(result);
 }
@@ -154,7 +147,6 @@ void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) 
             }
             break;
         case ExecutionPolicy::DELAYED: {
-            auto start = time::now();
             const auto currentTaskCount = schedule_->taskCount();
             for (auto *task : tasks) {
                 /* == Map the task == */
@@ -162,8 +154,6 @@ void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) 
                 /* == Add the task == */
                 schedule_->addTask(task);
             }
-            auto end = time::now();
-            log::info("mapping: %lld ns\n", time::duration::nanoseconds(start, end));
             for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
                 /* == Send the task == */
                 auto *task = schedule_->task(i);

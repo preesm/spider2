@@ -39,7 +39,6 @@
 
 #include <memory/memory.h>
 #include <common/Types.h>
-#include <common/Time.h>
 #include <scheduling/memory/JobFifos.h>
 #include <runtime/message/JobMessage.h>
 #include <graphs-tools/numerical/dependencies.h>
@@ -68,9 +67,7 @@ namespace spider {
                 deferedSyncTasks_ = factory::vector<std::pair<SyncTask *, u32>>(StackID::RUNTIME);
             }
 
-            ~TaskLauncher() {
-                log::info("push: %lld ns\n", push_);
-            }
+            ~TaskLauncher() = default;
 
             /* === Method(s) === */
 
@@ -90,7 +87,6 @@ namespace spider {
             spider::vector<std::pair<SyncTask *, u32>> deferedSyncTasks_;
             const Schedule *schedule_ = nullptr;
             FifoAllocator *allocator_ = nullptr;
-            long long push_ = 0;
 
             /* === Private method(s) === */
 
