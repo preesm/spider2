@@ -38,8 +38,6 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/Mapper.h>
-#include <scheduling/schedule/ScheduleStats.h>
-#include <scheduling/task/SyncTask.h>
 
 namespace spider {
 
@@ -59,7 +57,9 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void map(Task *task, Schedule *schedule) override;
+            void map(sched::Task *task, Schedule *schedule) override;
+
+            void map(sched::PiSDFTask *task, Schedule *schedule) override;
 
             /* === Getter(s) === */
 
@@ -75,27 +75,25 @@ namespace spider {
                 bool needToAddCommunication{ false };
             };
 
+            using StartTimeFct = ufast64 (*)(const Task *, const Schedule *);
+            using ComCostFct = std::pair<ufast64, ufast64>(*)(const Task *, const PE *mappedPE, const Schedule *);
+            using MapSyncFct = void (*)(Task *, const Cluster *cluster, Schedule *);
+
             /* === Private method(s) === */
+
+            template<class ...Args>
+            void mapImpl(Task *task, Schedule *schedule, Args &&... args);
 
             /**
              * @brief Find which PE is the best fit inside a given cluster.
              * @param cluster       Cluster to go through.
              * @param stats         Schedule information about current usage of PEs.
              * @param minStartTime  Lower bound for start time.
-             * @param task          Pointer to the task.
+             * @param task          Pointer to the vertexTask.
              * @return best fit PE found, nullptr if no fit was found.
              */
             const PE *
-            findBestFitPE(const Cluster *cluster, const Stats &stats, ufast64 minStartTime, const Task *task) const;
-
-            void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule);
-
-            SyncTask *insertCommunicationTask(const Cluster *cluster,
-                                              const Cluster *distCluster,
-                                              ufast64 dataSize,
-                                              Task *previousTask,
-                                              SyncType type,
-                                              Schedule *schedule);
+            findPE(const Cluster *cluster, const Stats &stats, const Task *task, ufast64 minStartTime) const final;
         };
     }
 }

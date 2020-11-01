@@ -48,8 +48,8 @@ bool spider::optims::optimizeUnitaryVertex(srdag::Vertex *vertex) {
     auto removeVertex = [](srdag::Vertex *v) -> bool {
         auto *inputEdge = v->inputEdge(0);
         auto *outputEdge = v->outputEdge(0);
-        if (inputEdge->sinkRateValue() == outputEdge->sourceRateValue()) {
-            inputEdge->setSink(outputEdge->sink(), outputEdge->sinkPortIx(), outputEdge->sinkRateValue());
+        if (inputEdge->rate() == outputEdge->rate()) {
+            inputEdge->setSink(outputEdge->sink(), outputEdge->sinkPortIx());
             /* == Remove edge and vertex == */
             auto *graph = v->graph();
             graph->removeEdge(outputEdge);

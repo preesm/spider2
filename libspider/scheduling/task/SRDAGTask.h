@@ -45,6 +45,8 @@ namespace spider {
 
     namespace srdag {
         class Vertex;
+
+        class Edge;
     }
 
     namespace sched {
@@ -57,44 +59,44 @@ namespace spider {
 
             ~SRDAGTask() noexcept override = default;
 
-            /* === Virtual method(s) === */
+            /* === Method(s) === */
 
-            void allocate(FifoAllocator *allocator) override;
+            void visit(TaskLauncher *launcher) final;
 
-            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
-
-            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
-
-            u32 color() const override;
-
-            std::string name() const override;
-
-            void updateTaskExecutionDependencies(const Schedule *schedule) override;
-
-            JobMessage createJobMessage() const override;
-
-            bool isSyncOptimizable() const noexcept override;
-
-            void setIx(u32 ix) noexcept override;
-
-            std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
-
-            bool isMappableOnPE(const PE *pe) const override;
-
-            u64 timingOnPE(const PE *pe) const override;
-
-            size_t dependencyCount() const override;
+            void receiveParams(const spider::array<i64> &values) final;
 
             /* === Getter(s) === */
 
-            inline srdag::Vertex *vertex() const { return vertex_; }
+            i64 inputRate(size_t ix) const final;
 
-            DependencyInfo getDependencyInfo(size_t ix) const override;
+            i64 outputRate(size_t ix) const final;
+
+            Task *previousTask(size_t ix, const Schedule *schedule) const final;
+
+            Task *nextTask(size_t ix, const Schedule *schedule) const final;
+
+            u32 color() const final;
+
+            std::string name() const final;
+
+            u32 ix() const noexcept final;
+
+            bool isMappableOnPE(const PE *pe) const final;
+
+            u64 timingOnPE(const PE *pe) const final;
+
+            size_t dependencyCount() const final;
+
+            size_t successorCount() const final;
+
+            inline srdag::Vertex *vertex() const { return vertex_; }
 
             /* === Setter(s) === */
 
+            void setIx(u32 ix) noexcept final;
+
         private:
-            srdag::Vertex *vertex_;
+            srdag::Vertex *vertex_ = nullptr;
         };
     }
 }

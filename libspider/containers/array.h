@@ -111,8 +111,7 @@ namespace spider {
             deallocate(array_handle<T>::data_);
             array_handle<T>::data_ = allocate<T>(other.size_);
             array_handle<T>::size_ = other.size_;
-            std::copy(other.begin(), std::min(other.begin() + array_handle<T>::size(), other.end()),
-                      array_handle<T>::begin());
+            std::copy(other.begin(), other.end(), array_handle<T>::begin());
             return *this;
         }
 

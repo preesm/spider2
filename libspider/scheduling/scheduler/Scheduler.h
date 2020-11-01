@@ -43,55 +43,60 @@
 
 namespace spider {
 
+#ifndef _NO_BUILD_LEGACY_RT
     namespace srdag {
         class Graph;
-    }
 
-    namespace srless {
+        class Vertex;
+    }
+#endif
+
+    namespace pisdf {
         class GraphHandler;
+
+        class GraphFiring;
+
+        struct VertexFiring {
+            pisdf::GraphFiring *handler_;
+            u32 vertexIx_;
+            u32 firing_;
+        };
     }
 
     namespace sched {
+
+        class PiSDFTask;
+
+        class SRDAGTask;
 
         /* === Class definition === */
 
         class Scheduler {
         public:
-            Scheduler();
+            Scheduler() = default;
 
             virtual ~Scheduler() noexcept = default;
 
             /* === Method(s) === */
 
+#ifndef _NO_BUILD_LEGACY_RT
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graph  Graph to use to perform the update.
              */
-            virtual void schedule(const srdag::Graph *graph) = 0;
+            inline virtual spider::vector<SRDAGTask *> schedule(const srdag::Graph *) { return { }; }
+#endif
 
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
-             * @param
+             * @param graphHandler Handler of the top graph.
              */
-            virtual void schedule(srless::GraphHandler *graphHandler) = 0;
+            inline virtual spider::vector<PiSDFTask *> schedule(pisdf::GraphHandler *) { return { }; }
 
             /**
              * @brief Clears scheduler resources.
              */
-            virtual void clear();
-
-            /* === Getter(s) === */
-
-            /**
-             * @brief Get the list of scheduled tasks, obtained after the call to Scheduler::schedule method.
-             * @return const reference to a vector of pointer to Task.
-             */
-            inline spider::vector<spider::unique_ptr<Task>> &tasks() { return tasks_; }
-
-            /* === Setter(s) === */
-
-        protected:
-            spider::vector<spider::unique_ptr<Task>> tasks_;
+            inline virtual void clear() { }
         };
     }
 }

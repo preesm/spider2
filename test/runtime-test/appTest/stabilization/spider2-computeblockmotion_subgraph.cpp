@@ -40,11 +40,11 @@
 
 /* === Include(s) === */
 
-#include "spider2-application.h"
+#include "spider2-stabilization.h"
 
 /* === Function(s) definition === */
 
-spider::pisdf::Vertex *spider::createComputeBlockMotionSubgraph(std::string name,
+spider::pisdf::Vertex *spider::stab::createComputeBlockMotionSubgraph(std::string name,
                                                                 spider::pisdf::Graph *parentGraph,
                                                                 const std::vector<std::shared_ptr<spider::pisdf::Param>> &parentGraphParams) {
     /* == Create the subgraph == */

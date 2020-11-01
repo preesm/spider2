@@ -60,7 +60,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void schedule(const srdag::Graph *graph) override;
+            spider::vector<SRDAGTask *> schedule(const srdag::Graph *graph) override;
 
             void clear() override;
 
@@ -74,12 +74,8 @@ namespace spider {
                 ifast32 level_;
             };
             spider::vector<ListTask> sortedTaskVector_;
-            size_t lastSchedulableTask_ = 0;
-            size_t lastScheduledTask_ = 0;
 
             /* === Private method(s) === */
-
-            inline void schedule(srless::GraphHandler *) override { }
 
             /**
              * @brief Reset unscheduled task from previous schedule iteration.

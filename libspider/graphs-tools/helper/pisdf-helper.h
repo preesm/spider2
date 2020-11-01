@@ -45,13 +45,11 @@
 
 namespace spider {
 
-    namespace srless {
-        class GraphFiring;
-    }
-
     namespace pisdf {
 
         /* === Forward declaration(s) === */
+
+        class GraphFiring;
 
         class Graph;
 

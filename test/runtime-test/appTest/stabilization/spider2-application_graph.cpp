@@ -40,11 +40,11 @@
 
 /* === Include(s) === */
 
-#include "spider2-application.h"
+#include "spider2-stabilization.h"
 
 /* === Function(s) definition === */
 
-spider::pisdf::Graph *spider::createUserApplicationGraph() {
+spider::pisdf::Graph *spider::stab::createUserApplicationGraph() {
     /* == Create the graph == */
     auto *graph = spider::api::createGraph(
                              /* = Name of the application graph = */ "top",
@@ -213,7 +213,7 @@ spider::pisdf::Graph *spider::createUserApplicationGraph() {
 
     /* === Creates the subgraph(s) === */
     
-    auto *vertex_Stabilization = spider::createStabilizationSubgraph("Stabilization", graph, { param_width,  param_height,  param_border });
+    auto *vertex_Stabilization = spider::stab::createStabilizationSubgraph("Stabilization", graph, { param_width,  param_height,  param_border });
 
     /* === Creates the edge(s) === */
 

@@ -40,11 +40,11 @@
 
 /* === Include(s) === */
 
-#include "spider2-application.h"
+#include "spider2-stabilization.h"
 
 /* === Function(s) definition === */
 
-spider::pisdf::Vertex *spider::createStabilizationSubgraph(std::string name, 
+spider::pisdf::Vertex *spider::stab::createStabilizationSubgraph(std::string name,
                                                           spider::pisdf::Graph *parentGraph,
                                                           const std::vector<std::shared_ptr<spider::pisdf::Param>> &parentGraphParams) {
     /* == Create the subgraph == */
@@ -306,7 +306,7 @@ spider::pisdf::Vertex *spider::createStabilizationSubgraph(std::string name,
 
     /* === Creates the subgraph(s) === */
     
-    auto *vertex_ComputeBlockMotionVectorss = spider::createComputeBlockMotionSubgraph("ComputeBlockMotionVectorss", graph, { param_width,  param_height,  param_blockWidth,  param_blockHeight,  param_maxDeltaX,  param_maxDeltaY,  param_nbVectors });
+    auto *vertex_ComputeBlockMotionVectorss = spider::stab::createComputeBlockMotionSubgraph("ComputeBlockMotionVectorss", graph, { param_width,  param_height,  param_blockWidth,  param_blockHeight,  param_maxDeltaX,  param_maxDeltaY,  param_nbVectors });
 
     /* === Creates the edge(s) === */
 

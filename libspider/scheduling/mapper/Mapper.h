@@ -37,17 +37,21 @@
 
 /* === Include(s) === */
 
+#include <utility>
 #include <common/Types.h>
+#include <containers/vector.h>
+#include <scheduling/schedule/ScheduleStats.h>
+#include <graphs-tools/numerical/dependencies.h>
 
 namespace spider {
 
-    namespace pisdf {
-        class Vertex;
-    }
+    class PE;
 
     namespace sched {
 
         class Task;
+
+        class PiSDFTask;
 
         class SRDAGTask;
 
@@ -64,12 +68,20 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Map a task onto available resources.
+             * @brief Map a vertexTask onto available resources.
              * @param task     pointer to the task to map.
              * @param schedule pointer to the schedule to update.
-             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the task.
+             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
-            virtual void map(Task *task, Schedule *schedule) = 0;
+            virtual void map(sched::Task *task, Schedule *schedule) = 0;
+
+            /**
+             * @brief Map a vertexTask onto available resources.
+             * @param task     pointer to the task to map.
+             * @param schedule pointer to the schedule to update.
+             * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
+             */
+            virtual void map(sched::PiSDFTask *task, Schedule *schedule) = 0;
 
             /* === Getter(s) === */
 
@@ -83,11 +95,79 @@ namespace spider {
             /* === Protected method(s) === */
 
             /**
+             * @brief Find which PE is the best fit inside a given cluster.
+             * @param cluster       Cluster to go through.
+             * @param stats         Schedule information about current usage of PEs.
+             * @param minStartTime  Lower bound for start time.
+             * @param task          Pointer to the vertexTask.
+             * @return best fit PE found, nullptr if no fit was found.
+             */
+            virtual const PE *
+            findPE(const Cluster *cluster, const Stats &stats, const Task *task, ufast64 minStartTime) const = 0;
+
+            /**
              * @brief Compute the minimum start time possible for a given task.
-             * @param task    Pointer to the task.
+             * @param task      Pointer to the task.
+             * @param schedule  Pointer to the schedule.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(const Task *task) const;
+            ufast64 computeStartTime(Task *task, const Schedule *schedule) const;
+
+            /**
+             * @brief Compute the minimum start time possible for a given task.
+             * @param task         Pointer to the task.
+             * @param schedule     Pointer to the schedule.
+             * @param dependencies Dependencies of the task.
+             * @return value of the minimum start time possible
+             */
+            ufast64 computeStartTime(Task *task,
+                                     const Schedule *schedule,
+                                     const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+
+            /**
+             * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
+             *        on a given PE.
+             * @param task      Pointer to the task.
+             * @param mappedPE  PE on which the vertexTask is currently mapped.
+             * @param schedule  Schedule to which the vertexTask is associated.
+             * @return pair containing the communication cost as first and the total size of data to send as second.
+             */
+            static std::pair<ufast64, ufast64> computeCommunicationCost(const Task *task,
+                                                                        const PE *mappedPE,
+                                                                        const Schedule *schedule);
+
+            /**
+             * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
+             *        on a given PE.
+             * @param mappedPE     PE on which the vertexTask is currently mapped.
+             * @param schedule     Schedule to which the vertexTask is associated.
+             * @param dependencies Dependencies of the task.
+             * @return pair containing the communication cost as first and the total size of data to send as second.
+             */
+            static std::pair<ufast64, ufast64> computeCommunicationCost(const Task *,
+                                                                        const PE *mappedPE,
+                                                                        const Schedule *schedule,
+                                                                        const spider::vector<pisdf::DependencyIterator> &dependencies);
+
+            static void updateCommunicationCost(const spider::PE *mappedPE,
+                                                const Task *srcTask,
+                                                ufast64 rate,
+                                                ufast64 &communicationCost,
+                                                ufast64 &externDataToReceive);
+
+
+            void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule) const;
+
+            void mapCommunications(Task *task,
+                                   const Cluster *cluster,
+                                   Schedule *schedule,
+                                   const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+
+            void mapCommunications(Task *task,
+                                   Task *srcTask,
+                                   size_t depIx,
+                                   const Cluster *cluster,
+                                   Schedule *schedule) const;
 
         };
     }

@@ -52,8 +52,7 @@ namespace spider {
         class Edge {
         public:
 
-            Edge(srdag::Vertex *source, size_t srcIx, i64 srcRate,
-                 srdag::Vertex *sink, size_t snkIx, i64 snkRate);
+            Edge(srdag::Vertex *source, size_t srcIx, srdag::Vertex *sink, size_t snkIx, i64 rate);
 
             ~Edge() = default;
 
@@ -86,16 +85,22 @@ namespace spider {
             inline size_t sinkPortIx() const { return snkPortIx_; }
 
             /**
+             * @brief Shortcurt for the method of @refitem Expression::value.
+             * @return value of the source rate expression.
+             */
+            inline int64_t sourceRateValue() const { return rate_; }
+
+            /**
+             * @brief Shortcurt for the method of @refitem Expression::value.
+             * @return value of the sink rate expression.
+             */
+            inline int64_t sinkRateValue() const { return rate_; }
+
+            /**
              * @brief Get source rate of the edge.
              * @return value of the source rate expression.
              */
-            inline int64_t sourceRateValue() const { return srcRate_; }
-
-            /**
-             * @brief Get sink rate of the edge.
-             * @return value of the sink rate expression.
-             */
-            inline int64_t sinkRateValue() const { return snkRate_; }
+            inline int64_t rate() const { return rate_; }
 
             /**
              * @brief Get the source reference vertex.
@@ -109,7 +114,17 @@ namespace spider {
              */
             inline srdag::Vertex *sink() const { return sink_; }
 
+            /**
+             * @brief Get the allocated virtual address of this edge.
+             * @return virtual memory address.
+             */
+            inline size_t address() const { return alloc_.address_; }
+
+            inline u32 offset() const { return alloc_.offset_; }
+
             /* === Setter(s) === */
+
+            inline void setRate(i64 rate) { rate_ = rate; }
 
             /**
              * @brief Set the ix of the edge in the containing graph.
@@ -126,7 +141,7 @@ namespace spider {
              * @param rate    Value of the rate.
              * @return pointer to the old output @refitem Edge of vertex, nullptr else.
              */
-            void setSource(srdag::Vertex *vertex, size_t ix, i64 rate);
+            void setSource(srdag::Vertex *vertex, size_t ix);
 
             /**
              * @brief Set the sink vertex of the edge.
@@ -136,16 +151,24 @@ namespace spider {
              * @param rate    Value of the rate.
              * @return pointer to the old input @refitem Edge of vertex, nullptr else.
              */
-            void setSink(srdag::Vertex *vertex, size_t ix, i64 rate);
+            void setSink(srdag::Vertex *vertex, size_t ix);
+
+            /**
+             * @brief Set the virtual address of this edge.
+             * @param address Address to set.
+             */
+            inline void setAddress(size_t address) { alloc_.address_ = address; }
+
+            inline void setOffset(u32 offset) { alloc_.offset_ = offset; }
 
         private:
             srdag::Vertex *source_ = nullptr;
             srdag::Vertex *sink_ = nullptr;
-            i64 srcRate_ = 0;
-            i64 snkRate_ = 0;
+            i64 rate_ = 0;
             size_t srcPortIx_ = SIZE_MAX;  /* = Index of the Edge in the source outputEdgeArray = */
             size_t snkPortIx_ = SIZE_MAX;  /* = Index of the Edge in the sink inputEdgeArray = */
             size_t ix_ = SIZE_MAX;         /* = Index of the Edge in the Graph (used for add and remove) = */
+            FifoAlloc alloc_{ };
         };
 
 

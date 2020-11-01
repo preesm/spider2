@@ -210,7 +210,7 @@ namespace spider {
              * @param edge       Corresponding edge in the four possible (in_0: setter, in_1: producer, out_0:getter, out_1:consumer)
              * @param isSink     Boolean corresponding to type (true if calling for sink, false else)
              */
-            void populateFromDelayVertex(spider::vector<TransfoVertex> &vector, srdag::Edge *edge, bool isSink);
+            static void populateFromDelayVertex(spider::vector<TransfoVertex> &vector, srdag::Edge *edge, bool isSink);
         };
     }
 }

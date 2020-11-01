@@ -61,16 +61,20 @@ spider::MemoryInterface::~MemoryInterface() {
 #endif
 }
 
-/* === Private method(s) implementation === */
-
-void *spider::MemoryInterface::read(uint64_t virtualAddress, i32 count) {
+void *spider::MemoryInterface::read(uint64_t address, i32 count) {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
-    auto *buffer = retrieveBuffer(virtualAddress);
+    auto *buffer = retrieveBuffer(address);
     buffer->count_ += count;
     return buffer->buffer_;
 }
 
-void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size, i32 count) {
+void spider::MemoryInterface::update(uint64_t address, i32 count) {
+    std::lock_guard<std::mutex> lockGuard{ lock_ };
+    auto *buffer = retrieveBuffer(address);
+    buffer->count_ += count;
+}
+
+void *spider::MemoryInterface::allocate(uint64_t address, size_t size, i32 count) {
     if (!size) {
         return nullptr;
     }
@@ -78,7 +82,7 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size, i3
     if (log::enabled<log::MEMORY>()) {
         log::print<log::MEMORY>(log::yellow, "INFO", "PHYSICAL: [%p] allocating: %zu bytes at address %zu.\n", this,
                                 size,
-                                virtualAddress);
+                                address);
     }
     uint64_t res = UINT64_MAX;
     if (size <= available()) {
@@ -92,7 +96,7 @@ void *spider::MemoryInterface::allocate(uint64_t virtualAddress, size_t size, i3
     if (!physicalAddress) {
         return nullptr;
     }
-    registerPhysicalAddress(virtualAddress, physicalAddress, size, count);
+    registerPhysicalAddress(address, physicalAddress, size, count);
     return physicalAddress;
 }
 
@@ -126,7 +130,7 @@ void spider::MemoryInterface::clear() {
     virtual2Phys_.clear();
 }
 
-void spider::MemoryInterface::garbageCollect() {
+void spider::MemoryInterface::collect() {
     std::lock_guard<std::mutex> lockGuard{ lock_ };
     for (auto &elt : virtual2Phys_) {
         auto &buffer = elt.second;

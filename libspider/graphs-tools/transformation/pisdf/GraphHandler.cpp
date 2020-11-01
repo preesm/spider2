@@ -45,10 +45,10 @@
 
 /* === Method(s) implementation === */
 
-spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
+spider::pisdf::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
                                            const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                                            u32 repetitionCount,
-                                           const srless::GraphFiring *handler) :
+                                           const pisdf::GraphFiring *handler) :
         handler_{ handler },
         graph_{ graph },
         repetitionCount_{ repetitionCount } {
@@ -62,20 +62,20 @@ spider::srless::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
     }
     const auto *parentGraph = graph->graph();
     for (u32 k = 0; k < repetitionCount; ++k) {
-        firings_.get()[k] = spider::make<GraphFiring>(this, params, k);
+        firings_[k] = spider::make<GraphFiring>(this, params, k);
     }
     if (static_ || (parentGraph && !parentGraph->configVertexCount())) {
         resolveFirings();
     }
 }
 
-spider::srless::GraphHandler::~GraphHandler() {
+spider::pisdf::GraphHandler::~GraphHandler() {
     for (u32 k = 0; k < repetitionCount_; ++k) {
-        destroy(firings_.get()[k]);
+        destroy(firings_[k]);
     }
 }
 
-void spider::srless::GraphHandler::clear() {
+void spider::pisdf::GraphHandler::clear() {
     for (auto &firing : firings()) {
         if (firing) {
             firing->clear();
@@ -83,16 +83,16 @@ void spider::srless::GraphHandler::clear() {
     }
 }
 
-void spider::srless::GraphHandler::resolveFirings() {
+void spider::pisdf::GraphHandler::resolveFirings() {
     if (repetitionCount_ && !graph_->configVertexCount()) {
-        auto *firstFiring = firings_.get()[0u];
+        auto *firstFiring = firings_[0u];
         firstFiring->resolveBRV();
         for (u32 k = 1; k < repetitionCount_; ++k) {
-            firings_.get()[k]->apply(firstFiring);
+            firings_[k]->apply(firstFiring);
         }
     } else {
         for (u32 k = 0; k < repetitionCount_; ++k) {
-            firings_.get()[k]->resolveBRV();
+            firings_[k]->resolveBRV();
         }
     }
 }

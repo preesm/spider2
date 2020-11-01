@@ -95,7 +95,7 @@ void spider::pisdf::Vertex::addInputParameter(const std::shared_ptr<Param> &para
         auto *tmp = spider::make_n<u32, StackID::PISDF>(nINParams_ + 1);
         std::move(inputParamArray_.get(), inputParamArray_.get() + nINParams_, tmp);
         inputParamArray_.reset(tmp);
-        inputParamArray_.get()[nINParams_++] = static_cast<u32>(param->ix());
+        inputParamArray_[nINParams_++] = static_cast<u32>(param->ix());
     }
 }
 
@@ -107,7 +107,7 @@ void spider::pisdf::Vertex::addOutputParameter(const std::shared_ptr<Param> &par
     auto *tmp = spider::make_n<u32, StackID::PISDF>(nOUTParams_ + 1);
     std::move(outputParamArray_.get(), outputParamArray_.get() + nOUTParams_, tmp);
     outputParamArray_.reset(tmp);
-    outputParamArray_.get()[nOUTParams_++] = static_cast<u32>(param->ix());
+    outputParamArray_[nOUTParams_++] = static_cast<u32>(param->ix());
 }
 
 void spider::pisdf::Vertex::addRefinementParameter(const std::shared_ptr<Param> &param) {
@@ -115,7 +115,7 @@ void spider::pisdf::Vertex::addRefinementParameter(const std::shared_ptr<Param> 
         auto *tmp = spider::make_n<u32, StackID::PISDF>(nRefinementParams_ + 1);
         std::move(refinementParamArray_.get(), refinementParamArray_.get() + nRefinementParams_, tmp);
         refinementParamArray_.reset(tmp);
-        refinementParamArray_.get()[nRefinementParams_++] = static_cast<u32>(param->ix());
+        refinementParamArray_[nRefinementParams_++] = static_cast<u32>(param->ix());
     }
 }
 
@@ -215,7 +215,7 @@ void spider::pisdf::Vertex::setName(std::string name) {
     const auto size = name.size();
     name_.reset(spider::make_n<char, StackID::PISDF>(size + 1));
     std::move(std::begin(name), std::end(name), name_.get());
-    name_.get()[size] = '\0';
+    name_[size] = '\0';
 }
 
 

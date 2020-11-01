@@ -36,80 +36,42 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/task/Task.h>
-#include <api/archi-api.h>
-#include <archi/Platform.h>
-#include <archi/PE.h>
-#include <api/runtime-api.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/communicator/RTCommunicator.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
+void spider::sched::Schedule::reserve(size_t size) {
+    spider::reserve(tasks_, size);
+}
+
 void spider::sched::Schedule::clear() {
-    tasks_.clear();
-    readyTaskVector_.clear();
     stats_.reset();
+    tasks_.clear();
 }
 
 void spider::sched::Schedule::reset() {
-    for (const auto &task : tasks_) {
+    for (auto &task : tasks_) {
         task->setState(TaskState::READY);
-        readyTaskVector_.emplace_back(task.get());
     }
 }
 
-void spider::sched::Schedule::addTask(spider::unique_ptr<Task> task) {
-    if (!task || UINT32_MAX != task->ix()) {
-        return;
-    }
-    task->setIx(static_cast<u32>(tasks_.size()));
-    tasks_.emplace_back(std::move(task));
-}
-
-void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE* slave, u64 startTime, u64 endTime) {
+void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime) {
     if (task->state() == TaskState::READY) {
         return;
     }
     const auto peIx = slave->virtualIx();
-
     /* == Set job information == */
     task->setMappedPE(slave);
     task->setStartTime(startTime);
     task->setEndTime(endTime);
     task->setJobExecIx(static_cast<u32>(stats_.jobCount(peIx)));
-    task->updateDependenciesNotificationFlag();
-
     /* == Update schedule statistics == */
     stats_.updateStartTime(peIx, startTime);
     stats_.updateIDLETime(peIx, startTime - stats_.endTime(peIx));
     stats_.updateEndTime(peIx, endTime);
     stats_.updateLoadTime(peIx, endTime - startTime);
     stats_.updateJobCount(peIx);
-
     /* == Update job state == */
     task->setState(TaskState::READY);
-    readyTaskVector_.emplace_back(task);
-}
-
-void spider::sched::Schedule::sendReadyTasks() {
-    if (log::enabled<log::SCHEDULE>()) {
-//        print();
-    }
-    const auto grtIx = archi::platform()->getGRTIx();
-    auto *communicator = rt::platform()->communicator();
-    for (const auto &task : readyTaskVector_) {
-        if (task->state() == TaskState::READY) {
-            /* == Create job message and send the notification == */
-            const auto messageIx = communicator->push(task->createJobMessage(), task->mappedLRT()->virtualIx());
-            communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx },
-                               task->mappedLRT()->virtualIx());
-            /* == Set job in TaskState::RUNNING == */
-            task->setState(TaskState::RUNNING);
-        }
-    }
-    /* == Reset ready task vector == */
-    readyTaskVector_.clear();
 }

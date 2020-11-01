@@ -36,151 +36,28 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
-#include <api/archi-api.h>
+#include <scheduling/launcher/TaskLauncher.h>
 #include <archi/Platform.h>
-#include <archi/PE.h>
-#include <algorithm>
-
-/* === Static function === */
+#include <api/archi-api.h>
+#include <runtime/platform/RTPlatform.h>
+#include <runtime/communicator/RTCommunicator.h>
+#include <api/runtime-api.h>
 
 /* === Method(s) implementation === */
 
-/* === Private method(s) implementation === */
-
 spider::sched::Task::Task() {
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    notifications_ = make_unique<bool>(spider::allocate<bool, StackID::SCHEDULE>(lrtCount));
-    std::fill(notifications_.get(), notifications_.get() + lrtCount, false);
-}
-
-void spider::sched::Task::enableBroadcast() {
-    const auto lrtCount = archi::platform()->LRTCount();
-    std::fill(notifications_.get(), notifications_.get() + lrtCount, true);
-}
-
-spider::array<size_t> spider::sched::Task::updateDependenciesNotificationFlag() const {
-    auto *execDependencies = dependencies_.get();
-    auto shouldNotifyArray = array<size_t>(archi::platform()->LRTCount(), SIZE_MAX, StackID::SCHEDULE);
-    auto numberOfConstraints{ 0u };
-    for (size_t i = 0; i < this->dependencyCount(); ++i) {
-        auto *dependency = execDependencies[i];
-        if (dependency) {
-            const auto *depLRT = dependency->mappedLRT();
-            const auto currentDepIxOnLRT = shouldNotifyArray[depLRT->virtualIx()];
-            const auto gotConstraintOnLRT = currentDepIxOnLRT != SIZE_MAX;
-            if (!gotConstraintOnLRT || (dependency->jobExecIx() > execDependencies[currentDepIxOnLRT]->jobExecIx())) {
-                numberOfConstraints += !gotConstraintOnLRT;
-                shouldNotifyArray[depLRT->virtualIx()] = i;
-            }
-        }
-    }
-    for (const auto depIx : shouldNotifyArray) {
-        if (depIx != SIZE_MAX) {
-            auto *dependency = execDependencies[depIx];
-            /* == Ask the dependency to notify us == */
-            dependency->setNotificationFlag(mappedLRT()->virtualIx(), true);
-        }
-    }
-    return shouldNotifyArray;
-}
-
-spider::Fifo spider::sched::Task::getInputFifo(size_t ix) const {
-    return fifos_->inputFifo(ix);
-}
-
-spider::Fifo spider::sched::Task::getOutputFifo(size_t ix) const {
-    return fifos_->outputFifo(ix);
-}
-
-u64 spider::sched::Task::startTime() const {
-    return startTime_;
-}
-
-u64 spider::sched::Task::endTime() const {
-    return endTime_;
+    syncExecTaskIxArray_ = make_unique(make_n<u32, StackID::SCHEDULE>(archi::platform()->LRTCount(), UINT32_MAX));
 }
 
 const spider::PE *spider::sched::Task::mappedPe() const {
-    return mappedPE_;
+    return archi::platform()->peFromVirtualIx(mappedPEIx_);
 }
 
-const spider::PE *spider::sched::Task::mappedLRT() const {
-    return mappedPE_->attachedLRT();
+void spider::sched::Task::visit(TaskLauncher *launcher) {
+    launcher->visit(this);
 }
 
-spider::sched::Task *spider::sched::Task::previousTask(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= dependencyCount()) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    return dependencies_.get()[ix];
-}
-
-void spider::sched::Task::setStartTime(u64 time) {
-    startTime_ = time;
-}
-
-void spider::sched::Task::setEndTime(u64 time) {
-    endTime_ = time;
-}
-
-void spider::sched::Task::setMappedPE(const spider::PE *const pe) {
-    mappedPE_ = pe;
-}
-
-void spider::sched::Task::setExecutionDependency(size_t ix, Task *task) {
-#ifndef NDEBUG
-    if (ix >= dependencyCount()) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    if (task) {
-        dependencies_.get()[ix] = task;
-    }
-}
-
-spider::JobMessage spider::sched::Task::createJobMessage() const {
-    JobMessage message{ };
-    /* == Set core properties == */
-    message.nParamsOut_ = 0u;
-    message.kernelIx_ = UINT32_MAX;
-    message.taskIx_ = ix_;
-    message.ix_ = jobExecIx_;
-    /* == Set the synchronization flags == */
-    const auto lrtCount{ archi::platform()->LRTCount() };
-    const auto *flags = notifications_.get();
-    message.synchronizationFlags_ = make_unique<bool>(spider::allocate<bool, StackID::RUNTIME>(lrtCount));
-    std::copy(flags, flags + lrtCount, message.synchronizationFlags_.get());
-    /* == Set the execution task constraints == */
-    message.execConstraints_ = Task::getExecutionConstraints();
-    /* == Set Fifos == */
-    message.fifos_ = fifos_;
-    return message;
-}
-
-/* === Protected method(s) === */
-
-spider::array<spider::SyncInfo> spider::sched::Task::getExecutionConstraints() const {
-    const auto lrtNotifArray = updateDependenciesNotificationFlag();
-    const auto numberOfNonNULLDep = std::count(std::begin(lrtNotifArray), std::end(lrtNotifArray), SIZE_MAX);
-    const auto numberOfConstraints{ archi::platform()->LRTCount() - static_cast<size_t>(numberOfNonNULLDep) };
-    auto result = array<SyncInfo>(numberOfConstraints, StackID::RUNTIME);
-    if (numberOfConstraints) {
-        auto resultIt = std::begin(result);
-        for (const auto depIx : lrtNotifArray) {
-            if (depIx != SIZE_MAX) {
-                auto *dependency = dependencies_.get()[depIx];
-                /* == Set this dependency as a synchronization constraint == */
-                resultIt->lrtToWait_ = dependency->mappedLRT()->virtualIx();
-                resultIt->jobToWait_ = dependency->jobExecIx();
-                /* == Update iterator == */
-                if ((++resultIt) == std::end(result)) {
-                    /* == shortcut to avoid useless other checks == */
-                    return result;
-                }
-            }
-        }
-    }
-    return result;
+void spider::sched::Task::setMappedPE(const spider::PE *pe) {
+    mappedPEIx_ = static_cast<u32>(pe->virtualIx());
+    syncExecTaskIxArray_[pe->attachedLRT()->virtualIx()] = UINT32_MAX;
 }

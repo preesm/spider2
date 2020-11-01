@@ -45,13 +45,12 @@
 namespace spider {
 
     namespace pisdf {
+
+        class GraphFiring;
+
         class Graph;
 
         class Param;
-    }
-    namespace srless {
-
-        class GraphFiring;
 
         /* === Class definition === */
 
@@ -60,7 +59,7 @@ namespace spider {
             GraphHandler(const pisdf::Graph *graph,
                          const spider::vector<std::shared_ptr<pisdf::Param>> &params,
                          u32 repetitionCount,
-                         const srless::GraphFiring *handler = nullptr);
+                         const pisdf::GraphFiring *handler = nullptr);
 
             GraphHandler(GraphHandler &&) = default;
 
@@ -98,7 +97,7 @@ namespace spider {
 
         private:
             spider::unique_ptr<GraphFiring *> firings_;
-            const srless::GraphFiring *handler_;
+            const pisdf::GraphFiring *handler_;
             const pisdf::Graph *graph_;
             u32 repetitionCount_;
             bool static_;

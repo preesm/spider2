@@ -44,12 +44,12 @@
 #include <global-api.h>
 
 namespace spider {
-
+#ifndef _NO_BUILD_LEGACY_RT
     namespace srdag {
         class Graph;
     }
-
-    namespace srless {
+#endif
+    namespace pisdf {
         class GraphHandler;
     }
 
@@ -71,9 +71,13 @@ namespace spider {
 
             /* === Method(s) === */
 
+#ifndef _NO_BUILD_LEGACY_RT
+
             void execute(const srdag::Graph *graph);
 
-            void execute(srless::GraphHandler *graphHandler);
+#endif
+
+            void execute(pisdf::GraphHandler *graphHandler);
 
             void clear();
 
@@ -98,6 +102,9 @@ namespace spider {
 
             /* === Private method(s) === */
 
+            template<class T>
+            void execute(const spider::vector<T> &tasks);
+
             /**
              * @brief Allocates the scheduler corresponding to the given policy.
              * @param policy  Scheduling policy to use.
@@ -105,7 +112,7 @@ namespace spider {
              * @return pointer to the created @refitem Scheduler.
              * @throw @refitem spider::Exception if the scheduling policy is not supported.
              */
-            static Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy) ;
+            static Scheduler *allocateScheduler(SchedulingPolicy policy, bool legacy);
 
             /**
              * @brief Allocates the fifo allocator corresponding to the given type.
@@ -114,7 +121,7 @@ namespace spider {
              * @return pointer to the created @refitem FifoAllocator.
              * @throw @refitem spider::Exception if the allocating type is not supported.
              */
-            static FifoAllocator *allocateAllocator(FifoAllocatorType type, bool legacy) ;
+            static FifoAllocator *allocateAllocator(FifoAllocatorType type, bool legacy);
 
             /**
              * @brief Allocates the mapper corresponding to the given policy.
@@ -122,17 +129,12 @@ namespace spider {
              * @return pointer to the created @refitem Mapper.
              * @throw @refitem spider::Exception if the mapping policy is not supported.
              */
-            static Mapper *allocateMapper(MappingPolicy policy) ;
+            static Mapper *allocateMapper(MappingPolicy policy);
 
             /**
-             * @brief Apply the @refitem ExecutionPolicy of the ResourceAllocator.
-             * @details - Just-In-Time (JIT) execution policy: In this execution policy,
-             *            tasks are sent to their mapped LRT as soon as they are mapped.
-             *          - Delayed execution policy: In this execution policy, tasks are
-             *            sent to their mapped LRT after EVERY tasks have been mapped.
+             * @brief Compute the minimum start time for the mapper.
+             * @return minimum start time.
              */
-            void applyExecPolicy();
-
             ufast64 computeMinStartTime() const;
         };
     }

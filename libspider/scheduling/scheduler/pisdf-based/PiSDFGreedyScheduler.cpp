@@ -47,43 +47,45 @@
 
 /* === Method(s) implementation === */
 
-void spider::sched::PiSDFGreedyScheduler::schedule(srless::GraphHandler *graphHandler) {
+spider::vector<spider::sched::PiSDFTask *>
+spider::sched::PiSDFGreedyScheduler::schedule(pisdf::GraphHandler *graphHandler) {
     /* == Reserve space for the new ListTasks == */
-    tasks_.clear();
+    auto result = factory::vector<sched::PiSDFTask *>(StackID::SCHEDULE);
     /* == Evaluate tasks == */
-    evaluate(graphHandler);
+    evaluate(graphHandler, result);
+    return result;
 }
 
 /* === Private method(s) implementation === */
 
-void spider::sched::PiSDFGreedyScheduler::evaluate(srless::GraphHandler *graphHandler) {
+void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHandler,
+                                                   spider::vector<sched::PiSDFTask *> &result) {
     for (auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
                 if (vertex->subtype() != spider::pisdf::VertexType::DELAY && vertex->executable()) {
                     const auto vertexRV = firingHandler->getRV(vertex.get());
                     for (u32 k = 0u; k < vertexRV; ++k) {
-                        evaluate(vertex.get(), k, firingHandler);
+                        evaluate(firingHandler, vertex.get(), k, result);
                     }
                 }
             }
             for (auto *subgraphHandler : firingHandler->subgraphHandlers()) {
-                evaluate(subgraphHandler);
+                evaluate(subgraphHandler, result);
             }
         }
     }
 }
 
-bool spider::sched::PiSDFGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
+bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
+                                                   const pisdf::Vertex *vertex,
                                                    u32 firing,
-                                                   srless::GraphFiring *handler) {
+                                                   spider::vector<sched::PiSDFTask *> &result) {
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
         u32 depCount{ };
-        u32 mergedFifoCount{ };
         for (const auto *edge : vertex->inputEdges()) {
-            const auto current = depCount;
-            const auto deps = pisdf::computeExecDependency(vertex, firing, edge->sinkPortIx(), handler);
+            const auto deps = handler->computeExecDependency(vertex, firing, edge->sinkPortIx());
             for (const auto &dep : deps) {
                 depCount += (dep.firingEnd_ - dep.firingStart_ + 1u);
                 if (!dep.rate_) {
@@ -92,16 +94,13 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(const pisdf::Vertex *vertex,
                     return false;
                 }
                 for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                    if (dep.handler_->getTaskIx(dep.vertex_, k) == UINT32_MAX) {
-                        schedulable &= evaluate(dep.vertex_, k, const_cast<srless::GraphFiring *>(dep.handler_));
-                    }
+                    schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, result);
                 }
             }
-            mergedFifoCount += ((current + 1) < depCount);
         }
         if (schedulable) {
-            handler->registerTaskIx(vertex, firing, static_cast<u32>(tasks_.size()));
-            tasks_.emplace_back(make<PiSDFTask, StackID::SCHEDULE>(handler, vertex, firing, depCount, mergedFifoCount));
+            handler->setTaskIx(vertex, firing, static_cast<u32>(result.size()));
+            result.emplace_back(spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex, firing));
         }
     }
     return schedulable;

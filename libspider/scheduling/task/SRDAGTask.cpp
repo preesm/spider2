@@ -36,16 +36,17 @@
 
 /* === Include(s) === */
 
-#include <graphs/pisdf/ExternInterface.h>
 #include <scheduling/task/SRDAGTask.h>
+#include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/memory/FifoAllocator.h>
-#include <api/runtime-api.h>
-#include <runtime/common/Fifo.h>
+#include <scheduling/launcher/TaskLauncher.h>
+#include <graphs/pisdf/ExternInterface.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
 #include <graphs/srdag/SRDAGVertex.h>
 #include <graphs-tools/helper/srdag-helper.h>
+#include <runtime/common/Fifo.h>
+#include <api/runtime-api.h>
 
 /* === Static function === */
 
@@ -55,77 +56,43 @@ spider::sched::SRDAGTask::SRDAGTask(srdag::Vertex *vertex) : Task(), vertex_{ ve
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    fifos_ = spider::make_shared<JobFifos, StackID::SCHEDULE>(vertex->inputEdgeCount(), vertex->outputEdgeCount());
-    dependencies_ = spider::make_unique(spider::allocate<Task *, StackID::SCHEDULE>(vertex->inputEdgeCount()));
-    std::fill(dependencies_.get(), dependencies_.get() + vertex->inputEdgeCount(), nullptr);
 }
 
-void spider::sched::SRDAGTask::allocate(FifoAllocator *allocator) {
-    allocator->allocate(this);
+void spider::sched::SRDAGTask::visit(TaskLauncher *launcher) {
+    launcher->visit(this);
 }
 
-void spider::sched::SRDAGTask::updateTaskExecutionDependencies(const spider::sched::Schedule *schedule) {
-    for (const auto *edge : vertex_->inputEdges()) {
-        const auto *source = edge->source();
-        const auto rate = static_cast<u64>(edge->sinkRateValue());
-        if (rate && source && source->executable()) {
-            setExecutionDependency(edge->sinkPortIx(), schedule->tasks()[source->scheduleTaskIx()].get());
+void spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
+    if (vertex_->subtype() != pisdf::VertexType::CONFIG) {
+        throwSpiderException("Only config vertices can update parameter values.");
+    }
+    auto paramIterator = values.begin();
+    for (const auto &param : vertex_->outputParamVector()) {
+        param->setValue((*(paramIterator++)));
+        if (log::enabled<log::TRANSFO>()) {
+            log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
+                                    param->name().c_str(),
+                                    param->value());
         }
     }
 }
 
-spider::sched::AllocationRule spider::sched::SRDAGTask::allocationRuleForInputFifo(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= vertex_->inputEdgeCount()) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    const auto *inputEdge = vertex_->inputEdge(ix);
-    const auto rate = static_cast<u32>(inputEdge->sinkRateValue());
-    const auto fifoIx = static_cast<u32>(inputEdge->sourcePortIx());
-    return { rate, 0u, fifoIx, 0u, SAME_IN, FifoAttribute::RW_OWN };
+i64 spider::sched::SRDAGTask::inputRate(size_t ix) const {
+    return vertex_->inputEdge(ix)->rate();
 }
 
-spider::sched::AllocationRule spider::sched::SRDAGTask::allocationRuleForOutputFifo(size_t ix) const {
-#ifndef NDEBUG
-    if (ix >= vertex_->outputEdgeCount()) {
-        throwSpiderException("index out of bound.");
-    }
-#endif
-    auto *edge = vertex_->outputEdge(ix);
-    const auto rate = static_cast<u32>(edge->sourceRateValue());
-    const auto count = rate ? 1u : 0u;
-    switch (vertex_->subtype()) {
-        case pisdf::VertexType::FORK:
-            if (ix == 0u) {
-                return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
-            } else {
-                const auto prevIx = static_cast<u32>(ix - 1);
-                const auto *previousEdge = vertex_->outputEdge(prevIx);
-                const auto offset = static_cast<u32>(previousEdge->sourceRateValue());
-                return { rate, offset, prevIx, count, AllocType::SAME_OUT, FifoAttribute::RW_ONLY };
-            }
-        case pisdf::VertexType::DUPLICATE:
-            return { rate, 0u, 0u, count, AllocType::SAME_IN, FifoAttribute::RW_ONLY };
-        case pisdf::VertexType::EXTERN_IN: {
-            const auto offset = vertex_->reference()->convertTo<pisdf::ExternInterface>()->bufferIndex();
-            return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
-        }
-        case pisdf::VertexType::REPEAT:
-            if (rate == static_cast<size_t>(vertex_->inputEdge(0u)->sourceRateValue())) {
-                return { rate, 0u, 0u, count, AllocType::SAME_IN, fifos_->inputFifo(0u).attribute_ };
-            }
-            break;
-        default: {
-            const auto *sink = edge->sink();
-            if (sink && sink->subtype() == pisdf::VertexType::EXTERN_OUT) {
-                const auto offset = sink->reference()->convertTo<pisdf::ExternInterface>()->bufferIndex();
-                return { rate, static_cast<u32>(offset), 0u, count, AllocType::EXT, FifoAttribute::RW_EXT };
-            }
-            break;
-        }
-    }
-    return { rate, 0u, 0u, count, AllocType::NEW, FifoAttribute::RW_OWN };
+i64 spider::sched::SRDAGTask::outputRate(size_t ix) const {
+    return vertex_->outputEdge(ix)->rate();
+}
+
+spider::sched::Task *spider::sched::SRDAGTask::previousTask(size_t ix, const spider::sched::Schedule *schedule) const {
+    const auto *source = vertex_->inputEdge(ix)->source();
+    return schedule->task(source->scheduleTaskIx());
+}
+
+spider::sched::Task *spider::sched::SRDAGTask::nextTask(size_t ix, const spider::sched::Schedule *schedule) const {
+    const auto *sink = vertex_->outputEdge(ix)->sink();
+    return schedule->task(sink->scheduleTaskIx());
 }
 
 u32 spider::sched::SRDAGTask::color() const {
@@ -140,53 +107,12 @@ std::string spider::sched::SRDAGTask::name() const {
     return vertex_->name();
 }
 
-bool spider::sched::SRDAGTask::isSyncOptimizable() const noexcept {
-    if (vertex_) {
-        return vertex_->subtype() == pisdf::VertexType::FORK ||
-               vertex_->subtype() == pisdf::VertexType::DUPLICATE ||
-               vertex_->subtype() == pisdf::VertexType::EXTERN_IN;
-    }
-    return false;
-}
-
-spider::JobMessage spider::sched::SRDAGTask::createJobMessage() const {
-    auto message = Task::createJobMessage();
-    /* == Set core properties == */
-    message.nParamsOut_ = static_cast<u32>(vertex_->reference()->outputParamCount());
-    message.kernelIx_ = static_cast<u32>(vertex_->runtimeInformation()->kernelIx());
-    /* == Set the input parameters (if any) == */
-    message.inputParams_ = srdag::buildVertexRuntimeInputParameters(vertex_);
-    return message;
+u32 spider::sched::SRDAGTask::ix() const noexcept {
+    return static_cast<u32>(vertex_->scheduleTaskIx());
 }
 
 void spider::sched::SRDAGTask::setIx(u32 ix) noexcept {
-    Task::setIx(ix);
     vertex_->setScheduleTaskIx(ix);
-}
-
-std::pair<ufast64, ufast64> spider::sched::SRDAGTask::computeCommunicationCost(const PE *mappedPE) const {
-    const auto *platform = archi::platform();
-    ufast64 externDataToReceive = 0u;
-    /* == Compute communication cost == */
-    ufast64 communicationCost = 0;
-    for (const auto &edge : vertex_->inputEdges()) {
-        const auto rate = static_cast<u64>(edge->sourceRateValue());
-        const auto source = edge->source();
-        if (rate && source && source->executable()) {
-            const auto *taskSource = previousTask(edge->sinkPortIx());
-            const auto *mappedPESource = taskSource->mappedPe();
-            communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
-            if (mappedPE->cluster() != mappedPESource->cluster()) {
-                externDataToReceive += rate;
-            }
-        }
-    }
-    return { communicationCost, externDataToReceive };
-}
-
-spider::sched::DependencyInfo spider::sched::SRDAGTask::getDependencyInfo(size_t ix) const {
-    return { vertex_->inputEdge(ix)->sourcePortIx(),
-             static_cast<size_t>(vertex_->inputEdge(ix)->sourceRateValue()) };
 }
 
 bool spider::sched::SRDAGTask::isMappableOnPE(const spider::PE *pe) const {
@@ -199,6 +125,10 @@ u64 spider::sched::SRDAGTask::timingOnPE(const spider::PE *pe) const {
 
 size_t spider::sched::SRDAGTask::dependencyCount() const {
     return vertex_->inputEdgeCount();
+}
+
+size_t spider::sched::SRDAGTask::successorCount() const {
+    return vertex_->outputEdgeCount();
 }
 
 #endif

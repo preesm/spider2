@@ -48,7 +48,7 @@ namespace spider {
         class ResourcesAllocator;
     }
 
-    namespace srless {
+    namespace pisdf {
         class GraphHandler;
     }
 
@@ -73,7 +73,7 @@ namespace spider {
     private:
         time::time_point startIterStamp_ = time::min();
         spider::unique_ptr<sched::ResourcesAllocator> resourcesAllocator_;
-        spider::unique_ptr<srless::GraphHandler> graphHandler_;
+        spider::unique_ptr<pisdf::GraphHandler> graphHandler_;
         size_t iter_ = 0U;
         bool isStatic_{};
 
@@ -91,7 +91,7 @@ namespace spider {
          */
         bool dynamicExecute();
 
-        size_t countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const;
+        size_t countExpectedNumberOfParams(const pisdf::GraphHandler *graphHandler) const;
     };
 }
 

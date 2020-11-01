@@ -52,36 +52,81 @@ namespace spider {
 
         class PiSDFFifoAllocator final : public FifoAllocator {
         public:
-            PiSDFFifoAllocator() : FifoAllocator({ true, true }) {
+            PiSDFFifoAllocator() : FifoAllocator({ true, true }),
+                                   dynamicBuffers_{ factory::vector<dynaBuffer_t>(StackID::SCHEDULE) } {
 
             }
 
-            ~PiSDFFifoAllocator() noexcept override = default;
+            ~PiSDFFifoAllocator() noexcept final = default;
 
             /* === Method(s) === */
 
-            void allocate(sched::SyncTask *task) override;
+            void clear() noexcept final;
 
-            void allocate(sched::PiSDFTask *task) override;
-
-            /* === Getter(s) === */
+            void updateDynamicBuffersCount() final;
 
             /**
-             * @brief Get the type of the FifoAllocator
-             * @return @refitem FifoAllocatorType
+             * @brief Creates the fifos needed for the runtime execution of a task.
+             * @param task     Pointer to the task.
+             * @param execDeps Execution dependencies of the task.
+             * @param consDeps Consumer dependencies of the task.
+             * @return @refitem unique_ptr of @refitem JobFifos
              */
-            FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT; };
+            spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task,
+                                                       const pisdf::VertexDependencies &execDeps,
+                                                       const pisdf::VertexDependencies &consDeps) final;
 
         private:
+            struct dynaBuffer_t {
+                const PiSDFTask *task_;
+                u32 edgeIx_;
+            };
+            spider::vector<dynaBuffer_t> dynamicBuffers_;
 
-            size_t allocateMergedInputFifo(Task *task,
-                                           Fifo *fifo,
-                                           sched::AllocationRule &rule,
-                                           size_t realFifoIx,
-                                           size_t taskOffset);
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task  Pointer to the task.
+             * @param fifos Fifos of the task.
+             */
+            void allocate(PiSDFTask *task, const JobFifos *fifos);
 
-            void allocateInputFifo(const Task *task, Fifo *fifo, sched::AllocationRule &rule);
+            /**
+             * @brief Compute the total number of input fifos (including merged fifos) needed by a task.
+             * @param dependencies Execution dependencies of the task
+             * @return total number of fifos of the task.
+             */
+            static u32 computeInputFifoCount(const pisdf::VertexDependencies &dependencies);
+
+            /**
+             * @brief Creates a single input fifo.
+             * @param fifos Pointer to the fifo array (should be offsetted to the current fifo to be set).
+             * @param dep   Execution dependency.
+             */
+            static void buildSingleFifo(Fifo *fifos, const pisdf::DependencyInfo &dep);
+
+            /**
+             * @brief Creates a merged input fifo.
+             * @param fifos        Pointer to the fifo array (should be offsetted to the current fifo to be set).
+             * @param mergedSize   Merged size of the fifo to allocate.
+             * @param dependencies Execution dependencies of the task.
+             */
+            void buildMergeFifo(Fifo *fifos,
+                                size_t mergedSize,
+                                const pisdf::DependencyIterator &dependencies);
+
+            static Fifo buildInputFifo(const pisdf::Edge *edge,
+                                       u32 size,
+                                       u32 offset,
+                                       u32 firing,
+                                       const pisdf::GraphFiring *handler);
+
+            Fifo buildOutputFifo(const pisdf::Edge *edge,
+                                 const PiSDFTask *task,
+                                 const pisdf::DependencyIterator &depIt);
+
+            static i32 getFifoCount(const pisdf::DependencyIterator &depIt);
+
         };
     }
 }
-#endif //SPIDER2_FIFOALLOCATOR_H
+#endif //SPIDER2_PISDFFIFOALLOCATOR_H

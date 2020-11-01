@@ -65,7 +65,7 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline size_t bufferIndex() const {
+            inline size_t address() const {
                 return bufferIndex_;
             }
 

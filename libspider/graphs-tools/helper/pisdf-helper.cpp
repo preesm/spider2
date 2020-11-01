@@ -71,8 +71,8 @@ static spider::unique_ptr<i64> buildForkRuntimeInputParameters(const spider::pis
                                                                const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     const auto &outputEdges = vertex->outputEdges();
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(outputEdges.size() + 2));
-    result.get()[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
-    result.get()[1] = static_cast<i64>(outputEdges.size());
+    result[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
+    result[1] = static_cast<i64>(outputEdges.size());
     std::transform(std::begin(outputEdges), std::end(outputEdges), std::next(result.get(), 2),
                    [&params](const spider::pisdf::Edge *edge) {
                        return edge->sourceRateExpression().evaluate(params);
@@ -91,8 +91,8 @@ static spider::unique_ptr<i64> buildJoinRuntimeInputParameters(const spider::pis
                                                                const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     const auto &inputEdges = vertex->inputEdges();
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputEdges.size() + 2));
-    result.get()[0] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
-    result.get()[1] = static_cast<i64>(inputEdges.size());
+    result[0] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
+    result[1] = static_cast<i64>(inputEdges.size());
     std::transform(std::begin(inputEdges), std::end(inputEdges), std::next(result.get(), 2),
                    [&params](const spider::pisdf::Edge *edge) { return edge->sinkRateExpression().evaluate(params); });
     return result;
@@ -122,17 +122,16 @@ static spider::unique_ptr<i64> buildTailRuntimeInputParameters(const spider::pis
     }
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputCount + 4u));
     /* = Number of input = */
-    result.get()[0] = static_cast<i64>(inputEdges.size());
+    result[0] = static_cast<i64>(inputEdges.size());
     /* = First input to be considered = */
-    result.get()[1] = static_cast<i64>(inputEdges.size() - inputCount);
+    result[1] = static_cast<i64>(inputEdges.size() - inputCount);
     /* = Offset in the first buffer if any = */
-    result.get()[2] =
-            vertex->inputEdge(inputEdges.size() - inputCount)->sinkRateExpression().evaluate(params) - rate;
+    result[2] = vertex->inputEdge(inputEdges.size() - inputCount)->sinkRateExpression().evaluate(params) - rate;
     /* = Effective size to copy of the first input = */
-    result.get()[3] = rate;
+    result[3] = rate;
     size_t i = 4;
     for (auto it = itRBegin; it != itREnd - static_cast<long>(inputCount) + 1; --it) {
-        result.get()[i++] = (*it)->sinkRateExpression().evaluate(params);
+        result[i++] = (*it)->sinkRateExpression().evaluate(params);
     }
     return result;
 }
@@ -157,11 +156,11 @@ static spider::unique_ptr<i64> buildHeadRuntimeInputParameters(const spider::pis
         inputCount++;
     }
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(inputCount + 1u));
-    result.get()[0] = static_cast<i64>(inputCount);
+    result[0] = static_cast<i64>(inputCount);
     rate = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
     for (size_t i = 0; i < inputCount; ++i) {
         const auto &inRate = vertex->inputEdge(i)->sinkRateExpression().evaluate(params);
-        result.get()[i + 1] = std::min(inRate, rate);
+        result[i + 1] = std::min(inRate, rate);
         rate -= inRate;
     }
     return result;
@@ -177,8 +176,8 @@ static spider::unique_ptr<i64> buildHeadRuntimeInputParameters(const spider::pis
 static spider::unique_ptr<i64> buildRepeatRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
                                                                  const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
-    result.get()[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
-    result.get()[1] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
+    result[0] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
+    result[1] = vertex->outputEdge(0)->sourceRateExpression().evaluate(params);
     return result;
 }
 
@@ -192,8 +191,8 @@ static spider::unique_ptr<i64> buildRepeatRuntimeInputParameters(const spider::p
 static spider::unique_ptr<i64> buildDuplicateRuntimeInputParameters(const spider::pisdf::Vertex *vertex,
                                                                     const spider::vector<std::shared_ptr<spider::pisdf::Param>> &params) {
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
-    result.get()[0] = static_cast<i64>(vertex->outputEdgeCount());
-    result.get()[1] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
+    result[0] = static_cast<i64>(vertex->outputEdgeCount());
+    result[1] = vertex->inputEdge(0)->sinkRateExpression().evaluate(params);
     return result;
 }
 
@@ -208,13 +207,13 @@ static spider::unique_ptr<i64> buildInitRuntimeInputParameters(const spider::pis
     if (sink->subtype() == spider::pisdf::VertexType::DELAY) {
         const auto *delayVertex = sink->convertTo<spider::pisdf::DelayVertex>();
         const auto *delay = delayVertex->delay();
-        result.get()[0] = delay->isPersistent();                    /* = Persistence property = */
-        result.get()[1] = delay->value();                           /* = Value of the delay = */
-        result.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
+        result[0] = delay->isPersistent();                    /* = Persistence property = */
+        result[1] = delay->value();                           /* = Value of the delay = */
+        result[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
     } else {
-        result.get()[0] = 0;
-        result.get()[1] = 0;
-        result.get()[2] = 0;
+        result[0] = 0;
+        result[1] = 0;
+        result[2] = 0;
     }
     return result;
 }
@@ -230,13 +229,13 @@ static spider::unique_ptr<i64> buildEndRuntimeInputParameters(const spider::pisd
     if (source->subtype() == spider::pisdf::VertexType::DELAY) {
         const auto *delayVertex = source->convertTo<spider::pisdf::DelayVertex>();
         const auto *delay = delayVertex->delay();
-        result.get()[0] = delay->isPersistent();                    /* = Persistence property = */
-        result.get()[1] = delay->value();                           /* = Value of the delay = */
-        result.get()[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
+        result[0] = delay->isPersistent();                    /* = Persistence property = */
+        result[1] = delay->value();                           /* = Value of the delay = */
+        result[2] = static_cast<i64>(delay->memoryAddress()); /* = Memory address (may be unused) = */
     } else {
-        result.get()[0] = 0;
-        result.get()[1] = 0;
-        result.get()[2] = 0;
+        result[0] = 0;
+        result[1] = 0;
+        result[2] = 0;
     }
     return result;
 }
@@ -253,8 +252,8 @@ static spider::unique_ptr<i64> buildExternOutRuntimeInputParameters(const spider
     auto result = spider::make_unique(spider::allocate<i64, StackID::RUNTIME>(2u));
     const auto *reference = vertex->convertTo<spider::pisdf::ExternInterface>();
     const auto *inputEdge = vertex->inputEdge(0);
-    result.get()[0] = static_cast<i64>(reference->bufferIndex());
-    result.get()[1] = inputEdge->sinkRateExpression().evaluate(params);
+    result[0] = static_cast<i64>(reference->address());
+    result[1] = inputEdge->sinkRateExpression().evaluate(params);
     return result;
 }
 

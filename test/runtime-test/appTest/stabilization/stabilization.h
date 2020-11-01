@@ -10,6 +10,9 @@
 * @copyright CECILL-C
 */
 
+#ifndef STABILIZATION_H
+#define STABILIZATION_H
+
 #include <assert.h>
 
 #include "preesm.h"
@@ -17,22 +20,12 @@
 #include "applicationParameters.h"
 #include "matrix.h"
 
-#ifndef STABILIZATION_H
-#define STABILIZATION_H
-
 /**
 * Define the color of the black background for rendered frames.
 */
 #define BG_BLACK_Y 0
 #define BG_BLACK_U 128
 #define BG_BLACK_V 128
-
-/**
-* MIN and MAX macro to lighten code.
-*/
-#define MIN(x,y) ((x>y)? y:x)
-#define MAX(x,y) ((x>y)? x:y)
-
 
 /**
 * Render a motion compensated frame in for a display of configurable size.

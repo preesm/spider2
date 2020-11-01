@@ -41,8 +41,8 @@
 /* === Method(s) implementation === */
 
 spider::JobFifos::JobFifos(u32 inputFifoCount, u32 outputFifoCount) :
-        inputFifos_{ spider::allocate<Fifo, StackID::SCHEDULE>(inputFifoCount) },
-        outputFifos_{ spider::allocate<Fifo, StackID::SCHEDULE>(outputFifoCount) },
+        inputFifos_{ spider::allocate<Fifo, StackID::RUNTIME>(inputFifoCount) },
+        outputFifos_{ spider::allocate<Fifo, StackID::RUNTIME>(outputFifoCount) },
         inputFifoCount_{ inputFifoCount },
         outputFifoCount_{ outputFifoCount } {
 
@@ -69,9 +69,9 @@ spider::Fifo spider::JobFifos::inputFifo(size_t ix) const {
     if (ix >= inputFifoCount_) {
         throwSpiderException("accessing out_of_range input fifo");
     }
-    return inputFifos_.get()[ix];
+    return inputFifos_[ix];
 #else
-    return inputFifos_.get()[ix];
+    return inputFifos_[ix];
 #endif
 }
 
@@ -80,20 +80,20 @@ spider::Fifo spider::JobFifos::outputFifo(size_t ix) const {
     if (ix >= outputFifoCount_) {
         throwSpiderException("accessing out_of_range output fifo");
     }
-    return outputFifos_.get()[ix];
+    return outputFifos_[ix];
 #else
-    return outputFifos_.get()[ix];
+    return outputFifos_[ix];
 #endif
 }
 
 void spider::JobFifos::setInputFifo(size_t ix, spider::Fifo fifo) {
     if (inputFifos_ && (ix < inputFifoCount_)) {
-        inputFifos_.get()[ix] = fifo;
+        inputFifos_[ix] = fifo;
     }
 }
 
 void spider::JobFifos::setOutputFifo(size_t ix, spider::Fifo fifo) {
     if (outputFifos_ && (ix < outputFifoCount_)) {
-        outputFifos_.get()[ix] = fifo;
+        outputFifos_[ix] = fifo;
     }
 }

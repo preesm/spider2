@@ -40,7 +40,6 @@
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
@@ -66,7 +65,7 @@ spider::PiSDFJITMSRuntime::PiSDFJITMSRuntime(pisdf::Graph *graph, const RuntimeC
     }
     resourcesAllocator_->allocator()->allocatePersistentDelays(graph_);
     pisdf::recursiveSplitDynamicGraph(graph_);
-    graphHandler_ = make_unique<srless::GraphHandler, StackID::TRANSFO>(graph_, graph_->params(), 1u);
+    graphHandler_ = make_unique<pisdf::GraphHandler, StackID::TRANSFO>(graph_, graph_->params(), 1u);
 }
 
 bool spider::PiSDFJITMSRuntime::execute() {
@@ -167,6 +166,7 @@ bool spider::PiSDFJITMSRuntime::dynamicExecute() {
             }
             TraceMessage transfoMsg{ };
             TRACE_TRANSFO_START();
+            const auto *schedule = resourcesAllocator_->schedule();
             size_t readParam = 0;
             while (readParam != expectedParamCount) {
                 Notification notification;
@@ -176,19 +176,8 @@ bool spider::PiSDFJITMSRuntime::dynamicExecute() {
                     ParameterMessage message;
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
                     /* == Get the config vertex == */
-                    const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
-                    const auto *srlessTask = static_cast<const sched::PiSDFTask *>(task);
-                    const auto *cfg = srlessTask->vertex();
-                    auto *handler = srlessTask->handler();
-                    auto paramIterator = message.params_.begin();
-                    for (const auto ix : cfg->outputParamIxVector()) {
-                        const auto value = *(paramIterator++);
-                        handler->setParamValue(ix, value);
-                        if (log::enabled<log::TRANSFO>()) {
-                            log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
-                                                    handler->getParams()[ix]->name().c_str(), value);
-                        }
-                    }
+                    auto *task = schedule->task(message.taskIx_);
+                    task->receiveParams(message.params_);
                     readParam++;
                 } else {
                     // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
@@ -212,7 +201,7 @@ bool spider::PiSDFJITMSRuntime::dynamicExecute() {
     return true;
 }
 
-size_t spider::PiSDFJITMSRuntime::countExpectedNumberOfParams(const srless::GraphHandler *graphHandler) const {
+size_t spider::PiSDFJITMSRuntime::countExpectedNumberOfParams(const pisdf::GraphHandler *graphHandler) const {
     size_t count = 0;
     for (const auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {

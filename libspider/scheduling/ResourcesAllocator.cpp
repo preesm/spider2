@@ -41,18 +41,22 @@
 
 #include <scheduling/scheduler/srdag-based/ListScheduler.h>
 #include <scheduling/scheduler/srdag-based/GreedyScheduler.h>
-#include <scheduling/memory/srdag-based/NoSyncFifoAllocator.h>
+#include <scheduling/memory/srdag-based/SRDAGFifoAllocator.h>
+#include <scheduling/task/SRDAGTask.h>
+#include <graphs/srdag/SRDAGVertex.h>
+#include <graphs/srdag/SRDAGEdge.h>
 
 #endif
 
 #include <scheduling/scheduler/pisdf-based/PiSDFGreedyScheduler.h>
 #include <scheduling/scheduler/pisdf-based/PiSDFListScheduler.h>
 #include <scheduling/mapper/BestFitMapper.h>
-#include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/memory/pisdf-based/PiSDFFifoAllocator.h>
-#include <scheduling/task/Task.h>
+#include <scheduling/launcher/TaskLauncher.h>
+#include <graphs/pisdf/ExternInterface.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <api/archi-api.h>
-#include <archi/Platform.h>
 #include <archi/PE.h>
 #include <common/Time.h>
 
@@ -87,21 +91,32 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
         executionPolicy_{ executionPolicy } {
     if (allocator_) {
         checkFifoAllocatorTraits(allocator_.get(), executionPolicy);
+        allocator_->setSchedule(schedule_.get());
     }
 }
 
+#ifndef _NO_BUILD_LEGACY_RT
+
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
-    scheduler_->schedule(graph);
-    /* == Map and execute the scheduled tasks == */
-    applyExecPolicy();
+    auto start = time::now();
+    const auto result = scheduler_->schedule(graph);
+    auto end = time::now();
+    log::info("scheduling: %lld ns\n", time::duration::nanoseconds(start, end));
+    /* == Map, Allocate and Send tasks == */
+    execute(result);
 }
 
-void spider::sched::ResourcesAllocator::execute(srless::GraphHandler *graphHandler) {
+#endif
+
+void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
-    scheduler_->schedule(graphHandler);
-    /* == Map and execute the scheduled tasks == */
-    applyExecPolicy();
+    auto start = time::now();
+    const auto result = scheduler_->schedule(graphHandler);
+    auto end = time::now();
+    log::info("scheduling: %lld ns\n", time::duration::nanoseconds(start, end));
+    /* == Map, Allocate and Send tasks == */
+    execute(result);
 }
 
 void spider::sched::ResourcesAllocator::clear() {
@@ -111,6 +126,55 @@ void spider::sched::ResourcesAllocator::clear() {
 }
 
 /* === Private method(s) implementation === */
+
+template<class T>
+void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) {
+    const auto startTime = computeMinStartTime();
+    mapper_->setStartTime(startTime);
+    schedule_->reserve(tasks.size());
+    allocator_->updateDynamicBuffersCount();
+    auto launcher = TaskLauncher{ schedule_.get(), allocator_.get() };
+    switch (executionPolicy_) {
+        case ExecutionPolicy::JIT:
+            for (auto *task : tasks) {
+                /* == Map the task == */
+                const auto currentTaskCount = schedule_->taskCount();
+                mapper_->map(task, schedule_.get());
+                /* == Add the task == */
+                if (schedule_->taskCount() > currentTaskCount) {
+                    /* == We added synchronization == */
+                    for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
+                        auto *syncTask = schedule_->task(i);
+                        syncTask->visit(&launcher);
+                    }
+                }
+                schedule_->addTask(task);
+                /* == Send the task == */
+                task->visit(&launcher);
+            }
+            break;
+        case ExecutionPolicy::DELAYED: {
+            auto start = time::now();
+            const auto currentTaskCount = schedule_->taskCount();
+            for (auto *task : tasks) {
+                /* == Map the task == */
+                mapper_->map(task, schedule_.get());
+                /* == Add the task == */
+                schedule_->addTask(task);
+            }
+            auto end = time::now();
+            log::info("mapping: %lld ns\n", time::duration::nanoseconds(start, end));
+            for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
+                /* == Send the task == */
+                auto *task = schedule_->task(i);
+                task->visit(&launcher);
+            }
+        }
+            break;
+        default:
+            throwSpiderException("unexpected execution policy.");
+    }
+}
 
 spider::sched::Scheduler *
 spider::sched::ResourcesAllocator::allocateScheduler(SchedulingPolicy policy, bool legacy) {
@@ -158,7 +222,7 @@ spider::sched::ResourcesAllocator::allocateAllocator(FifoAllocatorType type, boo
                 return spider::make<spider::sched::PiSDFFifoAllocator, StackID::RUNTIME>();
             }
 #ifndef _NO_BUILD_LEGACY_RT
-            return spider::make<spider::sched::NoSyncFifoAllocator, StackID::RUNTIME>();
+            return spider::make<spider::sched::SRDAGFifoAllocator, StackID::RUNTIME>();
 #else
             printer::fprintf(stderr, "NO_SYNC allocator is part of the legacy runtime which was not built.\n"
                                      "Rebuild the Spider 2.0 library with the cmake flag -DBUILD_LEGACY_RUNTIME=ON.\n");
@@ -185,39 +249,4 @@ ufast64 spider::sched::ResourcesAllocator::computeMinStartTime() const {
         minStartTime = std::min(minStartTime, schedule_->stats().endTime(pe->virtualIx()));
     }
     return minStartTime;
-}
-
-void spider::sched::ResourcesAllocator::applyExecPolicy() {
-    mapper_->setStartTime(computeMinStartTime());
-    switch (executionPolicy_) {
-        case ExecutionPolicy::JIT:
-            /* == Map, allocate fifos and execute tasks == */
-            for (auto &task : scheduler_->tasks()) {
-                /* == Map the task == */
-                mapper_->map(task.get(), schedule_.get());
-                /* == We are in JIT mode, we need to broadcast the job stamp == */
-                task->enableBroadcast();
-                /* == Allocate the fifos task == */
-                task->allocate(allocator_.get());
-                /* == Add and execute the task == */
-                schedule_->addTask(std::move(task));
-                schedule_->sendReadyTasks();
-            }
-            break;
-        case ExecutionPolicy::DELAYED: {            /* == Map every tasks == */
-            for (auto &task : scheduler_->tasks()) {
-                mapper_->map(task.get(), schedule_.get());
-                schedule_->addTask(std::move(task));
-            }
-            /* == Allocate fifos for every tasks == */
-            for (auto *task : schedule_->readyTasks()) {
-                task->allocate(allocator_.get());
-            }
-            /* == Execute every tasks == */
-            schedule_->sendReadyTasks();
-        }
-            break;
-        default:
-            throwSpiderException("unsupported execution policy.");
-    }
 }

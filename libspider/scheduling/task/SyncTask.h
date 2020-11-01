@@ -54,47 +54,41 @@ namespace spider {
 
         class SyncTask final : public Task {
         public:
-            explicit SyncTask(SyncType type);
+            explicit SyncTask(SyncType type, const MemoryBus *bus);
 
-            ~SyncTask() noexcept override = default;
+            ~SyncTask() noexcept final = default;
 
-            /* === Virtual method(s) === */
+            /* === Method(s) === */
 
-            Fifo getOutputFifo(size_t) const override;
-
-            Fifo getInputFifo(size_t) const override;
-
-            void allocate(FifoAllocator *allocator) override;
-
-            AllocationRule allocationRuleForInputFifo(size_t ix) const override;
-
-            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
-
-            u32 color() const override;
-
-            std::string name() const override;
-
-            inline void updateTaskExecutionDependencies(const Schedule *) override { }
-
-            JobMessage createJobMessage() const override;
-
-            inline bool isSyncOptimizable() const noexcept override { return false; }
-
-            std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
-
-            u64 timingOnPE(const PE *) const override;
-
-            size_t dependencyCount() const override;
-
-            DependencyInfo getDependencyInfo(size_t size) const override;
+            void visit(TaskLauncher *launcher) final;
 
             /* === Getter(s) === */
 
+            inline Task *previousTask(size_t, const Schedule *) const final { return dependency_; }
+
+            inline Task *nextTask(size_t, const Schedule *) const final { return successor_; }
+
+            inline u32 color() const final {
+                /* ==  SEND    -> vivid tangerine color == */
+                /* ==  RECEIVE -> Studio purple color == */
+                return type_ == SyncType::SEND ? 0xff9478 : 0x8e44ad;
+            }
+
+            inline std::string name() const final { return type_ == SyncType::SEND ? "send" : "receive"; }
+
+            inline u32 ix() const noexcept final { return ix_; }
+
+            u64 timingOnPE(const PE *) const final;
+
+            inline size_t dependencyCount() const final { return 1u; }
+
+            inline size_t successorCount() const final { return 1u; }
+
             inline SyncType syncType() const { return type_; }
 
-            inline size_t size() const { return size_; }
+            inline u32 getDepIx() const { return depIx_; }
 
-            inline u32 inputPortIx() const { return inputPortIx_; }
+            inline const MemoryBus *getMemoryBus() const { return bus_; }
 
             /* === Setter(s) === */
 
@@ -102,40 +96,32 @@ namespace spider {
              * @brief Set the task succeeding to this task.
              * @param successor pointer to the successor.
              */
-            inline void setSuccessor(Task *successor) {
-                if (successor && type_ == SyncType::SEND) {
-                    successor_ = successor;
+            inline void setSuccessor(Task *task) {
+                if (task) {
+                    successor_ = task;
                 }
             }
 
             /**
-             * @brief Set the data size (in bytes) to send / receive.
-             * @param size Size of the data to send / receive
+             * @brief Set the task succeeding to this task.
+             * @param successor pointer to the successor.
              */
-            inline void setSize(size_t size) { size_ = size; }
-
-
-            /**
-             * @brief Set the index of the output port of the previous task
-             * @param ix index.
-             */
-            inline void setInputPortIx(u32 ix) { inputPortIx_ = ix; }
-
-            /**
-             * @brief Sets the memory bus attached to this synchronization task.
-             * @param bus pointer to the memory bus.
-             */
-            inline void setMemoryBus(const MemoryBus *bus) {
-                if (bus) {
-                    bus_ = bus;
+            inline void setPredecessor(Task *task) {
+                if (task) {
+                    dependency_ = task;
                 }
             }
+
+            inline void setIx(u32 ix) noexcept final { ix_ = ix; }
+
+            inline void setDepIx(u32 depIx) { depIx_ = depIx; }
 
         private:
             Task *successor_{ nullptr };      /*!< Successor task */
+            Task *dependency_{ nullptr };     /*!< Successor task */
             const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
-            size_t size_{ 0U };               /*!< Data size (in bytes) to send / receive. */
-            u32 inputPortIx_{ 0U };
+            u32 depIx_ = UINT32_MAX;
+            u32 ix_ = UINT32_MAX;
             SyncType type_;
         };
     }

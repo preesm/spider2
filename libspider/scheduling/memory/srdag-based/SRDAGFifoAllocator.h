@@ -34,24 +34,20 @@
  */
 #ifndef SPIDER2_SRDAGFIFOALLOCATOR_H
 #define SPIDER2_SRDAGFIFOALLOCATOR_H
+
 #ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
 #include <scheduling/memory/FifoAllocator.h>
-#include <containers/vector.h>
 
 namespace spider {
 
-    /* === Forward declaration(s) === */
-
     namespace sched {
-
-        class Task;
 
         /* === Class definition === */
 
-        class SRDAGFifoAllocator : public virtual FifoAllocator {
+        class SRDAGFifoAllocator final : public FifoAllocator {
         public:
             SRDAGFifoAllocator() : FifoAllocator({ true, true }) {
 
@@ -61,7 +57,12 @@ namespace spider {
 
             /* === Method(s) === */
 
-            void allocate(SRDAGTask *task) override;
+            /**
+             * @brief Creates the fifos needed for the runtime execution of a task.
+             * @param task Pointer to the task.
+             * @return @refitem unique_ptr of @refitem JobFifos
+             */
+            spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *task) final;
 
             /* === Getter(s) === */
 
@@ -69,25 +70,19 @@ namespace spider {
              * @brief Get the type of the FifoAllocator
              * @return @refitem FifoAllocatorType
              */
-            FifoAllocatorType type() const override { return FifoAllocatorType::DEFAULT; };
+            FifoAllocatorType type() const final { return FifoAllocatorType::DEFAULT; };
 
-        protected:
+        private:
 
-            /* === Private Method(s) === */
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
+             */
+            void allocate(SRDAGTask *task);
 
-            void allocateDefaultVertexTask(sched::SRDAGTask *task);
+            static Fifo buildInputFifo(const srdag::Edge *edge);
 
-            virtual spider::Fifo allocateDefaultVertexInputFifo(sched::SRDAGTask *task, const srdag::Edge *edge) const;
-
-            spider::Fifo allocateDefaultVertexOutputFifo(const srdag::Edge *edge);
-
-            static void allocateExternInTask(sched::SRDAGTask *task);
-
-            virtual void allocateForkTask(sched::SRDAGTask *task) const;
-
-            virtual void allocateDuplicateTask(sched::SRDAGTask *task) const;
-
-            void allocateRepeatTask(sched::SRDAGTask *task);
+            static Fifo buildOutputFifo(const srdag::Edge *edge);
 
         };
     }

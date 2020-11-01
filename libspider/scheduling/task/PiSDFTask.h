@@ -38,80 +38,67 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
-#include <containers/vector.h>
+#include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
-
-    namespace srless {
-        class GraphFiring;
-    }
 
     namespace pisdf {
         class Vertex;
 
-        struct DependencyIterator;
+        class Edge;
+
+        class GraphFiring;
     }
+
     namespace sched {
 
         /* === Class definition === */
 
         class PiSDFTask final : public Task {
         public:
-            explicit PiSDFTask(srless::GraphFiring *handler,
+            explicit PiSDFTask(pisdf::GraphFiring *handler,
                                const pisdf::Vertex *vertex,
-                               u32 firing,
-                               u32 depCount,
-                               u32 mergedFifoCount);
+                               u32 firing);
 
             ~PiSDFTask() noexcept override = default;
 
-            /* === Virtual method(s) === */
+            /* === Method(s) === */
 
-            void allocate(FifoAllocator *allocator) override;
+            void visit(sched::TaskLauncher *launcher) final;
 
-            void updateTaskExecutionDependencies(const Schedule *schedule) override;
+            void receiveParams(const spider::array<i64> &values) final;
 
-            AllocationRule allocationRuleForInputFifo(size_t edgeIx) const override;
+            spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
 
-            AllocationRule allocationRuleForOutputFifo(size_t ix) const override;
-
-            JobMessage createJobMessage() const override;
-
-            u32 color() const override;
-
-            std::string name() const override;
-
-            inline bool isSyncOptimizable() const noexcept override { return false; }
-
-            std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const override;
-
-            bool isMappableOnPE(const PE *pe) const override;
-
-            u64 timingOnPE(const PE *pe) const override;
-
-            size_t dependencyCount() const override;
+            spider::vector<pisdf::DependencyIterator> computeConsDependencies() const;
 
             /* === Getter(s) === */
 
-            DependencyInfo getDependencyInfo(size_t size) const override;
+            u32 color() const final;
 
-            inline srless::GraphFiring *handler() const { return handler_; }
+            std::string name() const final;
 
-            inline const pisdf::Vertex *vertex() const { return vertex_; }
+            u32 ix() const noexcept final;
 
-            inline u32 vertexFiring() const { return firing_; }
+            bool isMappableOnPE(const PE *pe) const final;
+
+            u64 timingOnPE(const PE *pe) const final;
+
+            const pisdf::Vertex *vertex() const;
+
+            inline pisdf::GraphFiring *handler() const { return handler_; }
+
+            inline u32 firing() const { return firing_; }
 
             /* === Setter(s) === */
 
-            void setIx(u32 ix) noexcept override;
+            void setIx(u32 ix) noexcept final;
 
         private:
-            srless::GraphFiring *handler_;
-            const pisdf::Vertex *vertex_;
-            u32 firing_;
-            u32 dependenciesCount_;
+            pisdf::GraphFiring *handler_ = nullptr;
+            u32 vertexIx_ = UINT32_MAX;
+            u32 firing_ = UINT32_MAX;
         };
     }
 }
-
 #endif //SPIDER2_PISDFTASK_H

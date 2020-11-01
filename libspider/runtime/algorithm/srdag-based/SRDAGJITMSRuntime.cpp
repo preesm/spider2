@@ -48,7 +48,6 @@
 #include <scheduling/memory/FifoAllocator.h>
 #include <scheduling/schedule/exporter/SchedXMLGanttExporter.h>
 #include <scheduling/schedule/exporter/SchedStatsExporter.h>
-#include <scheduling/task/SRDAGTask.h>
 #include <api/runtime-api.h>
 #include <api/config-api.h>
 #include <api/spider.h>
@@ -116,6 +115,7 @@ bool spider::SRDAGJITMSRuntime::execute() {
                 log::info<log::TRANSFO>("Waiting fo dynamic parameters..\n");
             }
             TRACE_TRANSFO_START()
+            const auto *schedule = resourcesAllocator_->schedule();
             size_t readParam = 0;
             while (readParam != dynamicJobStack.size()) {
                 Notification notification;
@@ -124,20 +124,9 @@ bool spider::SRDAGJITMSRuntime::execute() {
                     /* == Get the message == */
                     ParameterMessage message;
                     rt::platform()->communicator()->pop(message, grtIx, notification.notificationIx_);
-
                     /* == Get the config vertex == */
-                    const auto *task = resourcesAllocator_->schedule()->task(message.taskIx_);
-                    const auto *vertexTask = static_cast<const sched::SRDAGTask *>(task);
-                    const auto *cfg = vertexTask->vertex();
-                    auto paramIterator = message.params_.begin();
-                    for (const auto &param : cfg->outputParamVector()) {
-                        param->setValue((*(paramIterator++)));
-                        if (log::enabled<log::TRANSFO>()) {
-                            log::info<log::TRANSFO>("Parameter [%12s]: received value #%" PRId64".\n",
-                                                    param->name().c_str(),
-                                                    param->value());
-                        }
-                    }
+                    auto *task = schedule->task(message.taskIx_);
+                    task->receiveParams(message.params_);
                     readParam++;
                 } else {
                     // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.

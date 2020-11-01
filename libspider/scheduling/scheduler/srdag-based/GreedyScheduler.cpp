@@ -45,18 +45,19 @@
 
 /* === Method(s) implementation === */
 
-void spider::sched::GreedyScheduler::schedule(const srdag::Graph *graph) {
-    tasks_.clear();
+spider::vector<spider::sched::SRDAGTask *> spider::sched::GreedyScheduler::schedule(const srdag::Graph *graph) {
+    auto result = factory::vector<SRDAGTask *>(StackID::SCHEDULE);
     for (auto &vertex : graph->vertices()) {
         if (vertex->executable()) {
-            evaluate(vertex.get());
+            evaluate(vertex.get(), result);
         }
     }
+    return result;
 }
 
 /* === Private method(s) implementation === */
 
-bool spider::sched::GreedyScheduler::evaluate(spider::srdag::Vertex *vertex) {
+bool spider::sched::GreedyScheduler::evaluate(srdag::Vertex *vertex, spider::vector<SRDAGTask *> &result) {
     auto schedulable = true;
     if (vertex->scheduleTaskIx() == SIZE_MAX) {
         for (const auto *edge : vertex->inputEdges()) {
@@ -65,11 +66,11 @@ bool spider::sched::GreedyScheduler::evaluate(spider::srdag::Vertex *vertex) {
             } else if (!edge->source() || !edge->source()->executable()) {
                 return false;
             }
-            schedulable &= evaluate(edge->source());
+            schedulable &= evaluate(edge->source(), result);
         }
         if (schedulable) {
-            vertex->setScheduleTaskIx(tasks_.size());
-            tasks_.emplace_back(make<SRDAGTask, StackID::SCHEDULE>(vertex));
+            vertex->setScheduleTaskIx(result.size());
+            result.emplace_back(spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex));
         }
     }
     return schedulable;

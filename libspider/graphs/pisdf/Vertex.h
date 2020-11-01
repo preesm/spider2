@@ -175,7 +175,7 @@ namespace spider {
              * @brief Get the ix of the vertex in the containing graph.
              * @return ix of the vertex (SIZE_MAX if no ix).
              */
-            inline const size_t &ix() const { return ix_; };
+            inline size_t ix() const { return ix_; };
 
             /**
              * @brief Returns the graph of the vertex (if any)
@@ -203,7 +203,7 @@ namespace spider {
                     throwSpiderException("index out of bound");
                 }
 #endif
-                return inputEdgeArray_.get()[ix];
+                return inputEdgeArray_[ix];
             };
 
             /**
@@ -232,7 +232,7 @@ namespace spider {
                     throwSpiderException("index out of bound");
                 }
 #endif
-                return outputEdgeArray_.get()[ix];
+                return outputEdgeArray_[ix];
             };
 
             /**

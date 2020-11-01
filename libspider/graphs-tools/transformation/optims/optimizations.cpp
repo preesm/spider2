@@ -84,7 +84,7 @@ createNewFork(const spider::srdag::Vertex *secondFork, const spider::srdag::Vert
     auto *newFork = graph->createForkVertex("merged-" + firstFork->name() + "-" + secondFork->name(), outputCount);
     /* == Connect the input of the first Fork to the new Fork == */
     auto *edge = firstFork->inputEdge(0);
-    edge->setSink(newFork, 0, edge->sinkRateValue());
+    edge->setSink(newFork, 0);
     return newFork;
 }
 
@@ -113,7 +113,7 @@ createNewDuplicate(const spider::srdag::Vertex *secondDuplicate, const spider::s
                                                  outputCount);
     /* == Connect the input of the first Fork to the new Fork == */
     auto *edge = firstDuplicate->inputEdge(0);
-    edge->setSink(newDupl, 0, edge->sinkRateValue());
+    edge->setSink(newDupl, 0);
     return newDupl;
 }
 
@@ -141,7 +141,7 @@ createNewJoin(const spider::srdag::Vertex *firstJoin, const spider::srdag::Verte
     auto *newJoin = graph->createJoinVertex("merged-" + firstJoin->name() + "-" + secondJoin->name(), inputCount);
     /* == Connect the output of the second Join to the new Join == */
     auto *edge = secondJoin->outputEdge(0);
-    edge->setSource(newJoin, 0, edge->sourceRateValue());
+    edge->setSource(newJoin, 0);
     return newJoin;
 }
 
@@ -191,7 +191,7 @@ bool spider::optims::reduceRepeatFork(spider::srdag::Graph *graph) {
         const auto inRate = inEdge->sinkRateValue();
         const auto nEdges = static_cast<size_t>(outEdge->sourceRateValue() / inRate);
         auto *duplicate = graph->createDuplicateVertex(repeat->name(), nEdges);
-        inEdge->setSink(duplicate, 0, inEdge->sinkRateValue());
+        inEdge->setSink(duplicate, 0);
 
         /* == Creates the source array == */
         spider::array<EdgeLinker> sourceArray{ nEdges, StackID::TRANSFO };
@@ -240,7 +240,7 @@ bool spider::optims::reduceDupDup(srdag::Graph *graph) {
             vertex->graph()->removeVertex(edge->sink());
             vertex->graph()->removeEdge(edge);
         } else if (edge) {
-            edge->setSource(target, snkIx, edge->sourceRateValue());
+            edge->setSource(target, snkIx);
         }
     };
     auto countEdges = [](const srdag::Vertex *vertex) -> u32 {
@@ -276,7 +276,7 @@ bool spider::optims::reduceForkFork(srdag::Graph *graph) {
             vertex->graph()->removeVertex(edge->sink());
             vertex->graph()->removeEdge(edge);
         } else if (edge) {
-            edge->setSource(target, snkIx, edge->sourceRateValue());
+            edge->setSource(target, snkIx);
         }
     };
     auto countEdges = [](const srdag::Vertex *vertex) -> u32 {
@@ -312,7 +312,7 @@ bool spider::optims::reduceJoinJoin(srdag::Graph *graph) {
             vertex->graph()->removeVertex(edge->source());
             vertex->graph()->removeEdge(edge);
         } else if (edge) {
-            edge->setSink(target, snkIx, edge->sinkRateValue());
+            edge->setSink(target, snkIx);
         }
     };
     auto countEdges = [](const srdag::Vertex *vertex) -> u32 {
@@ -404,7 +404,7 @@ bool spider::optims::reduceJoinEnd(srdag::Graph *graph) {
         graph->removeEdge(edge);
         for (auto *inputEdge : join->inputEdges()) {
             auto *newEnd = graph->createEndVertex("end-" + inputEdge->source()->name());
-            inputEdge->setSink(newEnd, 0, inputEdge->sinkRateValue());
+            inputEdge->setSink(newEnd, 0);
         }
 
         if (log::enabled<log::OPTIMS>()) {

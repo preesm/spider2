@@ -42,14 +42,15 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
-                                         const spider::vector<std::shared_ptr<pisdf::Param>> &params,
-                                         u32 firing) :
+spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
+                                        const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                                        u32 firing) :
         params_{ factory::vector<std::shared_ptr<pisdf::Param>>(StackID::TRANSFO) },
         parent_{ parent },
         firing_{ firing },
@@ -58,10 +59,11 @@ spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
         throwNullptrException();
     }
     const auto *graph = parent->graph();
-    brv_ = spider::make_unique(make_n<u32, StackID::TRANSFO>(graph->vertexCount(), UINT32_MAX));
-    taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::TRANSFO>(graph->vertexCount(), nullptr));
+    brvArray_ = spider::make_unique(make_n<u32, StackID::TRANSFO>(graph->vertexCount(), UINT32_MAX));
     subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
-    rates_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
+    ratesArray_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
+    taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::TRANSFO>(graph->vertexCount(), nullptr));
+    edgeAllocArray_ = spider::make_unique(make_n<FifoAlloc *, StackID::TRANSFO>(graph->edgeCount(), nullptr));
     /* == copy parameters == */
     params_.reserve(params.size());
     dynamicParamCount_ = 0;
@@ -71,25 +73,19 @@ spider::srless::GraphFiring::GraphFiring(const GraphHandler *parent,
     }
 }
 
-spider::srless::GraphFiring::~GraphFiring() {
+spider::pisdf::GraphFiring::~GraphFiring() {
     for (auto &ptr : make_handle(taskIxRegister_.get(), parent_->graph()->vertexCount())) {
         deallocate(ptr);
     }
     for (auto &child : subgraphHandlers()) {
         destroy(child);
     }
-}
-
-void spider::srless::GraphFiring::registerTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
-#ifndef NDEBUG
-    if (firing >= getRV(vertex)) {
-        throwSpiderException("invalid vertex firing.");
+    for (const auto &edge : parent_->graph()->edges()) {
+        deallocate(edgeAllocArray_[edge->ix()]);
     }
-#endif
-    taskIxRegister_.get()[vertex->ix()][firing] = taskIx;
 }
 
-void spider::srless::GraphFiring::resolveBRV() {
+void spider::pisdf::GraphFiring::resolveBRV() {
     if (resolved_) {
         return;
     }
@@ -97,29 +93,20 @@ void spider::srless::GraphFiring::resolveBRV() {
     spider::brv::compute(parent_->graph(), params_);
     /* == Save RV values into the array == */
     for (const auto &vertex : parent_->graph()->vertices()) {
-        const auto ix = vertex->ix();
-        const auto rvValue = vertex->repetitionValue();
-        if (brv_.get()[ix] != rvValue) {
-            brv_.get()[ix] = rvValue;
-            deallocate(taskIxRegister_.get()[ix]);
-            taskIxRegister_.get()[ix] = spider::make_n<u32, StackID::TRANSFO>(rvValue, UINT32_MAX);
-        } else {
-            /* == reset values == */
-            std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + rvValue, UINT32_MAX);
-        }
+        updateFromRV(vertex.get(), vertex->repetitionValue());
     }
     /* == creates subgraph handlers == */
     createOrUpdateSubgraphHandlers();
     /* == Save the rates == */
     for (const auto &edge : parent_->graph()->edges()) {
         const auto ix = edge->ix();
-        rates_.get()[ix].srcRate_ = edge->sourceRateValue();
-        rates_.get()[ix].snkRate_ = edge->sinkRateValue();
+        ratesArray_[ix].srcRate_ = edge->sourceRateValue();
+        ratesArray_[ix].snkRate_ = edge->sinkRateValue();
     }
     resolved_ = true;
 }
 
-void spider::srless::GraphFiring::apply(const GraphFiring *srcFiring) {
+void spider::pisdf::GraphFiring::apply(const GraphFiring *srcFiring) {
 #ifndef NDEBUG
     if (!srcFiring) {
         throwNullptrException();
@@ -132,32 +119,28 @@ void spider::srless::GraphFiring::apply(const GraphFiring *srcFiring) {
     if (resolved_ || srcFiring == this) {
         return;
     }
-    const auto *srcFiringBRV = srcFiring->brv_.get();
-    auto *thisBRV = brv_.get();
-    for (size_t ix = 0; ix < parent_->graph()->vertexCount(); ++ix) {
-        const auto rvValue = srcFiringBRV[ix];
-        if (thisBRV[ix] != rvValue) {
-            thisBRV[ix] = rvValue;
-            deallocate(taskIxRegister_.get()[ix]);
-            taskIxRegister_.get()[ix] = spider::make_n<u32, StackID::TRANSFO>(rvValue, UINT32_MAX);
-        } else {
-            /* == reset values == */
-            std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + rvValue, UINT32_MAX);
-        }
+    for (const auto &vertex : parent_->graph()->vertices()) {
+        updateFromRV(vertex.get(), srcFiring->brvArray_[vertex->ix()]);
     }
     /* == creates subgraph handlers == */
     createOrUpdateSubgraphHandlers();
     /* == Copy rates == */
-    memcpy(rates_.get(), srcFiring->rates_.get(), parent_->graph()->edgeCount() * sizeof(EdgeRate));
+    memcpy(ratesArray_.get(), srcFiring->ratesArray_.get(), parent_->graph()->edgeCount() * sizeof(EdgeRate));
     resolved_ = true;
 }
 
-void spider::srless::GraphFiring::clear() {
+void spider::pisdf::GraphFiring::clear() {
     for (const auto &vertex : parent_->graph()->vertices()) {
         const auto ix = vertex->ix();
-        const auto rvValue = brv_.get()[ix];
+        const auto rvValue = brvArray_[ix];
         if (rvValue != UINT32_MAX) {
-            std::fill(taskIxRegister_.get()[ix], taskIxRegister_.get()[ix] + brv_.get()[ix], UINT32_MAX);
+            std::fill(taskIxRegister_[ix], taskIxRegister_[ix] + rvValue, UINT32_MAX);
+            for (const auto *edge : vertex->outputEdges()) {
+                for (u32 k = 0; k < rvValue; ++k) {
+                    setEdgeAddress(SIZE_MAX, edge, k);
+                    setEdgeOffset(0, edge, k);
+                }
+            }
         }
     }
     for (auto &graphHandler : subgraphHandlers()) {
@@ -169,35 +152,100 @@ void spider::srless::GraphFiring::clear() {
     resolved_ = parent_->isStatic();
 }
 
-spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring::subgraphFirings() const {
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::GraphFiring::computeExecDependencies(const Vertex *vertex, u32 firing) const {
+    auto result = factory::vector<DependencyIterator>(StackID::SCHEDULE);
+    if (vertex->inputEdgeCount()) {
+        spider::reserve(result, vertex->inputEdgeCount());
+        for (const auto *edge : vertex->inputEdges()) {
+            result.emplace_back(computeExecDependency(vertex, firing, edge->sinkPortIx()));
+        }
+    }
+    return result;
+}
+
+spider::pisdf::DependencyIterator
+spider::pisdf::GraphFiring::computeExecDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
+#ifndef NDEBUG
+    if (!vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = getSnkRate(edge);
+    if (!snkRate) {
+        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
+    }
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    spider::reserve(result, 20);
+    auto depCount = pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, this, &result);
+    if (count) {
+        *count = depCount;
+    }
+    return DependencyIterator{ std::move(result) };
+}
+
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::GraphFiring::computeConsDependencies(const Vertex *vertex, u32 firing) const {
+    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
+    if (vertex->outputEdgeCount()) {
+        spider::reserve(result, vertex->outputEdgeCount());
+        for (const auto *edge : vertex->outputEdges()) {
+            result.emplace_back(computeConsDependency(vertex, firing, edge->sourcePortIx()));
+        }
+    }
+    return result;
+}
+
+spider::pisdf::DependencyIterator
+spider::pisdf::GraphFiring::computeConsDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
+#ifndef NDEBUG
+    if (!vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->outputEdge(edgeIx);
+    const auto srcRate = getSrcRate(edge);
+    if (!srcRate) {
+        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
+    }
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, this, &result);
+    if (count) {
+        *count = depCount;
+    }
+    return DependencyIterator{ std::move(result) };
+}
+
+spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphFirings() const {
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
-spider::array_handle<spider::srless::GraphHandler *> spider::srless::GraphFiring::subgraphHandlers() {
+spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphHandlers() {
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
-int64_t spider::srless::GraphFiring::getSourceRate(const pisdf::Edge *edge) const {
+int64_t spider::pisdf::GraphFiring::getSrcRate(const Edge *edge) const {
 #ifndef NDEBUG
     if (edge->graph() != parent_->graph()) {
         throwSpiderException("edge does not belong to this graph.");
     }
 #endif
     // TODO:: add possibility to switch off this optim with compiler flag
-    return rates_.get()[edge->ix()].srcRate_;
+    return ratesArray_[edge->ix()].srcRate_;
 }
 
-int64_t spider::srless::GraphFiring::getSinkRate(const pisdf::Edge *edge) const {
+int64_t spider::pisdf::GraphFiring::getSnkRate(const Edge *edge) const {
 #ifndef NDEBUG
     if (edge->graph() != parent_->graph()) {
         throwSpiderException("edge does not belong to this graph.");
     }
 #endif
     // TODO:: add possibility to switch off this optim with compiler flag
-    return rates_.get()[edge->ix()].snkRate_;
+    return ratesArray_[edge->ix()].snkRate_;
 }
 
-u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) const {
+u32 spider::pisdf::GraphFiring::getRV(const Vertex *vertex) const {
 #ifndef NDEBUG
     if (vertex->graph() != parent_->graph()) {
         throwSpiderException("vertex does not belong to the correct graph.");
@@ -206,33 +254,45 @@ u32 spider::srless::GraphFiring::getRV(const spider::pisdf::Vertex *vertex) cons
     if (vertex->subtype() == pisdf::VertexType::INPUT || vertex->subtype() == pisdf::VertexType::OUTPUT) {
         return 1;
     }
-    return brv_.get()[vertex->ix()];
+    return brvArray_[vertex->ix()];
 }
 
-u32 spider::srless::GraphFiring::getTaskIx(const spider::pisdf::Vertex *vertex, u32 firing) const {
+u32 spider::pisdf::GraphFiring::getTaskIx(const Vertex *vertex, u32 firing) const {
 #ifndef NDEBUG
     if (firing >= getRV(vertex)) {
         throwSpiderException("invalid vertex firing.");
     }
 #endif
-    return taskIxRegister_.get()[vertex->ix()][firing];
+    return taskIxRegister_[vertex->ix()][firing];
 }
 
-const spider::srless::GraphFiring *
-spider::srless::GraphFiring::getSubgraphGraphFiring(const pisdf::Graph *subgraph, u32 firing) const {
+const spider::pisdf::GraphFiring *
+spider::pisdf::GraphFiring::getSubgraphGraphFiring(const Graph *subgraph, u32 firing) const {
 #ifndef NDEBUG
     if (subgraph->graph() != parent_->graph()) {
         throwSpiderException("subgraph does not belong to this graph.");
     }
 #endif
-    return subgraphHandlers_.get()[subgraph->subIx()]->firings()[firing];
+    return subgraphHandlers_[subgraph->subIx()]->firings()[firing];
 }
 
-const spider::vector<std::shared_ptr<spider::pisdf::Param>> &spider::srless::GraphFiring::getParams() const {
-    return params_;
+const spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) const {
+    return parent_->graph()->vertex(ix);
 }
 
-void spider::srless::GraphFiring::setParamValue(size_t ix, int64_t value) {
+spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) {
+    return parent_->graph()->vertex(ix);
+}
+
+size_t spider::pisdf::GraphFiring::getEdgeAddress(const Edge *edge, u32 firing) const {
+    return edgeAllocArray_[edge->ix()][firing].address_;
+}
+
+u32 spider::pisdf::GraphFiring::getEdgeOffset(const Edge *edge, u32 firing) const {
+    return edgeAllocArray_[edge->ix()][firing].offset_;
+}
+
+void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
     paramResolvedCount_++;
     if (paramResolvedCount_ == dynamicParamCount_) {
@@ -248,10 +308,27 @@ void spider::srless::GraphFiring::setParamValue(size_t ix, int64_t value) {
     }
 }
 
+void spider::pisdf::GraphFiring::setTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
+#ifndef NDEBUG
+    if (firing >= getRV(vertex)) {
+        throwSpiderException("invalid vertex firing.");
+    }
+#endif
+    taskIxRegister_[vertex->ix()][firing] = taskIx;
+}
+
+void spider::pisdf::GraphFiring::setEdgeAddress(size_t value, const pisdf::Edge *edge, u32 firing) {
+    edgeAllocArray_[edge->ix()][firing].address_ = value;
+}
+
+void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const pisdf::Edge *edge, u32 firing) {
+    edgeAllocArray_[edge->ix()][firing].offset_ = value;
+}
+
 /* === Private method(s) implementation === */
 
 std::shared_ptr<spider::pisdf::Param>
-spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param) {
+spider::pisdf::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param) {
     if (param->type() == pisdf::ParamType::DYNAMIC) {
         return spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
     } else if (param->type() == pisdf::ParamType::INHERITED) {
@@ -270,11 +347,27 @@ spider::srless::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &
     return param;
 }
 
-void spider::srless::GraphFiring::createOrUpdateSubgraphHandlers() {
+void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 rvValue) {
+    const auto ix = vertex->ix();
+    if (brvArray_[ix] != rvValue) {
+        brvArray_[ix] = rvValue;
+        deallocate(taskIxRegister_[ix]);
+        taskIxRegister_[ix] = spider::make_n<u32, StackID::TRANSFO>(rvValue, UINT32_MAX);
+        for (const auto *edge : vertex->outputEdges()) {
+            deallocate(edgeAllocArray_[edge->ix()]);
+            edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::TRANSFO>(rvValue, { SIZE_MAX, 0 });
+        }
+    } else {
+        /* == reset values == */
+        std::fill(taskIxRegister_[ix], taskIxRegister_[ix] + rvValue, UINT32_MAX);
+    }
+}
+
+void spider::pisdf::GraphFiring::createOrUpdateSubgraphHandlers() {
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
         const auto ix = subgraph->ix();
-        const auto rvValue = brv_.get()[ix];
-        auto &currentGraphHandler = subgraphHandlers_.get()[subgraph->subIx()];
+        const auto rvValue = brvArray_[ix];
+        auto &currentGraphHandler = subgraphHandlers_[subgraph->subIx()];
         if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
             destroy(currentGraphHandler);
             currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);

@@ -246,11 +246,15 @@ void spider::run(spider::RuntimeContext &context) {
                 while (!spider2StopRunning) {
                     context.algorithm_->execute();
                 }
+                /* == Runners should clear their parameters == */
+                rt::platform()->sendClearToRunners();
                 break;
             case RunMode::LOOP:
                 for (size_t i = 0; (i < context.loopSize_) && !spider2StopRunning; ++i) {
                     context.algorithm_->execute();
                 }
+                /* == Runners should clear their parameters == */
+                rt::platform()->sendClearToRunners();
                 break;
             case RunMode::EXTERN_LOOP:
                 context.algorithm_->execute();

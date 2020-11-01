@@ -40,11 +40,12 @@
 #include <memory/memory.h>
 #include <common/Types.h>
 #include <containers/array.h>
+#include <archi/PE.h>
 #include <scheduling/memory/JobFifos.h>
-#include <scheduling/memory/AllocationRule.h>
 #include <runtime/message/JobMessage.h>
 
 namespace spider {
+
     /* === Forward Declaration(s) === */
 
     class PE;
@@ -53,14 +54,11 @@ namespace spider {
 
         class Task;
 
+        class SyncTask;
+
         class Schedule;
 
-        class FifoAllocator;
-
-        struct DependencyInfo {
-            size_t fifoIx_;
-            size_t dataSize_;
-        };
+        class TaskLauncher;
 
         enum class TaskState : u8 {
             NOT_SCHEDULABLE = 0,
@@ -68,6 +66,7 @@ namespace spider {
             PENDING,
             READY,
             RUNNING,
+            SKIPPED,
         };
 
         /* === Class definition === */
@@ -88,78 +87,131 @@ namespace spider {
 
             /* === Method(s) === */
 
+            virtual void visit(sched::TaskLauncher *launcher);
+
             /**
-             * @brief Set all notification flags to true.
+             * @brief Update output params based on received values.
+             * @param values Values of the params.
              */
-            void enableBroadcast();
+            inline virtual void receiveParams(const spider::array<i64> &/*values*/) { }
 
             /* === Getter(s) === */
 
-            inline JobFifos &fifos() const {
-#ifndef NDEBUG
-                if (!fifos_) {
-                    throwSpiderException("Nullptr TaskFifos.");
-                }
-#endif
-                return *(fifos_.get());
-            }
-
             /**
-             * @brief Get the start time of the task.
-             * @return mapping start time of the task, UINT64_MAX else
+             * @brief Get the input rate for the fifo of index ix.
+             * @param ix  Index of the input fifo.
+             * @return rate of the fifo.
              */
-            u64 startTime() const;
+            virtual inline i64 inputRate(size_t /*ix*/) const { return 0; }
 
             /**
-             * @brief Get the end time of the task.
-             * @return mapping end time of the task, UINT64_MAX else
+             * @brief Get the output rate for the fifo of index ix.
+             * @param ix  Index of the output fifo.
+             * @return rate of the fifo.
              */
-            u64 endTime() const;
+            virtual inline i64 outputRate(size_t /*ix*/) const { return 0; }
 
             /**
-             * @brief Returns the PE on which the task is mapped.
-             * @return pointer to the PE onto which the task is mapped, nullptr else
+             * @brief Get the previous Task of a given index.
+             * @param ix       Index of the Task.
+             * @param schedule Schedule to wich the Task is associated.
+             * @return pointer to the previous Task, nullptr else.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual inline Task *previousTask(size_t /*ix*/, const Schedule */*schedule*/) const { return nullptr; }
+
+            /**
+             * @brief Get the next Task of a given index.
+             * @param ix       Index of the Task.
+             * @param schedule Schedule to wich the Task is associated.
+             * @return pointer to the next Task, nullptr else.
+             * @throws @refitem spider::Exception if index out of bound (only in debug)
+             */
+            virtual inline Task *nextTask(size_t /*ix*/, const Schedule */*schedule*/) const { return nullptr; }
+
+            /**
+             * @brief Return a color value for the vertexTask.
+             *        format is RGB with 8 bits per component in the lower part of the returned value.
+             * @return  color of the vertexTask.
+             */
+            virtual u32 color() const = 0;
+
+            /**
+             * @brief Returns the name of the vertexTask
+             * @return name of the vertexTask
+             */
+            virtual std::string name() const = 0;
+
+            /**
+             * @brief Check if the vertexTask is mappable on a given PE.
+             * @param pe  Pointer to the PE.
+             * @return true if mappable on PE, false else.
+             */
+            virtual inline bool isMappableOnPE(const PE */* pe */) const { return true; }
+
+            /**
+             * @brief Get the execution timing on a given PE.
+             * @param pe  Pointer to the PE.
+             * @return exec timing on the PE, UINT64_MAX else.
+             */
+            virtual inline u64 timingOnPE(const PE */* pe */) const { return UINT64_MAX; }
+
+            /**
+             * @brief Get the number of execution dependencies for this task.
+             * @return number of dependencies.
+             */
+            virtual inline size_t dependencyCount() const { return 0; }
+
+
+            /**
+             * @brief Get the number of consumer dependencies for this task.
+             * @return number of dependencies.
+             */
+            virtual inline size_t successorCount() const { return 0; }
+
+            /**
+             * @brief Get the start time of the vertexTask.
+             * @return mapping start time of the vertexTask, UINT64_MAX else
+             */
+            inline u64 startTime() const { return startTime_; }
+
+            /**
+             * @brief Get the end time of the vertexTask.
+             * @return mapping end time of the vertexTask, UINT64_MAX else
+             */
+            inline u64 endTime() const { return endTime_; }
+
+            /**
+             * @brief Returns the PE on which the vertexTask is mapped.
+             * @return pointer to the PE onto which the vertexTask is mapped, nullptr else
              */
             const PE *mappedPe() const;
 
             /**
-             * @brief Returns the LRT attached to the PE on which the task is mapped.
+             * @brief Returns the LRT attached to the PE on which the vertexTask is mapped.
              * @return pointer to the LRT, nullptr else
              */
-            const PE *mappedLRT() const;
+            inline const PE *mappedLRT() const { return mappedPe()->attachedLRT(); }
 
             /**
-             * @brief Returns the state of the task.
-             * @return @refitem TaskState of the task
+             * @brief Returns the state of the vertexTask.
+             * @return @refitem TaskState of the vertexTask
              */
             inline TaskState state() const noexcept { return state_; }
 
             /**
-             * @brief Returns the ix of the task in the schedule.
-             * @return ix of the task in the schedule, -1 else.
+             * @brief Returns the ix of the vertexTask in the schedule.
+             * @return ix of the vertexTask in the schedule, -1 else.
              */
-            inline u32 ix() const noexcept { return ix_; }
+            inline virtual u32 ix() const noexcept { return UINT32_MAX; }
 
             /**
-             * @brief Returns the executable job index value of the task in the job queue of the mapped PE.
+             * @brief Returns the executable job index value of the vertexTask in the job queue of the mapped PE.
              * @return ix value, SIZE_MAX else.
              */
             inline u32 jobExecIx() const noexcept { return jobExecIx_; }
 
-            /**
-             * @brief Get notification flag for given LRT.
-             * @remark no boundary check is performed.
-             * @return boolean flag indicating if this task is notifying given LRT.
-             */
-            inline bool getNotificationFlagForLRT(size_t ix) const { return notifications_.get()[ix]; }
-
-            /**
-             * @brief Get the previous task of a given index.
-             * @param ix Index of the task.
-             * @return pointer to the previous task, nullptr else.
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            Task *previousTask(size_t ix) const;
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const { return syncExecTaskIxArray_[lrtIx]; }
 
             /* === Setter(s) === */
 
@@ -168,14 +220,14 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            void setStartTime(u64 time);
+            inline void setStartTime(u64 time) { startTime_ = time; }
 
             /**
              * @brief Set the end time of the job.
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            void setEndTime(u64 time);
+            inline void setEndTime(u64 time) { endTime_ = time; }
 
             /**
             * @brief Set the processing element of the job.
@@ -192,147 +244,32 @@ namespace spider {
             inline void setState(TaskState state) noexcept { state_ = state; }
 
             /**
-             * @brief Set the execution job index value of the task (that will be used for synchronization).
+             * @brief Set the execution job index value of the vertexTask (that will be used for synchronization).
              * @remark This method will overwrite current values.
              * @param ix Ix to set.
              */
             inline void setJobExecIx(u32 ix) noexcept { jobExecIx_ = ix; }
 
             /**
-             * @brief Set the notification flag for this lrt.
-             * @warning There is no check on the value of lrt.
-             * @param lrt   Index of the lrt.
-             * @param value Value to set: true = should notify, false = should not notify.
-             */
-            inline void setNotificationFlag(size_t lrt, bool value) {
-                notifications_.get()[lrt] = value;
-            }
-
-            /**
-             * @brief Override the current execution dependency at given position.
-             * @param ix   position of the dependency to set.
-             * @param task pointer to the task to set.
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            void setExecutionDependency(size_t ix, Task *task);
-
-            /* === Virtual method(s) === */
-
-            virtual Fifo getOutputFifo(size_t ix) const;
-
-            virtual Fifo getInputFifo(size_t ix) const;
-
-            /**
-             * @brief Allocate task memory.
-             */
-            virtual void allocate(FifoAllocator *) = 0;
-
-            /**
              * @brief Set the ix of the job.
              * @remark This method will overwrite current value.
              * @param ix Ix to set.
              */
-            virtual inline void setIx(u32 ix) noexcept { ix_ = ix; }
+            virtual void setIx(u32 ix) noexcept = 0;
 
-            /**
-             * @brief Flag indicating whether or not a task can be optimized away by a smart fifo allocator.
-             * @return true if the task could be optimized away by allocator, false else.
-             */
-            virtual bool isSyncOptimizable() const noexcept = 0;
+            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value)  {
+                if (syncExecTaskIxArray_[lrtIx] == UINT32_MAX || value > syncExecTaskIxArray_[lrtIx]) {
+                    syncExecTaskIxArray_[lrtIx] = value;
+                }
+            }
 
-            /**
-             * @brief Return the memory allocation rule for a given input fifo.
-             * @param ix Index of the Fifo.
-             * @return @refitem AllocationRule
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual AllocationRule allocationRuleForInputFifo(size_t ix) const = 0;
-
-            /**
-             * @brief Return the memory allocation rule for a given output fifo.
-             * @param ix Index of the Fifo.
-             * @return @refitem AllocationRule
-             * @throws @refitem spider::Exception if index out of bound (only in debug)
-             */
-            virtual AllocationRule allocationRuleForOutputFifo(size_t ix) const = 0;
-
-            /**
-             * @brief Return a color value for the task.
-             *        format is RGB with 8 bits per component in the lower part of the returned value.
-             * @return  color of the task.
-             */
-            virtual u32 color() const = 0;
-
-            /**
-             * @brief Update task execution dependencies based on schedule information.
-             * @param schedule pointer to the schedule.
-             */
-            virtual void updateTaskExecutionDependencies(const Schedule *schedule) = 0;
-
-            /**
-             * @brief Returns the name of the task
-             * @return name of the task
-             */
-            virtual std::string name() const = 0;
-
-            /**
-             * @brief Set dependencies notification flag (i.e search which dependencies should send us a notif)
-             * @return an array of size of archi::Platform::LRTCount filled with indices to the dependencies that should
-             * be notifying us.
-             */
-            spider::array<size_t> updateDependenciesNotificationFlag() const;
-
-            /**
-             * @brief Creates a job message out of the information of the task.
-             * @return  JobMessage.
-             */
-            virtual JobMessage createJobMessage() const;
-
-            /**
-             * @brief Compute the communication cost and the data size that would need to be send if a task is mapped
-             *        on a given PE.
-             * @param mappedPE  PE on which the task is currently mapped.
-             * @return pair containing the communication cost as first and the total size of data to send as second.
-             */
-            virtual std::pair<ufast64, ufast64> computeCommunicationCost(const PE *mappedPE) const = 0;
-
-            /**
-             * @brief Check if the task is mappable on a given PE.
-             * @param pe  Pointer to the PE.
-             * @return true if mappable on PE, false else.
-             */
-            virtual inline bool isMappableOnPE(const PE */* pe */) const { return true; }
-
-            /**
-             * @brief Get the execution timing on a given PE.
-             * @param pe  Pointer to the PE.
-             * @return exec timing on the PE, UINT64_MAX else.
-             */
-            virtual inline u64 timingOnPE(const PE */* pe */) const { return UINT64_MAX; }
-
-            /**
-             * @brief
-             * @return
-             */
-            virtual DependencyInfo getDependencyInfo(size_t /* ix */) const = 0;
-
-            virtual size_t dependencyCount() const = 0;
-
-        protected:
-            spider::unique_ptr<Task *> dependencies_;       /*!< Dependencies of the task */
-            spider::unique_ptr<bool> notifications_;        /*!< Notification flags of the task */
-            std::shared_ptr<JobFifos> fifos_;               /*!< Fifo(s) attached to the task */
-            const PE *mappedPE_{ nullptr };                 /*!< Mapping PE of the task */
-            u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the task */
-            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the task */
-            u32 ix_{ UINT32_MAX };                          /*!< Index of the task in the schedule */
+        private:
+            spider::unique_ptr<u32> syncExecTaskIxArray_;
+            u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the vertexTask */
+            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
+            u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */
             u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
-            TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the task */
-
-            /* === Protected method(s) === */
-
-            spider::array<SyncInfo> getExecutionConstraints() const;
-
+            TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */
         };
     }
 }

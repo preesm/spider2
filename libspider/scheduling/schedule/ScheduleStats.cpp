@@ -47,36 +47,25 @@
 /* === Method(s) implementation === */
 
 
-spider::Stats::Stats() : startTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
-                         endTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
-                         loadTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
-                         idleTimeVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
-                         memoryUsageVector_{ factory::vector<uint64_t>(StackID::SCHEDULE) },
-                         jobCountVector_{ factory::vector<size_t>(StackID::SCHEDULE) } {
+spider::Stats::Stats() {
     const auto *platform = archi::platform();
-
     /* == Init stat vectors == */
-    const auto &n = platform->PECount();
-    startTimeVector_.resize(n, 0);
-    endTimeVector_.resize(n, 0);
-    loadTimeVector_.resize(n, 0);
-    idleTimeVector_.resize(n, 0);
-    memoryUsageVector_.resize(platform->clusterCount(), 0);
-    jobCountVector_.resize(n, 0);
+    const auto n = platform->PECount();
+    startTimeArray_ = spider::make_unique(spider::make_n<u64, StackID::SCHEDULE>(n, 0));
+    endTimeArray_ = spider::make_unique(spider::make_n<u64, StackID::SCHEDULE>(n, 0));
+    loadTimeArray_ = spider::make_unique(spider::make_n<u64, StackID::SCHEDULE>(n, 0));
+    idleTimeArray_ = spider::make_unique(spider::make_n<u64, StackID::SCHEDULE>(n, 0));
+    jobCountArray_ = spider::make_unique(spider::make_n<size_t, StackID::SCHEDULE>(n, 0));
 }
 
 void spider::Stats::reset() {
     /* == Clear all the vectors == */
-    std::fill(startTimeVector_.begin(), startTimeVector_.end(), 0);
-    std::fill(endTimeVector_.begin(), endTimeVector_.end(), 0);
-    std::fill(loadTimeVector_.begin(), loadTimeVector_.end(), 0);
-    std::fill(idleTimeVector_.begin(), idleTimeVector_.end(), 0);
-    std::fill(jobCountVector_.begin(), jobCountVector_.end(), 0);
-    auto it = std::begin(memoryUsageVector_);
-    for (auto *cluster : archi::platform()->clusters()) {
-        *(it++) = cluster->memoryInterface()->size();
-    }
-
+    const auto n = archi::platform()->PECount();
+    std::fill(startTimeArray_.get(), startTimeArray_.get() + n, 0);
+    std::fill(endTimeArray_.get(), endTimeArray_.get() + n, 0);
+    std::fill(loadTimeArray_.get(), loadTimeArray_.get() + n, 0);
+    std::fill(idleTimeArray_.get(), idleTimeArray_.get() + n, 0);
+    std::fill(jobCountArray_.get(), jobCountArray_.get() + n, 0);
     /* == Reset min / max time == */
     minStartTime_ = UINT64_MAX;
     maxEndTime_ = 0;

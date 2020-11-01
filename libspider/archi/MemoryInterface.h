@@ -37,9 +37,9 @@
 
 /* === Include(s) === */
 
+#include <containers/unordered_map.h>
 #include <api/global-api.h>
 #include <common/Exception.h>
-#include <containers/map.h>
 
 namespace spider {
 
@@ -56,20 +56,27 @@ namespace spider {
         /**
          * @brief Read memory at the given memory virtual address.
          * @remark if count is 0, the value is discarded.
-         * @param virtualAddress  Virtual address to evaluate.
+         * @param address  Virtual address to evaluate.
          * @param count           Number of use of the buffer to add.
          * @return physical address corresponding to the virtual address.
          */
-        void *read(uint64_t virtualAddress, i32 count = 0);
+        void *read(uint64_t address, i32 count = 0);
+
+        /**
+         * @brief Update lifetime of a given buffer.
+         * @param address Virtual address of the buffer.
+         * @param count   Counter update to apply.
+         */
+        void update(uint64_t address, i32 count = 1);
 
         /**
          * @brief Allocate memory to the given virtual address.
-         * @param virtualAddress  Virtual address to evaluate.
-         * @param size            Size of the memory to allocate.
-         * @param count           Number of use of the buffer to set.
+         * @param address  Virtual address to evaluate.
+         * @param size     Size of the memory to allocate.
+         * @param count    Number of use of the buffer to set.
          * @return physical memory addressed allocated.
          */
-        void *allocate(uint64_t virtualAddress, size_t size, i32 count = 1);
+        void *allocate(uint64_t address, size_t size, i32 count = 1);
 
         /**
          * @brief Deallocate memory from the given virtual address.
@@ -81,7 +88,7 @@ namespace spider {
         /**
          * @brief Free every existing buffer with non-zero counter.
          */
-        void garbageCollect();
+        void collect();
 
         /**
          * @brief Reset the memory interface.
@@ -142,12 +149,12 @@ namespace spider {
             i32 count_;
         };
         /* = Map associating virtual address to physical ones = */
-        spider::map<uint64_t, buffer_t> virtual2Phys_;
+        spider::unordered_map<uint64_t, buffer_t> virtual2Phys_;
+        std::mutex lock_;
         /* = Total size of the MemoryUnit = */
         uint64_t size_ = 0;
         /* = Currently used memory (strictly less or equal to size_) = */
         uint64_t used_ = 0;
-        std::mutex lock_;
 
         /* === Allocation routines === */
 

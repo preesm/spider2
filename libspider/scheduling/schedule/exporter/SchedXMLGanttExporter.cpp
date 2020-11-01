@@ -41,7 +41,6 @@
 #include <archi/PE.h>
 #include <archi/Platform.h>
 #include <scheduling/schedule/Schedule.h>
-#include <scheduling/task/Task.h>
 
 /* === Method(s) implementation === */
 
@@ -59,7 +58,7 @@ void spider::SchedXMLGanttExporter::printFromFile(FILE *file) const {
     printer::fprintf(file, "</data>\n");
 }
 
-void spider::SchedXMLGanttExporter::printTask(FILE *file, const sched::Task *task) const {
+void spider::SchedXMLGanttExporter::printTask(FILE *file, const sched::Task *task) {
     /* == Let's compute a color based on the value of the pointer == */
     const auto name = task->name();
     u32 color = task->color();

@@ -38,15 +38,25 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
-#include <scheduling/memory/AllocationRule.h>
-#include <api/global-api.h>
+#include <scheduling/memory/JobFifos.h>
+#include <graphs-tools/numerical/dependencies.h>
 
 namespace spider {
 
     /* === Forward declaration(s) === */
 
+#ifndef _NO_BUILD_LEGACY_RT
     namespace srdag {
         class Edge;
+    }
+#endif
+
+    namespace pisdf {
+        class Vertex;
+
+        class GraphFiring;
+
+        class Graph;
     }
 
     namespace sched {
@@ -56,6 +66,8 @@ namespace spider {
         class SRDAGTask;
 
         class SyncTask;
+
+        class Schedule;
 
         /* === Class definition === */
 
@@ -70,29 +82,13 @@ namespace spider {
 
             FifoAllocatorTraits traits_;
 
-            FifoAllocator() : FifoAllocator({ true, true }) { }
+            FifoAllocator() : FifoAllocator({ true, true }) {
+
+            }
 
             virtual ~FifoAllocator() noexcept = default;
 
             /* === Method(s) === */
-
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            inline virtual void allocate(sched::PiSDFTask *) { }
-
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            inline virtual void allocate(sched::SRDAGTask *) {}
-
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            virtual void allocate(sched::SyncTask *task);
 
             /**
              * @brief Clears the allocator.
@@ -100,10 +96,33 @@ namespace spider {
             virtual void clear() noexcept;
 
             /**
+             * @brief Allocate size bytes.
+             * @param size Size to allocate.
+             * @return address of allocated buffer
+             */
+            size_t allocate(size_t size);
+
+            /**
              * @brief Reserve memory for permanent delays.
              * @param graph pointer to the graph.
              */
-            virtual void allocatePersistentDelays(pisdf::Graph *graph);
+            void allocatePersistentDelays(pisdf::Graph *graph);
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+            inline virtual spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *) {
+                return spider::make_unique<JobFifos>(0, 0);
+            }
+
+#endif
+
+            inline virtual void updateDynamicBuffersCount() { }
+
+            inline virtual spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *,
+                                                                      const pisdf::VertexDependencies &,
+                                                                      const pisdf::VertexDependencies &) {
+                return spider::make_unique<JobFifos>(0, 0);
+            }
 
             /* === Getter(s) === */
 
@@ -111,15 +130,25 @@ namespace spider {
              * @brief Get the type of the FifoAllocator
              * @return @refitem FifoAllocatorType
              */
-            virtual FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
+            inline virtual FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
 
-        protected:
+            /* === Setter(s) === */
+
+            /**
+             * @brief Set the schedule that can be used by the FifoAllocator for additionnal information.
+             * @param schedule Pointer to the schedule to set.
+             */
+            inline void setSchedule(const Schedule *schedule) { schedule_ = schedule; }
+
+        private:
+            const Schedule *schedule_ = nullptr;
             size_t reservedMemory_ = 0;
             size_t virtualMemoryAddress_ = 0;
 
-            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } { }
+        protected:
+            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } {
 
-            Fifo allocateNewFifo(size_t size);
+            }
         };
     }
 }

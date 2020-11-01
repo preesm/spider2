@@ -138,6 +138,17 @@ std::pair<spider::srdag::JobStack, spider::srdag::JobStack> spider::srdag::Singl
     for (const auto &vertex : delayVertexToRemove) {
         srdag_->removeVertex(vertex);
     }
+    auto it = std::begin(srdag_->edges());
+    while (it != std::end(srdag_->edges())) {
+        auto *edge = it->get();
+        if (!edge->source() && !edge->sink()) {
+            auto dist = std::distance(std::begin(srdag_->edges()), it);
+            srdag_->removeEdge(edge);
+            it = std::next(std::begin(srdag_->edges()), dist);
+        } else {
+            it++;
+        }
+    }
     return futureJobs;
 }
 
@@ -204,7 +215,7 @@ bool spider::srdag::SingleRateTransformer::checkForNullEdge(const pisdf::Edge *e
                 auto name = std::string("void::in::").append(clone->name()).append(":").append(
                         std::to_string(edge->sinkPortIx()));
                 auto *init = srdag_->createVoidVertex(std::move(name), 0, 1);
-                srdag_->createEdge(init, 0, 0, clone, edge->sinkPortIx(), 0);
+                srdag_->createEdge(init, 0, clone, edge->sinkPortIx(), 0);
             }
         }
         /* == Add an empty END to the source == */
@@ -216,7 +227,7 @@ bool spider::srdag::SingleRateTransformer::checkForNullEdge(const pisdf::Edge *e
                 auto name = std::string("void::out::").append(clone->name()).append(":").append(
                         std::to_string(edge->sourcePortIx()));
                 auto *end = srdag_->createVoidVertex(std::move(name), 1, 0);
-                srdag_->createEdge(clone, edge->sourcePortIx(), 0, end, 0, 0);
+                srdag_->createEdge(clone, edge->sourcePortIx(), end, 0, 0);
             }
         }
         return true;
@@ -247,8 +258,7 @@ void spider::srdag::SingleRateTransformer::singleRateLinkage(pisdf::Edge *edge) 
         if (snkLnk.lowerDep_ == snkLnk.upperDep_) {
             if (srcLnk.lowerDep_ == srcLnk.upperDep_) {
                 /* == 2.1 Forward link between source and sink == */
-                srdag_->createEdge(srcLnk.vertex_, srcLnk.portIx_, srcLnk.rate_,
-                                   snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_);
+                srdag_->createEdge(srcLnk.vertex_, srcLnk.portIx_, snkLnk.vertex_, snkLnk.portIx_, snkLnk.rate_);
                 sourceVector.pop_back();
                 sinkVector.pop_back();
             } else {
@@ -344,7 +354,6 @@ void spider::srdag::SingleRateTransformer::addForkVertex(vector<TransfoVertex> &
     /* == Create an edge between source and fork == */
     srdag_->createEdge(sourceLinker.vertex_,  /* = Vertex that need to explode = */
                        sourceLinker.portIx_,  /* = Source port ix = */
-                       sourceLinker.rate_,    /* = Source rate = */
                        fork,                  /* = Added fork = */
                        0,                     /* = Fork has only one input port so 0 is fixed = */
                        sourceLinker.rate_    /* = Sink rate is the same as the source rate = */);
@@ -354,7 +363,6 @@ void spider::srdag::SingleRateTransformer::addForkVertex(vector<TransfoVertex> &
                       [](srdag::Vertex *vertex, size_t portIx, const TransfoVertex &transfoVertex) {
                           vertex->graph()->createEdge(vertex,                /* = Fork vertex = */
                                                       portIx,                /* = Fork output to connect = */
-                                                      transfoVertex.rate_,   /* = Sink rate = */
                                                       transfoVertex.vertex_, /* = Sink to connect to fork = */
                                                       transfoVertex.portIx_, /* = Sink port ix = */
                                                       transfoVertex.rate_    /* = Sink rate = */);
@@ -371,7 +379,6 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &
     /* == Create an edge between join and sink == */
     srdag_->createEdge(join,                /* = Added join = */
                        0,              /* = Join has only one output port so 0 is fixed = */
-                       sinkLinker.rate_,    /* = Source rate is the same as the sink rate = */
                        sinkLinker.vertex_,  /* = Vertex that need to implode = */
                        sinkLinker.portIx_,  /* = Sink port ix = */
                        sinkLinker.rate_     /* = Sink rate = */);
@@ -382,7 +389,6 @@ void spider::srdag::SingleRateTransformer::addJoinVertex(vector<TransfoVertex> &
                           transfoVertex.vertex_->graph()->createEdge(
                                   transfoVertex.vertex_, /* = Source to connect to join = */
                                   transfoVertex.portIx_, /* = Source port ix = */
-                                  transfoVertex.rate_,   /* = Source rate = */
                                   vertex,                /* = Join = */
                                   portIx,                /* = Join input to connect = */
                                   transfoVertex.rate_    /* = Source rate = */);
@@ -440,10 +446,9 @@ spider::srdag::SingleRateTransformer::buildSinkLinkerVector(const pisdf::Edge *e
         auto *srEdge = job_.srdagInstance_->outputEdge(sink->ix());
         if (isInterfaceTransparent(job_, output)) {
             sinkVector.emplace_back(srEdge->sinkRateValue(), srEdge->sinkPortIx(), srEdge->sink());
-            srdag_->removeEdge(srEdge);
         } else {
             auto *tail = srdag_->createTailVertex(job_.srdagInstance_->name() + "::" + job_.srdagInstance_->name(), 1);
-            srEdge->setSource(tail, 0, edge->sourceRateValue());
+            srEdge->setSource(tail, 0);
             const auto rate = edge->sourceRateExpression().evaluate(job_.params_) * edge->source()->repetitionValue();
             sinkVector.emplace_back(rate, 0, tail);
         }
@@ -487,10 +492,9 @@ spider::srdag::SingleRateTransformer::buildSourceLinkerVector(const pisdf::Edge 
         auto *srEdge = job_.srdagInstance_->inputEdge(source->ix());
         if (isInterfaceTransparent(job_, input)) {
             sourceVector.emplace_back(srEdge->sourceRateValue(), srEdge->sourcePortIx(), srEdge->source());
-            srdag_->removeEdge(srEdge);
         } else {
             auto *repeat = srdag_->createRepeatVertex(job_.srdagInstance_->name() + "::" + job_.srdagInstance_->name());
-            srEdge->setSink(repeat, 0, srEdge->sinkRateValue());
+            srEdge->setSink(repeat, 0);
             const auto rate = edge->sinkRateExpression().evaluate(job_.params_) * edge->sink()->repetitionValue();
             sourceVector.emplace_back(rate, 0, repeat);
         }
@@ -550,8 +554,6 @@ void spider::srdag::SingleRateTransformer::populateFromDelayVertex(vector<Transf
         portIx = edge->sourcePortIx();
     }
     vector.emplace_back(rate, static_cast<uint32_t>(portIx), vertex);
-    /* == Remove the Edge == */
-    srdag_->removeEdge(edge);
 }
 
 #endif

@@ -157,7 +157,7 @@ TEST_F(pisdfVertexTest, vertexCtorTest) {
 
 TEST_F(pisdfVertexTest, externBufferIndexTest) {
     const auto vertex = new spider::pisdf::ExternInterface(spider::pisdf::VertexType::EXTERN_IN, 0);
-    ASSERT_EQ(vertex->bufferIndex(), 0);
+    ASSERT_EQ(vertex->address(), 0);
     delete vertex;
 }
 

@@ -5,6 +5,8 @@ file(GLOB_RECURSE
         ${RUNTIME_TARGET_NAME}_SRC
         ./appTest/stabilization/*.cpp
         ./appTest/stabilization/*.h
+        ./appTest/reinforcement/*.cpp
+        ./appTest/reinforcement/*.h
         ../main.cpp
         runtimeAppTests.cpp
         runtimeMonoTest.cpp

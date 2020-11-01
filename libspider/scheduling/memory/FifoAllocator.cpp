@@ -36,15 +36,24 @@
 /* === Include(s) === */
 
 #include <scheduling/memory/FifoAllocator.h>
-#include <scheduling/task/SyncTask.h>
+#include <graphs/pisdf/Graph.h>
 #include <archi/MemoryInterface.h>
 #include <api/archi-api.h>
-#include <graphs/pisdf/Graph.h>
 
 /* === Function(s) definition === */
 
 void spider::sched::FifoAllocator::clear() noexcept {
     virtualMemoryAddress_ = reservedMemory_;
+}
+
+size_t spider::sched::FifoAllocator::allocate(size_t size) {
+    const auto address = virtualMemoryAddress_;
+    if (log::enabled<log::MEMORY>()) {
+        log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size,
+                                address);
+    }
+    virtualMemoryAddress_ += size;
+    return address;
 }
 
 void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph) {
@@ -63,37 +72,4 @@ void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph)
         }
     }
     virtualMemoryAddress_ = reservedMemory_;
-}
-
-void spider::sched::FifoAllocator::allocate(SyncTask *task) {
-    if (!task) {
-        return;
-    }
-    if (task->syncType() == RECEIVE) {
-        task->fifos().setOutputFifo(0, allocateNewFifo(task->size()));
-    } else {
-        auto fifo = task->previousTask(0)->getOutputFifo(task->inputPortIx());
-        if (fifo.attribute_ != FifoAttribute::RW_EXT) {
-            fifo.attribute_ = FifoAttribute::RW_ONLY;
-        }
-        task->fifos().setInputFifo(0, fifo);
-        task->fifos().setOutputFifo(0, fifo);
-    }
-}
-
-/* === Protected method(s) === */
-
-spider::Fifo spider::sched::FifoAllocator::allocateNewFifo(size_t size) {
-    Fifo fifo{ };
-    fifo.size_ = static_cast<u32>(size);
-    fifo.offset_ = 0;
-    fifo.count_ = size ? 1 : 0;
-    fifo.virtualAddress_ = virtualMemoryAddress_;
-    fifo.attribute_ = FifoAttribute::RW_OWN;
-    if (log::enabled<log::MEMORY>()) {
-        log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size,
-                                virtualMemoryAddress_);
-    }
-    virtualMemoryAddress_ += size;
-    return fifo;
 }
