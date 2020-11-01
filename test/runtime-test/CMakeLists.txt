@@ -9,8 +9,10 @@ file(GLOB_RECURSE
         ./appTest/reinforcement/*.h
         ../main.cpp
         runtimeAppTests.cpp
-        runtimeMonoTest.cpp
-        runtimeMonoTestSRLess.cpp
+        runtimeMonoTestSRDAGBestFit.cpp
+        runtimeMonoTestSRDAGRoundRobin.cpp
+        runtimeMonoTestPiSDFBestFit.cpp
+        runtimeMonoTestPiSDFRoundRobin.cpp
         RuntimeTestCases.cpp
         RuntimeTestCases.h
         )

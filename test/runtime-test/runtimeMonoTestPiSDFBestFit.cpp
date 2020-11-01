@@ -50,7 +50,7 @@
 #include <api/spider.h>
 #include "RuntimeTestCases.h"
 
-class runtimeMonoTestSRLess : public ::testing::Test {
+class runtimeMonoTestPiSDFBF : public ::testing::Test {
 protected:
     void SetUp() override {
         spider::start();
@@ -69,7 +69,7 @@ protected:
     }
 };
 
-TEST_F(runtimeMonoTestSRLess, TestStaticFlat) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -82,7 +82,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestStaticFlatNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -95,7 +95,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestStaticNoExecFlat) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticNoExecFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -108,7 +108,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticNoExecFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestStaticNoExecFlatNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticNoExecFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -121,7 +121,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticNoExecFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestStaticHierarchical) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -134,7 +134,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestStaticHierarchicalNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -147,7 +147,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestStaticNoExecHierarchical) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticNoExecHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -160,7 +160,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticNoExecHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestStaticNoExecHierarchicalNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestStaticNoExecHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -173,7 +173,7 @@ TEST_F(runtimeMonoTestSRLess, TestStaticNoExecHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestDynamicHierarchical) {
+TEST_F(runtimeMonoTestPiSDFBF, TestDynamicHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -186,7 +186,7 @@ TEST_F(runtimeMonoTestSRLess, TestDynamicHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeDynamicHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestDynamicHierarchicalNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestDynamicHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -199,7 +199,7 @@ TEST_F(runtimeMonoTestSRLess, TestDynamicHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeDynamicHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticFlat) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -212,7 +212,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticFlatNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -225,7 +225,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlat(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecFlat) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticNoExecFlat) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -238,7 +238,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecFlat) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecFlatNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticNoExecFlatNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -251,7 +251,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecFlatNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticFlatNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticHierarchical) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -264,7 +264,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticHierarchicalNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -277,7 +277,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecHierarchical) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticNoExecHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -290,7 +290,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecHierarchicalNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyStaticNoExecHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -303,7 +303,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyStaticNoExecHierarchicalNoSync) {
     ASSERT_NO_THROW(spider::test::runtimeStaticHierarchicalNoExec(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyDynamicHierarchical) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyDynamicHierarchical) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
@@ -316,7 +316,7 @@ TEST_F(runtimeMonoTestSRLess, TestGreedyDynamicHierarchical) {
     ASSERT_NO_THROW(spider::test::runtimeDynamicHierarchical(runtimeConfig));
 }
 
-TEST_F(runtimeMonoTestSRLess, TestGreedyDynamicHierarchicalNoSync) {
+TEST_F(runtimeMonoTestPiSDFBF, TestGreedyDynamicHierarchicalNoSync) {
     const auto runtimeConfig = spider::RuntimeConfig{
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
