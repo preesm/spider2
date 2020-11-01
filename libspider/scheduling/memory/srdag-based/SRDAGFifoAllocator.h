@@ -58,12 +58,6 @@ namespace spider {
             /* === Method(s) === */
 
             /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            void allocate(SRDAGTask *task) final;
-
-            /**
              * @brief Creates the fifos needed for the runtime execution of a task.
              * @param task Pointer to the task.
              * @return @refitem unique_ptr of @refitem JobFifos
@@ -79,6 +73,12 @@ namespace spider {
             FifoAllocatorType type() const final { return FifoAllocatorType::DEFAULT; };
 
         private:
+
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
+             */
+            void allocate(SRDAGTask *task);
 
             static Fifo buildInputFifo(const srdag::Edge *edge);
 

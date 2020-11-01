@@ -44,10 +44,26 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <archi/MemoryInterface.h>
 #include <api/archi-api.h>
-#include <runtime/message/Notification.h>
-#include <runtime/special-kernels/specialKernels.h>
 
 /* === Function(s) definition === */
+
+spider::unique_ptr<spider::JobFifos> spider::sched::SRDAGFifoAllocator::buildJobFifos(SRDAGTask *task) {
+    const auto *vertex = task->vertex();
+    auto fifos = spider::make_unique<JobFifos, StackID::RUNTIME>(static_cast<u32>(vertex->inputEdgeCount()),
+                                                                 static_cast<u32>(vertex->outputEdgeCount()));
+    /* == Allocate input fifos == */
+    for (const auto *edge : vertex->inputEdges()) {
+        fifos->setInputFifo(edge->sinkPortIx(), buildInputFifo(edge));
+    }
+    /* == Allocate output fifos == */
+    allocate(task);
+    for (const auto *edge : vertex->outputEdges()) {
+        fifos->setOutputFifo(edge->sourcePortIx(), buildOutputFifo(edge));
+    }
+    return fifos;
+}
+
+/* === Private methods === */
 
 void spider::sched::SRDAGFifoAllocator::allocate(SRDAGTask *task) {
     u32 offset = 0;
@@ -86,23 +102,6 @@ void spider::sched::SRDAGFifoAllocator::allocate(SRDAGTask *task) {
             break;
     }
 }
-
-spider::unique_ptr<spider::JobFifos> spider::sched::SRDAGFifoAllocator::buildJobFifos(SRDAGTask *task) {
-    const auto *vertex = task->vertex();
-    auto fifos = spider::make_unique<JobFifos, StackID::RUNTIME>(static_cast<u32>(vertex->inputEdgeCount()),
-                                                                 static_cast<u32>(vertex->outputEdgeCount()));
-    /* == Allocate input fifos == */
-    for (const auto *edge : vertex->inputEdges()) {
-        fifos->setInputFifo(edge->sinkPortIx(), buildInputFifo(edge));
-    }
-    /* == Allocate output fifos == */
-    for (const auto *edge : vertex->outputEdges()) {
-        fifos->setOutputFifo(edge->sourcePortIx(), buildOutputFifo(edge));
-    }
-    return fifos;
-}
-
-/* === Private methods === */
 
 spider::Fifo spider::sched::SRDAGFifoAllocator::buildInputFifo(const srdag::Edge *edge) {
     Fifo fifo{ };

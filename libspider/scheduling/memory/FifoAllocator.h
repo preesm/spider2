@@ -110,15 +110,11 @@ namespace spider {
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-            inline virtual void allocate(SRDAGTask *) { }
-
             inline virtual spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *) {
                 return spider::make_unique<JobFifos>(0, 0);
             }
 
 #endif
-
-            inline virtual void allocate(PiSDFTask *) { }
 
             inline virtual void updateDynamicBuffersCount() { }
 

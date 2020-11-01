@@ -140,8 +140,6 @@ void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) 
                 /* == Map the task == */
                 const auto currentTaskCount = schedule_->taskCount();
                 mapper_->map(task, schedule_.get());
-                /* == Allocate the task == */
-                allocator_->allocate(task);
                 /* == Add the task == */
                 if (schedule_->taskCount() > currentTaskCount) {
                     /* == We added synchronization == */
@@ -161,8 +159,6 @@ void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) 
             for (auto *task : tasks) {
                 /* == Map the task == */
                 mapper_->map(task, schedule_.get());
-                /* == Allocate the task == */
-                allocator_->allocate(task);
                 /* == Add the task == */
                 schedule_->addTask(task);
             }

@@ -63,12 +63,6 @@ namespace spider {
 
             void clear() noexcept final;
 
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            void allocate(PiSDFTask *task) final;
-
             void updateDynamicBuffersCount() final;
 
             /**
@@ -88,6 +82,13 @@ namespace spider {
                 u32 edgeIx_;
             };
             spider::vector<dynaBuffer_t> dynamicBuffers_;
+
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task  Pointer to the task.
+             * @param fifos Fifos of the task.
+             */
+            void allocate(PiSDFTask *task, const JobFifos *fifos);
 
             /**
              * @brief Compute the total number of input fifos (including merged fifos) needed by a task.
@@ -119,8 +120,7 @@ namespace spider {
                                        u32 firing,
                                        const pisdf::GraphFiring *handler);
 
-            Fifo buildOutputFifo(const JobFifos *fifos,
-                                 const pisdf::Edge *edge,
+            Fifo buildOutputFifo(const pisdf::Edge *edge,
                                  const PiSDFTask *task,
                                  const pisdf::DependencyIterator &depIt);
 
