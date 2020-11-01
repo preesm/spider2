@@ -228,12 +228,10 @@ void spider::sched::PiSDFListScheduler::sortVertices() {
                               handlerB = handlerB->getParent()->handler();
                           }
                           return firingA < firingB;
-                      } else if ((vertexA->subtype() != vertexB->subtype()) &&
-                                 ((vertexA->subtype() == pisdf::VertexType::INIT) ||
-                                  (vertexB->subtype() == pisdf::VertexType::END))) {
-                          return true;
                       }
-                      return vertexA->name() > vertexB->name();
+                      return (vertexA->subtype() != vertexB->subtype()) &&
+                             (vertexA->subtype() == pisdf::VertexType::INIT ||
+                              vertexB->subtype() == pisdf::VertexType::END);
                   }
                   return diff < 0;
               });
