@@ -32,44 +32,60 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+#ifndef SPIDER2_SRDAGFIFOALLOCATOR_H
+#define SPIDER2_SRDAGFIFOALLOCATOR_H
+
+#ifndef _NO_BUILD_LEGACY_RT
 
 /* === Include(s) === */
 
 #include <scheduling/memory/FifoAllocator.h>
-#include <graphs/pisdf/Graph.h>
-#include <archi/MemoryInterface.h>
-#include <api/archi-api.h>
 
-/* === Function(s) definition === */
+namespace spider {
 
-void spider::sched::FifoAllocator::clear() noexcept {
-    virtualMemoryAddress_ = reservedMemory_;
-}
+    namespace sched {
 
-size_t spider::sched::FifoAllocator::allocate(size_t size) {
-    const auto address = virtualMemoryAddress_;
-    if (log::enabled<log::MEMORY>()) {
-        log::print<log::MEMORY>(log::green, "INFO:", "VIRTUAL: allocating %zu bytes at address %zu.\n", size,
-                                address);
+        /* === Class definition === */
+
+        class SRDAGFifoAllocator final : public FifoAllocator {
+        public:
+            SRDAGFifoAllocator() : FifoAllocator({ true, true }) {
+
+            }
+
+            ~SRDAGFifoAllocator() noexcept override = default;
+
+            /* === Method(s) === */
+
+            /**
+             * @brief Allocate Fifos of a given task.
+             * @param task Pointer to the task.
+             */
+            void allocate(SRDAGTask *task) final;
+
+            /**
+             * @brief Creates the fifos needed for the runtime execution of a task.
+             * @param task Pointer to the task.
+             * @return @refitem unique_ptr of @refitem JobFifos
+             */
+            spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *task) final;
+
+            /* === Getter(s) === */
+
+            /**
+             * @brief Get the type of the FifoAllocator
+             * @return @refitem FifoAllocatorType
+             */
+            FifoAllocatorType type() const final { return FifoAllocatorType::DEFAULT; };
+
+        private:
+
+            static Fifo buildInputFifo(const srdag::Edge *edge);
+
+            static Fifo buildOutputFifo(const srdag::Edge *edge);
+
+        };
     }
-    virtualMemoryAddress_ += size;
-    return address;
 }
-
-void spider::sched::FifoAllocator::allocatePersistentDelays(pisdf::Graph *graph) {
-    const auto *grt = archi::platform()->spiderGRTPE();
-    auto *interface = grt->cluster()->memoryInterface();
-    for (const auto &edge : graph->edges()) {
-        const auto &delay = edge->delay();
-        if (delay && delay->isPersistent()) {
-            const auto value = static_cast<size_t>(delay->value());
-            auto *buffer = interface->allocate(static_cast<uint64_t>(reservedMemory_), value);
-            memset(buffer, 0, value * sizeof(char));
-            delay->setMemoryAddress(static_cast<uint64_t>(reservedMemory_));
-            delay->setMemoryInterface(interface);
-            log::info("Reserving #%.8ld bytes of memory.\n", value);
-            reservedMemory_ += value;
-        }
-    }
-    virtualMemoryAddress_ = reservedMemory_;
-}
+#endif
+#endif //SPIDER2_SRDAGFIFOALLOCATOR_H

@@ -44,6 +44,7 @@
 namespace spider {
 
     /* === Forward declaration(s) === */
+
 #ifndef _NO_BUILD_LEGACY_RT
     namespace srdag {
         class Edge;
@@ -70,7 +71,7 @@ namespace spider {
 
         /* === Class definition === */
 
-        class FifoAllocator final {
+        class FifoAllocator {
         public:
             struct FifoAllocatorTraits {
                 bool jitAllocator_;
@@ -85,7 +86,7 @@ namespace spider {
 
             }
 
-            ~FifoAllocator() noexcept = default;
+            virtual ~FifoAllocator() noexcept = default;
 
             /* === Method(s) === */
 
@@ -93,23 +94,6 @@ namespace spider {
              * @brief Clears the allocator.
              */
             virtual void clear() noexcept;
-
-
-#ifndef _NO_BUILD_LEGACY_RT
-
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            void allocate(SRDAGTask *task);
-
-#endif
-
-            /**
-             * @brief Allocate Fifos of a given task.
-             * @param task Pointer to the task.
-             */
-            void allocate(PiSDFTask *task);
 
             /**
              * @brief Allocate size bytes.
@@ -124,17 +108,25 @@ namespace spider {
              */
             void allocatePersistentDelays(pisdf::Graph *graph);
 
-            void updateDynamicBuffersCount();
-
 #ifndef _NO_BUILD_LEGACY_RT
 
-            static spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *task) ;
+            inline virtual void allocate(SRDAGTask *) { }
+
+            inline virtual spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *) {
+                return spider::make_unique<JobFifos>(0, 0);
+            }
 
 #endif
 
-            spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task,
-                                                       const spider::vector<pisdf::DependencyIterator> &execDeps,
-                                                       const spider::vector<pisdf::DependencyIterator> &consDeps);
+            inline virtual void allocate(PiSDFTask *) { }
+
+            inline virtual void updateDynamicBuffersCount() { }
+
+            inline virtual spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *,
+                                                                      const pisdf::VertexDependencies &,
+                                                                      const pisdf::VertexDependencies &) {
+                return spider::make_unique<JobFifos>(0, 0);
+            }
 
             /* === Getter(s) === */
 
@@ -142,7 +134,7 @@ namespace spider {
              * @brief Get the type of the FifoAllocator
              * @return @refitem FifoAllocatorType
              */
-            inline FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
+            inline virtual FifoAllocatorType type() const { return FifoAllocatorType::DEFAULT; };
 
             /* === Setter(s) === */
 
@@ -152,49 +144,15 @@ namespace spider {
              */
             inline void setSchedule(const Schedule *schedule) { schedule_ = schedule; }
 
-        protected:
-            struct dynaBuffer_t {
-                const PiSDFTask *task_;
-                u32 edgeIx_;
-            };
-            spider::vector<dynaBuffer_t> dynamicBuffers_;
+        private:
             const Schedule *schedule_ = nullptr;
             size_t reservedMemory_ = 0;
             size_t virtualMemoryAddress_ = 0;
 
-            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept:
-                    traits_{ traits },
-                    dynamicBuffers_{ factory::vector<dynaBuffer_t>(StackID::SCHEDULE) } {
+        protected:
+            explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } {
 
             }
-
-        private:
-
-#ifndef _NO_BUILD_LEGACY_RT
-
-            static Fifo buildInputFifo(const srdag::Edge *edge);
-
-            static Fifo buildOutputFifo(const srdag::Edge *edge);
-
-#endif
-
-            static Fifo buildInputFifo(const pisdf::Edge *edge,
-                                u32 size,
-                                u32 offset,
-                                u32 firing,
-                                const pisdf::GraphFiring *handler) ;
-
-            Fifo buildOutputFifo(const JobFifos *fifos,
-                                 const pisdf::Edge *edge,
-                                 const PiSDFTask *task,
-                                 const pisdf::DependencyIterator &depIt);
-
-            static i32 getFifoCount(const pisdf::DependencyIterator &depIt);
-
-            Fifo buildMergeFifo(Fifo *fifos,
-                                const PiSDFTask *task,
-                                const pisdf::Edge *edge,
-                                const pisdf::DependencyIterator &depIt);
         };
     }
 }

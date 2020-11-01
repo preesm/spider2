@@ -70,11 +70,22 @@ namespace spider {
             }
 
             inline size_t total() const {
+                if (!infos_.empty() && infos_[0].rate_ < 0) {
+                    return SIZE_MAX;
+                }
                 size_t count = 0;
                 for (const auto &dep : infos_) {
                     count += (dep.rate_ >= 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
                 }
                 return count;
+            }
+
+            inline DependencyInfo &operator[](size_t ix) {
+                return infos_.at(ix);
+            }
+
+            inline const DependencyInfo &operator[](size_t ix) const {
+                return infos_.at(ix);
             }
 
             inline iterator begin() {
@@ -96,6 +107,10 @@ namespace spider {
         private:
             spider::vector<DependencyInfo> infos_;
         };
+
+        /* == Type def for full dependencies of a vertex == */
+
+        using VertexDependencies = spider::vector<DependencyIterator>;
     }
 }
 
