@@ -62,7 +62,7 @@ void spider::sched::SRDAGTask::visit(TaskLauncher *launcher) {
     launcher->visit(this);
 }
 
-void spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
+bool spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
     if (vertex_->subtype() != pisdf::VertexType::CONFIG) {
         throwSpiderException("Only config vertices can update parameter values.");
     }
@@ -75,6 +75,7 @@ void spider::sched::SRDAGTask::receiveParams(const spider::array<i64> &values) {
                                     param->value());
         }
     }
+    return false;
 }
 
 i64 spider::sched::SRDAGTask::inputRate(size_t ix) const {

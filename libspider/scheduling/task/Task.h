@@ -93,7 +93,7 @@ namespace spider {
              * @brief Update output params based on received values.
              * @param values Values of the params.
              */
-            inline virtual void receiveParams(const spider::array<i64> &/*values*/) { }
+            inline virtual bool receiveParams(const spider::array<i64> &/*values*/) { return false; }
 
             /* === Getter(s) === */
 
@@ -257,7 +257,7 @@ namespace spider {
              */
             virtual void setIx(u32 ix) noexcept = 0;
 
-            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value)  {
+            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
                 if (syncExecTaskIxArray_[lrtIx] == UINT32_MAX || value > syncExecTaskIxArray_[lrtIx]) {
                     syncExecTaskIxArray_[lrtIx] = value;
                 }

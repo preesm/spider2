@@ -69,7 +69,7 @@ void spider::sched::PiSDFTask::visit(TaskLauncher *launcher) {
     launcher->visit(this);
 }
 
-void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
+bool spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
     const auto *vertex = this->vertex();
     if (vertex->subtype() != pisdf::VertexType::CONFIG) {
         throwSpiderException("Only config vertices can update parameter values.");
@@ -83,6 +83,7 @@ void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
                                     handler_->getParams()[ix]->name().c_str(), value);
         }
     }
+    return handler_->isResolved();
 }
 
 spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeExecDependencies() const {

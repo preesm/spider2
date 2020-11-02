@@ -63,7 +63,7 @@ namespace spider {
 
             void visit(TaskLauncher *launcher) final;
 
-            void receiveParams(const spider::array<i64> &values) final;
+            bool receiveParams(const spider::array<i64> &values) final;
 
             /* === Getter(s) === */
 

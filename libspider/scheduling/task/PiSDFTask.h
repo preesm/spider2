@@ -66,7 +66,7 @@ namespace spider {
 
             void visit(sched::TaskLauncher *launcher) final;
 
-            void receiveParams(const spider::array<i64> &values) final;
+            bool receiveParams(const spider::array<i64> &values) final;
 
             spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
 
