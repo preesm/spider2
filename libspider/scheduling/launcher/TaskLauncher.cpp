@@ -88,10 +88,14 @@ void spider::sched::TaskLauncher::visit(SyncTask *task) {
     if (task->state() != TaskState::READY) {
         return;
     }
+    /* == Push task for later purpose == */
     deferedSyncTasks_.push_back({ task, task->nextTask(0, nullptr)->ix() });
 }
 
 void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
+    if (!task) {
+        throwSpiderException("can not launch nullptr task.");
+    }
     if (task->state() != TaskState::READY) {
         return;
     }
@@ -201,7 +205,7 @@ void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task,
     for (const auto &depIt : consDeps) {
         for (const auto &dep : depIt) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto *snkTask = dep.vertex_ ? schedule_->task(dep.handler_->getTaskIx(dep.vertex_, k)) : nullptr;
+                auto *snkTask = dep.vertex_ ? schedule_->task(dep.handler_->getTaskIx(dep.vertex_, k)) : nullptr;
                 if (setFlagsFromSink(task, snkTask, flags)) {
                     return;
                 }

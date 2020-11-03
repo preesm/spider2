@@ -46,31 +46,26 @@
 
 /* === Method(s) implementation === */
 
-spider::vector<spider::sched::PiSDFTask *>
-spider::sched::PiSDFGreedyScheduler::schedule(pisdf::GraphHandler *graphHandler) {
-    /* == Reserve space for the new ListTasks == */
-    auto result = factory::vector<sched::PiSDFTask *>(StackID::SCHEDULE);
+void spider::sched::PiSDFGreedyScheduler::schedule(pisdf::GraphHandler *graphHandler, Schedule *schedule) {
     /* == Evaluate tasks == */
-    evaluate(graphHandler, result);
-    return result;
+    evaluate(graphHandler, schedule);
 }
 
 /* === Private method(s) implementation === */
 
-void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHandler,
-                                                   spider::vector<sched::PiSDFTask *> &result) {
+void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHandler, Schedule *schedule) {
     for (auto *firingHandler : graphHandler->firings()) {
         if (firingHandler->isResolved()) {
             for (const auto &vertex : graphHandler->graph()->vertices()) {
                 if (vertex->subtype() != spider::pisdf::VertexType::DELAY && vertex->executable()) {
                     const auto vertexRV = firingHandler->getRV(vertex.get());
                     for (u32 k = 0u; k < vertexRV; ++k) {
-                        evaluate(firingHandler, vertex.get(), k, result);
+                        evaluate(firingHandler, vertex.get(), k, schedule);
                     }
                 }
             }
             for (auto *subgraphHandler : firingHandler->subgraphHandlers()) {
-                evaluate(subgraphHandler, result);
+                evaluate(subgraphHandler, schedule);
             }
         }
     }
@@ -79,7 +74,7 @@ void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHan
 bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                                                    const pisdf::Vertex *vertex,
                                                    u32 firing,
-                                                   spider::vector<sched::PiSDFTask *> &result) {
+                                                   Schedule *schedule) {
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
         u32 depCount{ };
@@ -93,13 +88,12 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                     return false;
                 }
                 for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                    schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, result);
+                    schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, schedule);
                 }
             }
         }
         if (schedulable) {
-            handler->setTaskIx(vertex, firing, static_cast<u32>(result.size()));
-            result.emplace_back(spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex, firing));
+            Scheduler::addTask(schedule, handler, vertex, firing);
         }
     }
     return schedulable;

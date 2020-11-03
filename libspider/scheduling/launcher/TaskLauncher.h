@@ -40,6 +40,7 @@
 #include <memory/memory.h>
 #include <common/Types.h>
 #include <scheduling/memory/JobFifos.h>
+#include <scheduling/schedule/Schedule.h>
 #include <runtime/message/JobMessage.h>
 #include <graphs-tools/numerical/dependencies.h>
 
@@ -53,8 +54,6 @@ namespace spider {
         class SRDAGTask;
 
         class SyncTask;
-
-        class Schedule;
 
         class FifoAllocator;
 

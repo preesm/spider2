@@ -58,11 +58,11 @@ void spider::sched::PiSDFFifoAllocator::updateDynamicBuffersCount() {
         const auto *task = it->task_;
         const auto *vertex = task->vertex();
         const auto *edge = vertex->outputEdge(it->edgeIx_);
-        const auto count = pisdf::computeConsDependencyCount(vertex, task->firing(), it->edgeIx_, task->handler());
+        const auto count = pisdf::computeConsDependencyCount(vertex, it->firing_, it->edgeIx_, task->handler());
         if (count > 0) {
             const auto sndIx = task->mappedLRT()->virtualIx();
             const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-            const auto address = task->handler()->getEdgeAddress(edge, task->firing());
+            const auto address = task->handler()->getEdgeAddress(edge, it->firing_);
             auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx, address };
             auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx,
                                                   static_cast<size_t>(count - 1) };
@@ -234,7 +234,7 @@ spider::Fifo spider::sched::PiSDFFifoAllocator::buildOutputFifo(const pisdf::Edg
     fifo.count_ = getFifoCount(depIt);
     if (fifo.count_ < 0) {
         fifo.count_ = 1;
-        dynamicBuffers_.push_back({ task, static_cast<u32>(edge->sourcePortIx()) });
+        dynamicBuffers_.push_back({ task, static_cast<u32>(edge->sourcePortIx()), firing });
     } else if (!fifo.count_) {
         fifo.count_ = 1;
         fifo.attribute_ = FifoAttribute::W_SINK;

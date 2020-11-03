@@ -165,17 +165,19 @@ namespace spider {
                                                 ufast64 &externDataToReceive);
 
 
-            void mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule) const;
+            void mapCommunications(MappingResult &mappingInfo,
+                                   Task *task,
+                                   Schedule *schedule) const;
 
-            void mapCommunications(Task *task,
-                                   const Cluster *cluster,
+            void mapCommunications(MappingResult &mappingInfo,
+                                   Task *task,
                                    Schedule *schedule,
                                    const spider::vector<pisdf::DependencyIterator> &dependencies) const;
 
-            void mapCommunications(Task *task,
+            void mapCommunications(MappingResult &mappingInfo,
+                                   Task *task,
                                    Task *srcTask,
                                    size_t depIx,
-                                   const Cluster *cluster,
                                    Schedule *schedule) const;
 
         };

@@ -80,6 +80,7 @@ namespace spider {
             struct dynaBuffer_t {
                 const PiSDFTask *task_;
                 u32 edgeIx_;
+                u32 firing_;
             };
             spider::vector<dynaBuffer_t> dynamicBuffers_;
 

@@ -53,9 +53,10 @@
 #include <scheduling/mapper/RoundRobinMapper.h>
 #include <scheduling/memory/pisdf-based/PiSDFFifoAllocator.h>
 #include <scheduling/launcher/TaskLauncher.h>
+#include <scheduling/task/PiSDFTask.h>
+#include <scheduling/task/SyncTask.h>
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <api/archi-api.h>
 #include <archi/PE.h>
 
@@ -98,18 +99,20 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     /* == Schedule the graph == */
-    const auto result = scheduler_->schedule(graph);
+    const auto currentSize = schedule_->size();
+    scheduler_->schedule(graph, schedule_.get());
     /* == Map, Allocate and Send tasks == */
-    execute(result);
+    execute<SRDAGTask>(currentSize);
 }
 
 #endif
 
 void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
     /* == Schedule the graph == */
-    const auto result = scheduler_->schedule(graphHandler);
+    const auto currentSize = schedule_->size();
+    scheduler_->schedule(graphHandler, schedule_.get());
     /* == Map, Allocate and Send tasks == */
-    execute(result);
+    execute<PiSDFTask>(currentSize);
 }
 
 void spider::sched::ResourcesAllocator::clear() {
@@ -121,40 +124,43 @@ void spider::sched::ResourcesAllocator::clear() {
 /* === Private method(s) implementation === */
 
 template<class T>
-void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) {
+void spider::sched::ResourcesAllocator::execute(size_t offset) {
     const auto startTime = computeMinStartTime();
     mapper_->setStartTime(startTime);
-    schedule_->reserve(tasks.size());
     allocator_->updateDynamicBuffersCount();
     auto launcher = TaskLauncher{ schedule_.get(), allocator_.get() };
     switch (executionPolicy_) {
-        case ExecutionPolicy::JIT:
-            for (auto *task : tasks) {
+        case ExecutionPolicy::JIT: {
+            auto size = schedule_->size();
+            for (auto i = offset; i < size; ++i) {
+                auto *task = static_cast<T *>(schedule_->task(i));
                 /* == Map the task == */
-                const auto currentTaskCount = schedule_->taskCount();
                 mapper_->map(task, schedule_.get());
-                /* == Add the task == */
-                if (schedule_->taskCount() > currentTaskCount) {
+                /* == Check for synchronization == */
+                const auto delta = schedule_->size() - size;
+                if (delta) {
                     /* == We added synchronization == */
-                    for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
+                    for (auto j = i; j < i + delta; ++i) {
                         auto *syncTask = schedule_->task(i);
                         syncTask->visit(&launcher);
                     }
+                    i += delta;
+                    size += delta;
                 }
-                schedule_->addTask(task);
                 /* == Send the task == */
                 task->visit(&launcher);
             }
+        }
             break;
         case ExecutionPolicy::DELAYED: {
-            const auto currentTaskCount = schedule_->taskCount();
-            for (auto *task : tasks) {
+            auto size = schedule_->size();
+            for (auto i = offset; i < size; ++i) {
+                auto *task = static_cast<T *>(schedule_->task(i));
                 /* == Map the task == */
                 mapper_->map(task, schedule_.get());
-                /* == Add the task == */
-                schedule_->addTask(task);
             }
-            for (auto i = currentTaskCount; i < schedule_->taskCount(); ++i) {
+            size = schedule_->size(); /* == in case communications were added, size will have changed == */
+            for (auto i = offset; i < size; ++i) {
                 /* == Send the task == */
                 auto *task = schedule_->task(i);
                 task->visit(&launcher);
@@ -164,6 +170,7 @@ void spider::sched::ResourcesAllocator::execute(const spider::vector<T> &tasks) 
         default:
             throwSpiderException("unexpected execution policy.");
     }
+
 }
 
 spider::sched::Scheduler *

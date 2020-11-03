@@ -37,16 +37,11 @@
 
 /* === Include(s) === */
 
-#include <memory/memory.h>
 #include <common/Types.h>
 #include <containers/array.h>
-#include <archi/PE.h>
-#include <scheduling/memory/JobFifos.h>
-#include <runtime/message/JobMessage.h>
+#include <string>
 
 namespace spider {
-
-    /* === Forward Declaration(s) === */
 
     class PE;
 
@@ -73,7 +68,7 @@ namespace spider {
 
         class Task {
         public:
-            Task();
+            Task() = default;
 
             virtual ~Task() noexcept = default;
 
@@ -87,13 +82,15 @@ namespace spider {
 
             /* === Method(s) === */
 
-            virtual void visit(sched::TaskLauncher *launcher);
+            virtual void visit(TaskLauncher *launcher) = 0;
+
+            virtual inline void setOnFiring(u32) { }
 
             /**
              * @brief Update output params based on received values.
              * @param values Values of the params.
              */
-            inline virtual bool receiveParams(const spider::array<i64> &/*values*/) { return false; }
+            virtual bool receiveParams(const spider::array<i64> &values) = 0;
 
             /* === Getter(s) === */
 
@@ -102,14 +99,7 @@ namespace spider {
              * @param ix  Index of the input fifo.
              * @return rate of the fifo.
              */
-            virtual inline i64 inputRate(size_t /*ix*/) const { return 0; }
-
-            /**
-             * @brief Get the output rate for the fifo of index ix.
-             * @param ix  Index of the output fifo.
-             * @return rate of the fifo.
-             */
-            virtual inline i64 outputRate(size_t /*ix*/) const { return 0; }
+            virtual i64 inputRate(size_t ix) const = 0;
 
             /**
              * @brief Get the previous Task of a given index.
@@ -118,7 +108,7 @@ namespace spider {
              * @return pointer to the previous Task, nullptr else.
              * @throws @refitem spider::Exception if index out of bound (only in debug)
              */
-            virtual inline Task *previousTask(size_t /*ix*/, const Schedule */*schedule*/) const { return nullptr; }
+            virtual Task *previousTask(size_t ix, const Schedule *schedule) const = 0;
 
             /**
              * @brief Get the next Task of a given index.
@@ -127,7 +117,7 @@ namespace spider {
              * @return pointer to the next Task, nullptr else.
              * @throws @refitem spider::Exception if index out of bound (only in debug)
              */
-            virtual inline Task *nextTask(size_t /*ix*/, const Schedule */*schedule*/) const { return nullptr; }
+            virtual Task *nextTask(size_t ix, const Schedule *schedule) const = 0;
 
             /**
              * @brief Return a color value for the vertexTask.
@@ -147,71 +137,70 @@ namespace spider {
              * @param pe  Pointer to the PE.
              * @return true if mappable on PE, false else.
              */
-            virtual inline bool isMappableOnPE(const PE */* pe */) const { return true; }
+            virtual bool isMappableOnPE(const PE *pe) const = 0;
 
             /**
              * @brief Get the execution timing on a given PE.
              * @param pe  Pointer to the PE.
              * @return exec timing on the PE, UINT64_MAX else.
              */
-            virtual inline u64 timingOnPE(const PE */* pe */) const { return UINT64_MAX; }
+            virtual u64 timingOnPE(const PE *pe) const = 0;
 
             /**
              * @brief Get the number of execution dependencies for this task.
              * @return number of dependencies.
              */
-            virtual inline size_t dependencyCount() const { return 0; }
-
+            virtual size_t dependencyCount() const = 0;
 
             /**
              * @brief Get the number of consumer dependencies for this task.
              * @return number of dependencies.
              */
-            virtual inline size_t successorCount() const { return 0; }
+            virtual size_t successorCount() const = 0;
 
             /**
              * @brief Get the start time of the vertexTask.
              * @return mapping start time of the vertexTask, UINT64_MAX else
              */
-            inline u64 startTime() const { return startTime_; }
+            virtual u64 startTime() const = 0;
 
             /**
              * @brief Get the end time of the vertexTask.
              * @return mapping end time of the vertexTask, UINT64_MAX else
              */
-            inline u64 endTime() const { return endTime_; }
+            virtual u64 endTime() const = 0;
 
             /**
              * @brief Returns the PE on which the vertexTask is mapped.
              * @return pointer to the PE onto which the vertexTask is mapped, nullptr else
              */
-            const PE *mappedPe() const;
+            virtual const PE *mappedPe() const = 0;
 
             /**
              * @brief Returns the LRT attached to the PE on which the vertexTask is mapped.
              * @return pointer to the LRT, nullptr else
              */
-            inline const PE *mappedLRT() const { return mappedPe()->attachedLRT(); }
+            virtual const PE *mappedLRT() const = 0;
 
             /**
              * @brief Returns the state of the vertexTask.
              * @return @refitem TaskState of the vertexTask
              */
-            inline TaskState state() const noexcept { return state_; }
+            virtual TaskState state() const noexcept = 0;
 
             /**
              * @brief Returns the ix of the vertexTask in the schedule.
              * @return ix of the vertexTask in the schedule, -1 else.
              */
-            inline virtual u32 ix() const noexcept { return UINT32_MAX; }
+            virtual u32 ix() const noexcept = 0;
 
             /**
              * @brief Returns the executable job index value of the vertexTask in the job queue of the mapped PE.
              * @return ix value, SIZE_MAX else.
              */
-            inline u32 jobExecIx() const noexcept { return jobExecIx_; }
+            virtual u32 jobExecIx() const noexcept = 0;
 
-            inline u32 syncExecIxOnLRT(size_t lrtIx) const { return syncExecTaskIxArray_[lrtIx]; }
+            virtual u32 syncExecIxOnLRT(size_t lrtIx) const = 0;
 
             /* === Setter(s) === */
 
@@ -220,35 +209,35 @@ namespace spider {
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            inline void setStartTime(u64 time) { startTime_ = time; }
+            virtual void setStartTime(u64 time) = 0;
 
             /**
              * @brief Set the end time of the job.
              * @remark This method will overwrite current value.
              * @param time  Value to set.
              */
-            inline void setEndTime(u64 time) { endTime_ = time; }
+            virtual void setEndTime(u64 time) = 0;
 
             /**
             * @brief Set the processing element of the job.
             * @remark This method will overwrite current values.
             * @param mappedPE  Lrt ix inside spider.
             */
-            void setMappedPE(const PE *pe);
+            virtual void setMappedPE(const PE *pe) = 0;
 
             /**
              * @brief Set the state of the job.
              * @remark This method will overwrite current value.
              * @param state State to set.
              */
-            inline void setState(TaskState state) noexcept { state_ = state; }
+            virtual void setState(TaskState state) noexcept = 0;
 
             /**
              * @brief Set the execution job index value of the vertexTask (that will be used for synchronization).
              * @remark This method will overwrite current values.
              * @param ix Ix to set.
              */
-            inline void setJobExecIx(u32 ix) noexcept { jobExecIx_ = ix; }
+            virtual void setJobExecIx(u32 ix) noexcept = 0;
 
             /**
              * @brief Set the ix of the job.
@@ -257,19 +246,7 @@ namespace spider {
              */
             virtual void setIx(u32 ix) noexcept = 0;
 
-            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
-                if (syncExecTaskIxArray_[lrtIx] == UINT32_MAX || value > syncExecTaskIxArray_[lrtIx]) {
-                    syncExecTaskIxArray_[lrtIx] = value;
-                }
-            }
-
-        private:
-            spider::unique_ptr<u32> syncExecTaskIxArray_;
-            u64 startTime_{ UINT64_MAX };                   /*!< Mapping start time of the vertexTask */
-            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
-            u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */
-            u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
-            TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */
+            virtual void setSyncExecIxOnLRT(size_t lrtIx, u32 value) = 0;
         };
     }
 }

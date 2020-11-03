@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,31 +32,46 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
 /* === Include(s) === */
 
-#include <scheduling/task/Task.h>
-#include <scheduling/launcher/TaskLauncher.h>
-#include <archi/Platform.h>
-#include <api/archi-api.h>
-#include <runtime/platform/RTPlatform.h>
-#include <runtime/communicator/RTCommunicator.h>
-#include <api/runtime-api.h>
+#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/schedule/Schedule.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <scheduling/task/PiSDFTask.h>
 
-/* === Method(s) implementation === */
+#ifndef _NO_BUILD_LEGACY_RT
 
-spider::sched::Task::Task() {
-    syncExecTaskIxArray_ = make_unique(make_n<u32, StackID::SCHEDULE>(archi::platform()->LRTCount(), UINT32_MAX));
+#include <scheduling/task/SRDAGTask.h>
+#include <graphs/srdag/SRDAGVertex.h>
+
+#endif
+
+/* === Function(s) definition === */
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+void spider::sched::Scheduler::addTask(Schedule *schedule, srdag::Vertex *vertex) {
+    schedule->addTask(spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex));
 }
 
-const spider::PE *spider::sched::Task::mappedPe() const {
-    return archi::platform()->peFromVirtualIx(mappedPEIx_);
-}
+#endif
 
-void spider::sched::Task::visit(TaskLauncher *launcher) {
-    launcher->visit(this);
-}
-
-void spider::sched::Task::setMappedPE(const spider::PE *pe) {
-    mappedPEIx_ = static_cast<u32>(pe->virtualIx());
-    syncExecTaskIxArray_[pe->attachedLRT()->virtualIx()] = UINT32_MAX;
+void spider::sched::Scheduler::addTask(Schedule *schedule,
+                                       pisdf::GraphFiring *handler,
+                                       const pisdf::Vertex *vertex,
+                                       u32 firing) {
+    const auto rv = handler->getRV(vertex);
+    Task *task = nullptr;
+    for (u32 k = 0; k < rv; ++k) {
+        const auto taskIx = handler->getTaskIx(vertex, k);
+        if (taskIx != UINT32_MAX) {
+            task = schedule->task(taskIx);
+            break;
+        }
+    }
+    if (!task) {
+        task = spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex);
+    }
+    schedule->addTask(task, firing);
 }

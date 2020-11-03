@@ -56,6 +56,7 @@ spider::sched::SRDAGTask::SRDAGTask(srdag::Vertex *vertex) : Task(), vertex_{ ve
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
+    syncExecTaskIxArray_ = make_unique(make_n<u32, StackID::SCHEDULE>(archi::platform()->LRTCount(), UINT32_MAX));
 }
 
 void spider::sched::SRDAGTask::visit(TaskLauncher *launcher) {
@@ -82,10 +83,6 @@ i64 spider::sched::SRDAGTask::inputRate(size_t ix) const {
     return vertex_->inputEdge(ix)->rate();
 }
 
-i64 spider::sched::SRDAGTask::outputRate(size_t ix) const {
-    return vertex_->outputEdge(ix)->rate();
-}
-
 spider::sched::Task *spider::sched::SRDAGTask::previousTask(size_t ix, const spider::sched::Schedule *schedule) const {
     const auto *source = vertex_->inputEdge(ix)->source();
     return schedule->task(source->scheduleTaskIx());
@@ -105,11 +102,15 @@ u32 spider::sched::SRDAGTask::color() const {
 }
 
 std::string spider::sched::SRDAGTask::name() const {
-    return vertex_->name();
+    return vertex_->vertexPath();
 }
 
 u32 spider::sched::SRDAGTask::ix() const noexcept {
     return static_cast<u32>(vertex_->scheduleTaskIx());
+}
+
+u64 spider::sched::SRDAGTask::startTime() const {
+    return endTime_ - timingOnPE(mappedPe());
 }
 
 void spider::sched::SRDAGTask::setIx(u32 ix) noexcept {
@@ -130,6 +131,19 @@ size_t spider::sched::SRDAGTask::dependencyCount() const {
 
 size_t spider::sched::SRDAGTask::successorCount() const {
     return vertex_->outputEdgeCount();
+}
+
+const spider::PE *spider::sched::SRDAGTask::mappedPe() const {
+    return archi::platform()->peFromVirtualIx(mappedPEIx_);
+}
+
+const spider::PE *spider::sched::SRDAGTask::mappedLRT() const {
+    return mappedPe()->attachedLRT();
+}
+
+void spider::sched::SRDAGTask::setMappedPE(const spider::PE *pe) {
+    mappedPEIx_ = static_cast<u32>(pe->virtualIx());
+    syncExecTaskIxArray_[pe->attachedLRT()->virtualIx()] = UINT32_MAX;
 }
 
 #endif

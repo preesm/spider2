@@ -36,11 +36,12 @@
 
 #include <scheduling/mapper/Mapper.h>
 #include <scheduling/task/Task.h>
+#include <scheduling/task/SyncTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <archi/Platform.h>
+#include <archi/PE.h>
 #include <api/archi-api.h>
-#include <scheduling/task/SyncTask.h>
 
 /* === Static function === */
 
@@ -74,7 +75,7 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task,
                 if (!dep.vertex_) {
                     continue;
                 }
-                const auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
                 if (srcTask) {
                     task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
                     minTime = std::max(minTime, srcTask->endTime());
@@ -115,8 +116,8 @@ spider::sched::Mapper::computeCommunicationCost(const Task *,
                 }
                 const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
                 const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
-                const auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
                 const auto rate = (dep.rate_ > 0) * (memoryEnd - memoryStart + 1);
+                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
                 updateCommunicationCost(mappedPE, srcTask, rate, communicationCost, externDataToReceive);
             }
         }
@@ -139,15 +140,15 @@ void spider::sched::Mapper::updateCommunicationCost(const spider::PE *mappedPE,
     }
 }
 
-void spider::sched::Mapper::mapCommunications(Task *task, const Cluster *cluster, Schedule *schedule) const {
+void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo, Task *task, Schedule *schedule) const {
     for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
         auto *srcTask = task->previousTask(ix, schedule);
-        mapCommunications(task, srcTask, ix, cluster, schedule);
+        mapCommunications(mappingInfo, task, srcTask, ix, schedule);
     }
 }
 
-void spider::sched::Mapper::mapCommunications(Task *task,
-                                              const Cluster *cluster,
+void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo,
+                                              Task *task,
                                               Schedule *schedule,
                                               const spider::vector<pisdf::DependencyIterator> &dependencies) const {
     size_t depIx = 0;
@@ -155,25 +156,26 @@ void spider::sched::Mapper::mapCommunications(Task *task,
         for (const auto &dep : depIt) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                 auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
-                mapCommunications(task, srcTask, depIx, cluster, schedule);
+                mapCommunications(mappingInfo, task, srcTask, depIx, schedule);
                 depIx++;
             }
         }
     }
 }
 
-void spider::sched::Mapper::mapCommunications(Task *task,
+void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo,
+                                              Task *task,
                                               Task *srcTask,
                                               size_t depIx,
-                                              const Cluster *cluster,
                                               Schedule *schedule) const {
     if (!srcTask) {
         return;
     }
+    const auto *mappedCluster = mappingInfo.mappingPE->cluster();
     const auto *prevCluster = srcTask->mappedPe()->cluster();
-    if (prevCluster != cluster) {
+    if (prevCluster != mappedCluster) {
         /* == Insert send on source cluster == */
-        const auto *sndBus = archi::platform()->getClusterToClusterMemoryBus(prevCluster, cluster);
+        const auto *sndBus = archi::platform()->getClusterToClusterMemoryBus(prevCluster, mappedCluster);
         /* == Create the com task == */
         auto *sndTask = spider::make<SyncTask, StackID::SCHEDULE>(SyncType::SEND, sndBus);
         /* == Search for the first PE able to run the send task == */
@@ -186,14 +188,13 @@ void spider::sched::Mapper::mapCommunications(Task *task,
         auto mappedPeIx{ mappedPe->virtualIx() };
         auto mappingSt{ std::max(schedule->stats().endTime(mappedPeIx), minStartTime) };
         auto mappingEt{ mappingSt + sndTask->timingOnPE(nullptr) };
-        schedule->addTask(sndTask);
         schedule->updateTaskAndSetReady(sndTask, mappedPe, mappingSt, mappingEt);
         /* == Insert receive on mapped cluster == */
-        const auto *rcvBus = archi::platform()->getClusterToClusterMemoryBus(cluster, prevCluster);
+        const auto *rcvBus = archi::platform()->getClusterToClusterMemoryBus(mappedCluster, prevCluster);
         auto *rcvTask = spider::make<SyncTask, StackID::SCHEDULE>(SyncType::RECEIVE, rcvBus);
         /* == Search for the first PE able to run the send task == */
         minStartTime = sndTask->endTime();
-        mappedPe = this->findPE(cluster, schedule->stats(), rcvTask, minStartTime);
+        mappedPe = this->findPE(mappedCluster, schedule->stats(), rcvTask, minStartTime);
         if (!mappedPe) {
             throwSpiderException("could not find any processing element to map communication vertexTask.");
         }
@@ -201,14 +202,13 @@ void spider::sched::Mapper::mapCommunications(Task *task,
         mappedPeIx = mappedPe->virtualIx();
         mappingSt = std::max(schedule->stats().endTime(mappedPeIx), minStartTime);
         mappingEt = mappingSt + rcvTask->timingOnPE(nullptr);
-        schedule->addTask(rcvTask);
         schedule->updateTaskAndSetReady(rcvTask, mappedPe, mappingSt, mappingEt);
+        schedule->insertTasks(task->ix(), { ComposedTask{ sndTask, 0 }, ComposedTask{ rcvTask, 0 }});
         /* == Re-route dependency of the original vertex to the recvTask == */
-        const auto currentStartTime = task->startTime();
-        if (rcvTask->endTime() > currentStartTime) {
-            const auto offset = rcvTask->endTime() - currentStartTime;
-            task->setStartTime(currentStartTime + offset);
-            task->setEndTime(task->endTime() + offset);
+        if (rcvTask->endTime() > mappingInfo.startTime) {
+            const auto offset = rcvTask->endTime() - mappingInfo.startTime;
+            mappingInfo.startTime += offset;
+            mappingInfo.endTime += +offset;
         }
         /* == Set dependencies == */
         sndTask->setPredecessor(srcTask);

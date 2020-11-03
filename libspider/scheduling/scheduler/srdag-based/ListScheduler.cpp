@@ -37,6 +37,7 @@
 /* === Include(s) === */
 
 #include <scheduling/scheduler/srdag-based/ListScheduler.h>
+#include <scheduling/schedule/Schedule.h>
 #include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGGraph.h>
 #include <graphs/srdag/SRDAGEdge.h>
@@ -55,7 +56,7 @@ spider::sched::ListScheduler::ListScheduler() : Scheduler(),
 
 }
 
-spider::vector<spider::sched::SRDAGTask *> spider::sched::ListScheduler::schedule(const srdag::Graph *graph) {
+void spider::sched::ListScheduler::schedule(const srdag::Graph *graph, Schedule *schedule) {
     /* == Reserve space for the new ListTasks == */
     size_t count = 0;
     for (const auto &vertex : graph->vertices()) {
@@ -79,11 +80,11 @@ spider::vector<spider::sched::SRDAGTask *> spider::sched::ListScheduler::schedul
     /* == Update last schedulable vertex == */
     const auto lastSchedulable = sortedTaskVector_.size() - nonSchedulableTaskCount;
     /* == Create the list of tasks to be scheduled == */
-    auto result = factory::vector<SRDAGTask *>(lastSchedulable, StackID::SCHEDULE);
+    schedule->reserve(lastSchedulable);
     for (size_t k = 0; k < lastSchedulable; ++k) {
         auto *vertex = sortedTaskVector_[k].vertex_;
         vertex->setScheduleTaskIx(SIZE_MAX);
-        result[k] = spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex);
+        schedule->addTask(spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex));
     }
     /* == Remove scheduled vertices == */
     auto it = std::begin(sortedTaskVector_);
@@ -93,7 +94,6 @@ spider::vector<spider::sched::SRDAGTask *> spider::sched::ListScheduler::schedul
     while (sortedTaskVector_.size() != nonSchedulableTaskCount) {
         sortedTaskVector_.pop_back();
     }
-    return result;
 }
 
 void spider::sched::ListScheduler::clear() {

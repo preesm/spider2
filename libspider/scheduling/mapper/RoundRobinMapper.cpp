@@ -111,11 +111,7 @@ void spider::sched::RoundRobinMapper::mapImpl(Task *task, Schedule *schedule, Ar
     }
     if (mappingResult.needToAddCommunication) {
         /* == Map communications == */
-        task->setStartTime(mappingResult.startTime);
-        task->setEndTime(mappingResult.endTime);
-        Mapper::mapCommunications(task, mappingResult.mappingPE->cluster(), schedule, std::forward<Args>(args)...);
-        mappingResult.startTime = task->startTime();
-        mappingResult.endTime = task->endTime();
+        Mapper::mapCommunications(mappingResult, task, schedule, std::forward<Args>(args)...);
     }
     schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
 }

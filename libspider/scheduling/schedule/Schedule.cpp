@@ -35,10 +35,15 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/Schedule.h>
+#include <archi/PE.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
+
+spider::sched::Schedule::~Schedule() {
+    clearTasks();
+}
 
 void spider::sched::Schedule::reserve(size_t size) {
     spider::reserve(tasks_, size);
@@ -46,12 +51,13 @@ void spider::sched::Schedule::reserve(size_t size) {
 
 void spider::sched::Schedule::clear() {
     stats_.reset();
-    tasks_.clear();
+    clearTasks();
 }
 
 void spider::sched::Schedule::reset() {
     for (auto &task : tasks_) {
-        task->setState(TaskState::READY);
+        task.first->setOnFiring(task.second);
+        task.first->setState(TaskState::READY);
     }
 }
 
@@ -73,4 +79,22 @@ void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE *slave,
     stats_.updateJobCount(peIx);
     /* == Update job state == */
     task->setState(TaskState::READY);
+}
+
+/* === Private method(s) === */
+
+void spider::sched::Schedule::clearTasks() {
+    size_t i = 0;
+    for (auto &task : tasks_) {
+        if (task.first) {
+            for (auto j = i + 1; j < tasks_.size(); ++j) {
+                if (tasks_[j].first == task.first) {
+                    tasks_[j].first = nullptr;
+                }
+            }
+            destroy(task.first);
+        }
+        i++;
+    }
+    tasks_.clear();
 }

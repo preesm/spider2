@@ -50,13 +50,15 @@ namespace spider {
 
         /* === Class definition === */
 
+        using ComposedTask = std::pair<Task *, u32>;
+
         class Schedule {
         public:
-            Schedule() : tasks_{ factory::vector<spider::unique_ptr<sched::Task>>(StackID::SCHEDULE) } {
+            Schedule() : tasks_{ factory::vector<ComposedTask>(StackID::SCHEDULE) } {
 
             };
 
-            ~Schedule() = default;
+            ~Schedule();
 
             Schedule(const Schedule &) = delete;
 
@@ -94,33 +96,44 @@ namespace spider {
              * @param endTime   End time of the vertexTask.
              * @throw std::out_of_range if bad ix.
              */
-            void updateTaskAndSetReady(sched::Task *task, const PE *slave, u64 startTime, u64 endTime);
+            void updateTaskAndSetReady(Task *task, const PE *slave, u64 startTime, u64 endTime);
 
             /**
              * @brief Add a task to the schedule
              * @remark Once added, memory of the task is handled by the schedule, DO NOT FREE it yourself.
              * @param task  Pointer to the task.
              */
-            inline void addTask(sched::Task *task) {
+            inline void addTask(Task *task, u32 firing = 0) {
+                task->setOnFiring(firing);
                 task->setIx(static_cast<u32>(tasks_.size()));
-                tasks_.emplace_back(task);
+                tasks_.emplace_back(task, firing);
+            }
+
+            template<class ...Args>
+            inline void insertTasks(u32 pos, Args &&...args) {
+                tasks_.insert(std::next(std::begin(tasks_), pos), std::forward<Args>(args)...);
+                for (auto i = pos; i < tasks_.size(); ++i) {
+                    task(i)->setIx(i);
+                }
+            }
+
+            inline void insertTasks(u32 pos, std::initializer_list<ComposedTask> &&l) {
+                tasks_.insert(std::next(std::begin(tasks_), pos), l);
+                for (auto i = pos; i < tasks_.size(); ++i) {
+                    task(i)->setIx(i);
+                }
             }
 
             /* === Getter(s) === */
 
-            inline spider::vector<spider::unique_ptr<Task>> &tasks() {
-                return tasks_;
-            }
-
-            inline const spider::vector<spider::unique_ptr<Task>> &tasks() const {
-                return tasks_;
-            }
-
-            inline sched::Task *task(size_t ix) const {
+            inline Task *task(size_t ix) const {
                 if (ix >= tasks_.size()) {
                     return nullptr;
                 }
-                return tasks_.at(ix).get();
+                auto &composedTask = tasks_[ix];
+                auto *task = composedTask.first;
+                task->setOnFiring(composedTask.second);
+                return task;
             }
 
             /**
@@ -153,13 +166,17 @@ namespace spider {
              * @brief Get the number of vertexTask in the schedule (including already launched tasks).
              * @return number of tasks in the schedule.
              */
-            inline size_t taskCount() const {
+            inline size_t size() const {
                 return tasks_.size();
             }
 
         private:
-            spider::vector<spider::unique_ptr<sched::Task>> tasks_;
+            spider::vector<ComposedTask> tasks_;
             Stats stats_;
+
+            /* === Private method(s) === */
+
+            void clearTasks();
         };
     }
 }

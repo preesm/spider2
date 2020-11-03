@@ -63,3 +63,15 @@ u64 spider::sched::SyncTask::timingOnPE(const spider::PE *) const {
     const auto busSpeed = type_ == SyncType::SEND ? bus_->writeSpeed() : bus_->readSpeed();
     return busSpeed;
 }
+
+const spider::PE *spider::sched::SyncTask::mappedPe() const {
+    return archi::platform()->peFromVirtualIx(mappedPEIx_);
+}
+
+const spider::PE *spider::sched::SyncTask::mappedLRT() const {
+    return mappedPe()->attachedLRT();
+}
+
+void spider::sched::SyncTask::setMappedPE(const spider::PE *pe) {
+    mappedPEIx_ = static_cast<u32>(pe->virtualIx());
+}

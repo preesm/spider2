@@ -41,8 +41,11 @@
 
 namespace spider {
 
+    class RTInfo;
+
     namespace pisdf {
         struct DependencyIterator;
+
         class GraphFiring;
     }
 
@@ -59,7 +62,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<sched::PiSDFTask*> schedule(pisdf::GraphHandler *graphHandler) override;
+            void schedule(pisdf::GraphHandler *graphHandler, Schedule *schedule) override;
 
             void clear() override;
 
@@ -135,6 +138,9 @@ namespace spider {
              * @return level value of the vertex for its given firing.
              */
             i32 computeScheduleLevel(ListTask &listTask);
+
+            static i64
+            computeMinExecTime(const RTInfo *rtInfo, const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
             /**
              * @brief Sort the list of vertices.
