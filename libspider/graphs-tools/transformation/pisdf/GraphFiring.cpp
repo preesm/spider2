@@ -150,64 +150,6 @@ void spider::pisdf::GraphFiring::clear() {
     resolved_ = parent_->isStatic();
 }
 
-spider::vector<spider::pisdf::DependencyIterator>
-spider::pisdf::GraphFiring::computeExecDependencies(const Vertex *vertex, u32 firing) const {
-    auto result = factory::vector<DependencyIterator>(StackID::SCHEDULE);
-    if (vertex->inputEdgeCount()) {
-        spider::reserve(result, vertex->inputEdgeCount());
-        for (const auto *edge : vertex->inputEdges()) {
-            result.emplace_back(computeExecDependency(vertex, firing, edge->sinkPortIx()));
-        }
-    }
-    return result;
-}
-
-spider::pisdf::DependencyIterator
-spider::pisdf::GraphFiring::computeExecDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
-#ifndef NDEBUG
-    if (!vertex) {
-        throwNullptrException();
-    }
-#endif
-    const auto *edge = vertex->inputEdge(edgeIx);
-    const auto snkRate = getSnkRate(edge);
-    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    auto depCount = detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, this, result);
-    if (count) {
-        *count = depCount;
-    }
-    return DependencyIterator{ std::move(result) };
-}
-
-spider::vector<spider::pisdf::DependencyIterator>
-spider::pisdf::GraphFiring::computeConsDependencies(const Vertex *vertex, u32 firing) const {
-    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
-    if (vertex->outputEdgeCount()) {
-        spider::reserve(result, vertex->outputEdgeCount());
-        for (const auto *edge : vertex->outputEdges()) {
-            result.emplace_back(computeConsDependency(vertex, firing, edge->sourcePortIx()));
-        }
-    }
-    return result;
-}
-
-spider::pisdf::DependencyIterator
-spider::pisdf::GraphFiring::computeConsDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
-#ifndef NDEBUG
-    if (!vertex) {
-        throwNullptrException();
-    }
-#endif
-    const auto *edge = vertex->outputEdge(edgeIx);
-    const auto srcRate = getSrcRate(edge);
-    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, this, result);
-    if (count) {
-        *count = depCount;
-    }
-    return DependencyIterator{ std::move(result) };
-}
-
 spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphFirings() const {
     return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
