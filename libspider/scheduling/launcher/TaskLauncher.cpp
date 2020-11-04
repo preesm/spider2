@@ -55,6 +55,7 @@
 #include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGVertex.h>
 #include <graphs-tools/helper/srdag-helper.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 #endif
 /* === Static function === */
@@ -100,20 +101,17 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
         return;
     }
     JobMessage message{ };
-    /* == Compute exec dependencies == */
-    const auto execDeps = task->computeExecDependencies();
-    /* == Compute cons dependencies == */
-    const auto consDeps = task->computeConsDependencies();
     /* == Setting core properties == */
     const auto *vertex = task->vertex();
+    const auto *handler = task->handler();
     message.nParamsOut_ = static_cast<u32>(vertex->outputParamCount());
     message.kernelIx_ = static_cast<u32>(vertex->runtimeInformation()->kernelIx());
     /* == Set the synchronization flags == */
-    message.synchronizationFlags_ = buildJobNotificationFlags(task, consDeps);
+    message.synchronizationFlags_ = buildJobNotificationFlags(task, handler, vertex, task->firing());
     /* == Set Fifos == */
-    message.fifos_ = allocator_->buildJobFifos(task, execDeps, consDeps);
+    message.fifos_ = allocator_->buildJobFifos(task);
     /* == Set input params == */
-    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex, task->handler()->getParams());
+    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex, handler->getParams());
     /* == Send the job == */
     sendTask(task, message);
 }
@@ -201,15 +199,29 @@ void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task, bool
 
 void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task,
                                                           bool *flags,
-                                                          const spider::vector<pisdf::DependencyIterator> &consDeps) const {
-    for (const auto &depIt : consDeps) {
-        for (const auto &dep : depIt) {
+                                                          const pisdf::GraphFiring *handler,
+                                                          const pisdf::Vertex *vertex,
+                                                          u32 firing) const {
+    auto *schedule = schedule_;
+    for (const auto *edge : vertex->outputEdges()) {
+        auto broadcast = false;
+        auto lambda = [task, flags, schedule, &broadcast](const pisdf::DependencyInfo &dep) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                auto *snkTask = dep.vertex_ ? schedule_->task(dep.handler_->getTaskIx(dep.vertex_, k)) : nullptr;
+                Task *snkTask = nullptr;
+                if (dep.vertex_) {
+                    const auto taskix = dep.handler_->getTaskIx(dep.vertex_, k);
+                    snkTask = schedule->task(taskix);
+                }
                 if (setFlagsFromSink(task, snkTask, flags)) {
+                    broadcast = true;
                     return;
                 }
             }
+        };
+        const auto srcRate = handler->getSrcRate(edge);
+        pisdf::detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, lambda);
+        if (broadcast) {
+            break;
         }
     }
 }

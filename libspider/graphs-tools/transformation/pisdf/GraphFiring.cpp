@@ -40,7 +40,6 @@
 #include <graphs-tools/numerical/brv.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
-#include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static function === */
@@ -172,12 +171,8 @@ spider::pisdf::GraphFiring::computeExecDependency(const Vertex *vertex, u32 firi
 #endif
     const auto *edge = vertex->inputEdge(edgeIx);
     const auto snkRate = getSnkRate(edge);
-    if (!snkRate) {
-        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
-    }
     auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    spider::reserve(result, 20);
-    auto depCount = pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, this, &result);
+    auto depCount = detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, this, result);
     if (count) {
         *count = depCount;
     }
@@ -205,11 +200,8 @@ spider::pisdf::GraphFiring::computeConsDependency(const Vertex *vertex, u32 firi
 #endif
     const auto *edge = vertex->outputEdge(edgeIx);
     const auto srcRate = getSrcRate(edge);
-    if (!srcRate) {
-        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
-    }
     auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, this, &result);
+    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, this, result);
     if (count) {
         *count = depCount;
     }

@@ -65,7 +65,7 @@ i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
     if (!snkRate) {
         return 0;
     }
-    return detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, nullptr);
+    return detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler);
 }
 
 
@@ -83,7 +83,7 @@ i32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
     if (!srcRate) {
         return 0;
     }
-    return detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, nullptr);
+    return detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler);
 }
 
 ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {

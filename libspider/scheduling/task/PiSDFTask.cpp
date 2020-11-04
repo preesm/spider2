@@ -57,7 +57,7 @@ spider::sched::PiSDFTask::PiSDFTask(pisdf::GraphFiring *handler, const pisdf::Ve
     const auto rv = handler->getRV(vertex);
     vertexIx_ = static_cast<u32>(vertex->ix());
     syncExecTaskIxArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(lrtCount * rv, UINT32_MAX));
-    endTimeArray_ = spider::make_unique(make_n<u64, StackID::SCHEDULE>(rv, UINT64_MAX));
+    endTimeArray_ = spider::make_unique(make_n<u64, StackID::SCHEDULE>(rv, 0));
     mappedPEIxArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX));
     jobExecIxArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX));
     stateArray_ = spider::make_unique(make_n<TaskState, StackID::SCHEDULE>(rv, TaskState::NOT_SCHEDULABLE));

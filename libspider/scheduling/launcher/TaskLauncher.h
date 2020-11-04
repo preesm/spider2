@@ -121,7 +121,9 @@ namespace spider {
 
             void updateNotificationFlags(const Task *task,
                                          bool *flags,
-                                         const spider::vector<pisdf::DependencyIterator> &consDeps) const;
+                                         const pisdf::GraphFiring *handler,
+                                         const pisdf::Vertex *vertex,
+                                         u32 firing) const;
 
             static bool setFlagsFromSink(const Task *task, const Task *sinkTask, bool *flags);
 

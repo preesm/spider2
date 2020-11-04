@@ -79,10 +79,10 @@ namespace spider {
              * @param schedule Pointer to the schedule;
              * @return true if schedulable, false else.
              */
-            bool evaluate(pisdf::GraphFiring *handler,
-                          const pisdf::Vertex *vertex,
-                          u32 firing,
-                          Schedule *schedule);
+            static bool evaluate(pisdf::GraphFiring *handler,
+                                 const pisdf::Vertex *vertex,
+                                 u32 firing,
+                                 Schedule *schedule);
         };
     }
 }
