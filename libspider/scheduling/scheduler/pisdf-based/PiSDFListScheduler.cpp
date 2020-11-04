@@ -144,20 +144,19 @@ void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(spider::vecto
                                                                    const pisdf::GraphFiring *handler,
                                                                    const pisdf::Vertex *vertex,
                                                                    u32 firing) {
-    const auto lambda = [&sortedTaskVector](const pisdf::DependencyInfo &dep) {
-        if (dep.vertex_ && dep.rate_ > 0) {
-            /* == Disable non-null edge == */
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto ix = dep.handler_->getTaskIx(dep.vertex_, k);
-                auto &sinkTask = sortedTaskVector[ix];
-                sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                recursiveSetNonSchedulable(sortedTaskVector, dep.handler_, dep.vertex_, k);
+    for (const auto *edge : vertex->outputEdges()) {
+        const auto deps = handler->computeConsDependency(vertex, firing, edge->sourcePortIx());
+        for (const auto &dep : deps) {
+            if (dep.vertex_ && dep.rate_ > 0) {
+                /* == Disable non-null edge == */
+                for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                    const auto ix = dep.handler_->getTaskIx(dep.vertex_, k);
+                    auto &sinkTask = sortedTaskVector[ix];
+                    sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
+                    recursiveSetNonSchedulable(sortedTaskVector, dep.handler_, dep.vertex_, k);
+                }
             }
         }
-    };
-    for (const auto *edge : vertex->outputEdges()) {
-        const auto srcRate = handler->getSrcRate(edge);
-        pisdf::detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, lambda);
     }
 }
 

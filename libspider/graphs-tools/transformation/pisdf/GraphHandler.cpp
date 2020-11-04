@@ -68,14 +68,6 @@ spider::pisdf::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
     }
 }
 
-size_t spider::pisdf::GraphHandler::countInstances() const {
-    size_t count = 0;
-    for (u32 k = 0; k < repetitionCount_; ++k) {
-        count += firings_[k]->countInstances();
-    }
-    return count;
-}
-
 spider::pisdf::GraphHandler::~GraphHandler() {
     for (u32 k = 0; k < repetitionCount_; ++k) {
         destroy(firings_[k]);

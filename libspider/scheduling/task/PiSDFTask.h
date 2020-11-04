@@ -57,16 +57,6 @@ namespace spider {
 
         class PiSDFTask final : public Task {
         public:
-            PiSDFTask() = default;
-
-            PiSDFTask(const PiSDFTask &) = delete;
-
-            PiSDFTask &operator=(const PiSDFTask &) = delete;
-
-            PiSDFTask(PiSDFTask &&) = default;
-
-            PiSDFTask &operator=(PiSDFTask &&) noexcept = default;
-
             PiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
 
             ~PiSDFTask() final = default;
@@ -88,6 +78,8 @@ namespace spider {
             void setOnFiring(u32 firing) final;
 
             spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
+
+            spider::vector<pisdf::DependencyIterator> computeConsDependencies() const;
 
             /* === Getter(s) === */
 

@@ -40,16 +40,11 @@
 #include <common/Types.h>
 #include <memory/unique_ptr.h>
 #include <containers/vector.h>
-#include <containers/array_handle.h>
+#include <containers/array.h>
+#include <runtime/common/Fifo.h>
 #include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
-
-    class FifoAlloc;
-
-    namespace sched {
-        class PiSDFTask;
-    }
 
     namespace pisdf {
 
@@ -81,8 +76,6 @@ namespace spider {
 
             /* === Method(s) === */
 
-            size_t countInstances() const;
-
             /**
              * @brief Compute BRV and save the values based on current value of parameters.
              * @remark this method automatically set the resolved_ flag to true.
@@ -99,6 +92,52 @@ namespace spider {
              * @brief Clears every values, and set resolved_ flag to false.
              */
             void clear();
+
+            /**
+             * @brief Compute all execution dependencies of a given vertex.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Firing value to be evaluated.
+             * @return vector of @refitem pisdf::DependencyIterator for all input edges of the vertex.
+             */
+            spider::vector<DependencyIterator> computeExecDependencies(const Vertex *vertex, u32 firing) const;
+
+            /**
+             * @brief Compute execution dependencies for a given input edge of a given firing of a given vertex.
+             *        Execution dependencies corresponds to all the vertices (and their firing) that are directly needed for
+             *        this particular input edge and this firing of the vertex inside the graph firing specified by the handler.
+             *        Dependencies are computed through input / output interfaces and through delays.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Firing of the vertex.
+             * @param edgeIx  Index of the input edge.
+             * @param count   If not nullptr, this will be filled with the number of consumer dependencies.
+             * @return a @refitem DependencyIterator to the execution dependencies of the vertex.
+             * @throw nullpointer exception in DEBUG mode only if vertex is nullptr.
+             */
+            DependencyIterator
+            computeExecDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count = nullptr) const;
+
+            /**
+             * @brief Compute all consumer dependencies of a given vertex.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Firing value to be evaluated.
+             * @return vector of @refitem pisdf::DependencyIterator for all output edges of the vertex.
+             */
+            spider::vector<DependencyIterator> computeConsDependencies(const Vertex *vertex, u32 firing) const;
+
+            /**
+             * @brief Compute consumer dependencies for a given output edge of a given firing of a given vertex.
+             *        Consumer dependencies corresponds to all the vertices (and their firing) that directly depends from
+             *        this particular output edge and this firing of the vertex inside the graph firing specified by the handler.
+             *        Dependencies are computed through input / output interfaces and through delays.
+             * @param vertex  Pointer to the vertex.
+             * @param firing  Firing of the vertex.
+             * @param edgeIx  Index of the output edge.
+             * @param count   If not nullptr, this will be filled with the number of execution dependencies.
+             * @return a @refitem DependencyIterator to the consumer dependencies of the vertex.
+             * @throw nullpointer exception in DEBUG mode only if vertex is nullptr.
+             */
+            DependencyIterator
+            computeConsDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count = nullptr) const;
 
             /* === Getter(s) === */
 
@@ -166,10 +205,6 @@ namespace spider {
              * @throw @refitem spider::Exception if firing is greater or equal to the repetition value of the vertex.
              */
             u32 getTaskIx(const Vertex *vertex, u32 firing) const;
-
-            sched::PiSDFTask *getTask(const Vertex *vertex);
-
-            const sched::PiSDFTask *getTask(const Vertex *vertex) const;
 
             /**
              * @brief Get the @refitem GraphFiring of a subgraph in this graph firing context.
@@ -260,7 +295,6 @@ namespace spider {
             spider::unique_ptr<EdgeRate> ratesArray_;              /* == Array of resolved rates (trade some memory for runtime speed) == */
             spider::unique_ptr<FifoAlloc *> edgeAllocArray_;       /* == Array of allocated information for every edges == */
             spider::unique_ptr<u32 *> taskIxRegister_;             /* == Array of schedule task ix == */
-            spider::unique_ptr<sched::PiSDFTask *> tasksArray_;    /* == Array of schedule tasks == */
             const GraphHandler *parent_;                           /* == Parent handler == */
             u32 firing_ = 0;                                       /* == Firing of this graph instance == */
             u32 dynamicParamCount_ = 0;                            /* == Number of dynamic parameters == */

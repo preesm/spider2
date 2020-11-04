@@ -58,7 +58,7 @@ namespace spider {
 
             };
 
-            ~Schedule() = default;
+            ~Schedule();
 
             Schedule(const Schedule &) = delete;
 
@@ -103,15 +103,12 @@ namespace spider {
              * @remark Once added, memory of the task is handled by the schedule, DO NOT FREE it yourself.
              * @param task  Pointer to the task.
              */
-            inline u32 addTask(Task *task, u32 firing = 0) {
+            inline void addTask(Task *task, u32 firing = 0) {
                 if (task) {
-                    const auto taskIx = static_cast<u32>(tasks_.size());
                     task->setOnFiring(firing);
-                    task->setIx(taskIx);
+                    task->setIx(static_cast<u32>(tasks_.size()));
                     tasks_.emplace_back(task, firing);
-                    return taskIx;
                 }
-                return UINT32_MAX;
             }
 
             template<class ...Args>

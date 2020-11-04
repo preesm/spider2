@@ -84,11 +84,11 @@ namespace spider {
         /**
          * @brief Creates an array with parameters needed for the runtime exec of a vertex.
          * @param vertex  Pointer to the vertex.
-         * @param handler Pointer to the @refitem spider::pisdf::GraphFiring managing this particular vertex instance.
+         * @param params  Parameters to use for the rates evaluation. (should contain the same parameters as the graphs)
          * @return array of int_least_64_t.
          */
-        spider::unique_ptr<i64>
-        buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex, const GraphFiring *handler);
+        spider::unique_ptr<i64> buildVertexRuntimeInputParameters(const pisdf::Vertex *vertex,
+                                                                  const spider::vector<std::shared_ptr<pisdf::Param>> &params = { });
 
         /**
          * @brief Get the source of the vertex across interfaces.

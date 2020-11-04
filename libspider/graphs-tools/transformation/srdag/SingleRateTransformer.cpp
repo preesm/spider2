@@ -190,9 +190,6 @@ spider::srdag::SingleRateTransformer::copyParameter(const std::shared_ptr<pisdf:
     if (param->dynamic()) {
         std::shared_ptr<pisdf::Param> p;
         if (param->type() == pisdf::ParamType::INHERITED) {
-            if (!param->parent()) {
-                throwNullptrException();
-            }
             const auto &parentParam = job_.params_[param->parent()->ix()];
             p = spider::make_shared<pisdf::Param, StackID::TRANSFO>(param->name(), parentParam);
         } else {

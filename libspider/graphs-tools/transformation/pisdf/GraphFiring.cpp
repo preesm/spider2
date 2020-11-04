@@ -41,9 +41,6 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
 #include <graphs-tools/numerical/detail/dependenciesImpl.h>
-#include <runtime/common/Fifo.h>
-#include <scheduling/task/Task.h>
-#include <scheduling/task/PiSDFTask.h>
 
 /* === Static function === */
 
@@ -63,9 +60,8 @@ spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
     brvArray_ = spider::make_unique(make_n<u32, StackID::TRANSFO>(graph->vertexCount(), UINT32_MAX));
     subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
     ratesArray_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
-    edgeAllocArray_ = spider::make_unique(make_n<FifoAlloc *, StackID::SCHEDULE>(graph->edgeCount(), nullptr));
     taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::SCHEDULE>(graph->vertexCount(), nullptr));
-    tasksArray_ = spider::make_unique(make_n<sched::PiSDFTask*, StackID::SCHEDULE>(graph->vertexCount(), nullptr));
+    edgeAllocArray_ = spider::make_unique(make_n<FifoAlloc *, StackID::SCHEDULE>(graph->edgeCount(), nullptr));
     /* == copy parameters == */
     params_.reserve(params.size());
     dynamicParamCount_ = 0;
@@ -85,31 +81,11 @@ spider::pisdf::GraphFiring::~GraphFiring() {
     for (const auto &edge : parent_->graph()->edges()) {
         deallocate(edgeAllocArray_[edge->ix()]);
     }
-    for (const auto &vertex : parent_->graph()->vertices()) {
-        destroy(tasksArray_[vertex->ix()]);
-    }
-}
-
-size_t spider::pisdf::GraphFiring::countInstances() const {
-    size_t count = 0;
-    for (const auto &vertex : parent_->graph()->vertices()) {
-        count += getRV(vertex.get());
-    }
-    for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        auto &currentGraphHandler = subgraphHandlers_[subgraph->subIx()];
-        count += currentGraphHandler->countInstances();
-    }
-    return count;
 }
 
 void spider::pisdf::GraphFiring::resolveBRV() {
     if (resolved_) {
         return;
-    }
-    for (auto &param : params_) {
-        if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
-            param->value(params_);
-        }
     }
     /* == Compute BRV == */
     spider::brv::compute(parent_->graph(), params_);
@@ -140,11 +116,6 @@ void spider::pisdf::GraphFiring::apply(const GraphFiring *srcFiring) {
 #endif
     if (resolved_ || srcFiring == this) {
         return;
-    }
-    for (auto &param : params_) {
-        if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
-            param->value(params_);
-        }
     }
     for (const auto &vertex : parent_->graph()->vertices()) {
         updateFromRV(vertex.get(), srcFiring->brvArray_[vertex->ix()]);
@@ -177,6 +148,64 @@ void spider::pisdf::GraphFiring::clear() {
     }
     paramResolvedCount_ = 0;
     resolved_ = parent_->isStatic();
+}
+
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::GraphFiring::computeExecDependencies(const Vertex *vertex, u32 firing) const {
+    auto result = factory::vector<DependencyIterator>(StackID::SCHEDULE);
+    if (vertex->inputEdgeCount()) {
+        spider::reserve(result, vertex->inputEdgeCount());
+        for (const auto *edge : vertex->inputEdges()) {
+            result.emplace_back(computeExecDependency(vertex, firing, edge->sinkPortIx()));
+        }
+    }
+    return result;
+}
+
+spider::pisdf::DependencyIterator
+spider::pisdf::GraphFiring::computeExecDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
+#ifndef NDEBUG
+    if (!vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->inputEdge(edgeIx);
+    const auto snkRate = getSnkRate(edge);
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    auto depCount = detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, this, result);
+    if (count) {
+        *count = depCount;
+    }
+    return DependencyIterator{ std::move(result) };
+}
+
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::GraphFiring::computeConsDependencies(const Vertex *vertex, u32 firing) const {
+    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
+    if (vertex->outputEdgeCount()) {
+        spider::reserve(result, vertex->outputEdgeCount());
+        for (const auto *edge : vertex->outputEdges()) {
+            result.emplace_back(computeConsDependency(vertex, firing, edge->sourcePortIx()));
+        }
+    }
+    return result;
+}
+
+spider::pisdf::DependencyIterator
+spider::pisdf::GraphFiring::computeConsDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
+#ifndef NDEBUG
+    if (!vertex) {
+        throwNullptrException();
+    }
+#endif
+    const auto *edge = vertex->outputEdge(edgeIx);
+    const auto srcRate = getSrcRate(edge);
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, this, result);
+    if (count) {
+        *count = depCount;
+    }
+    return DependencyIterator{ std::move(result) };
 }
 
 spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphFirings() const {
@@ -226,14 +255,6 @@ u32 spider::pisdf::GraphFiring::getTaskIx(const Vertex *vertex, u32 firing) cons
     }
 #endif
     return taskIxRegister_[vertex->ix()][firing];
-}
-
-spider::sched::PiSDFTask *spider::pisdf::GraphFiring::getTask(const Vertex *vertex) {
-    return tasksArray_[vertex->ix()];
-}
-
-const spider::sched::PiSDFTask *spider::pisdf::GraphFiring::getTask(const Vertex *vertex) const {
-    return tasksArray_[vertex->ix()];
 }
 
 const spider::pisdf::GraphFiring *
@@ -299,7 +320,7 @@ void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const pisdf::Edge *edg
 
 std::shared_ptr<spider::pisdf::Param>
 spider::pisdf::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param) {
-    if (param->type() == pisdf::ParamType::DYNAMIC || param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
+    if (param->type() == pisdf::ParamType::DYNAMIC) {
         return spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
     } else if (param->type() == pisdf::ParamType::INHERITED) {
         const auto *parentHandler = parent_->handler();
@@ -321,10 +342,6 @@ void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 r
     const auto ix = vertex->ix();
     if (brvArray_[ix] != rvValue) {
         brvArray_[ix] = rvValue;
-        if (vertex->subtype() != VertexType::GRAPH && vertex->subtype() != VertexType::DELAY) {
-            destroy(tasksArray_[ix]);
-            tasksArray_[ix] = spider::make<sched::PiSDFTask, StackID::SCHEDULE>(this, vertex);
-        }
         deallocate(taskIxRegister_[ix]);
         taskIxRegister_[ix] = spider::make_n<u32, StackID::SCHEDULE>(rvValue, UINT32_MAX);
         for (const auto *edge : vertex->outputEdges()) {
