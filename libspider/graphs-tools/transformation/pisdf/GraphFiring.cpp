@@ -87,6 +87,7 @@ void spider::pisdf::GraphFiring::resolveBRV() {
     if (resolved_) {
         return;
     }
+    resolveDynamicDependentParams();
     /* == Compute BRV == */
     spider::brv::compute(parent_->graph(), params_);
     /* == Save RV values into the array == */
@@ -117,6 +118,7 @@ void spider::pisdf::GraphFiring::apply(const GraphFiring *srcFiring) {
     if (resolved_ || srcFiring == this) {
         return;
     }
+    resolveDynamicDependentParams();
     for (const auto &vertex : parent_->graph()->vertices()) {
         updateFromRV(vertex.get(), srcFiring->brvArray_[vertex->ix()]);
     }
@@ -229,12 +231,7 @@ void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
     paramResolvedCount_++;
     if (paramResolvedCount_ == dynamicParamCount_) {
-        /* == Resolve dynamic dependent parameters == */
-        for (auto &param : params_) {
-            if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
-                param->value(params_);
-            }
-        }
+        resolveDynamicDependentParams();
         for (auto *subHandler : subgraphHandlers()) {
             subHandler->resolveFirings();
         }
@@ -260,20 +257,29 @@ void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const pisdf::Edge *edg
 
 /* === Private method(s) implementation === */
 
+void spider::pisdf::GraphFiring::resolveDynamicDependentParams() {
+    /* == Resolve dynamic dependent parameters == */
+    for (auto &param : params_) {
+        if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
+            param->value(params_);
+        }
+    }
+}
+
 std::shared_ptr<spider::pisdf::Param>
 spider::pisdf::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param) {
-    if (param->type() == pisdf::ParamType::DYNAMIC) {
-        return spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
-    } else if (param->type() == pisdf::ParamType::INHERITED) {
+    if (param->type() == ParamType::DYNAMIC || param->type() == ParamType::DYNAMIC_DEPENDANT) {
+        return spider::make_shared<Param, StackID::PISDF>(*param);
+    } else if (param->type() == ParamType::INHERITED) {
         const auto *parentHandler = parent_->handler();
         auto paramParentIx = param->parent() ? param->parent()->ix() : throwNullptrException();
         const auto *parent = &parentHandler->params_[paramParentIx];
-        while (parent && ((*parent)->type() == pisdf::ParamType::INHERITED)) {
+        while (parent && ((*parent)->type() == ParamType::INHERITED)) {
             parentHandler = parentHandler->parent_->handler();
             paramParentIx = (*parent)->parent() ? (*parent)->parent()->ix() : throwNullptrException();
             parent = &parentHandler->params_[paramParentIx];
         }
-        auto newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), *parent);
+        auto newParam = spider::make_shared<Param, StackID::PISDF>(param->name(), *parent);
         newParam->setIx(param->ix());
         return newParam;
     }

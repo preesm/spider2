@@ -257,6 +257,8 @@ namespace spider {
 
             /* === private method(s) === */
 
+            void resolveDynamicDependentParams();
+
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param);
 
             void updateFromRV(const pisdf::Vertex *vertex, u32 rvValue);
