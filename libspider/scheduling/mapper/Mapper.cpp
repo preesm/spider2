@@ -35,10 +35,11 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/Mapper.h>
+#include <scheduling/schedule/Schedule.h>
 #include <scheduling/task/Task.h>
 #include <scheduling/task/SyncTask.h>
-#include <scheduling/schedule/Schedule.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
 #include <api/archi-api.h>
@@ -75,7 +76,8 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task,
                 if (!dep.vertex_) {
                     continue;
                 }
-                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+                const auto *alloc = dep.handler_->getAlloc();
+                auto *srcTask = schedule->task(alloc->getTaskIx(dep.vertex_, k));
                 if (srcTask) {
                     task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
                     minTime = std::max(minTime, srcTask->endTime());
@@ -117,7 +119,7 @@ spider::sched::Mapper::computeCommunicationCost(const Task *,
                 const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
                 const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
                 const auto rate = (dep.rate_ > 0) * (memoryEnd - memoryStart + 1);
-                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+                auto *srcTask = schedule->task(dep.handler_->getAlloc()->getTaskIx(dep.vertex_, k));
                 updateCommunicationCost(mappedPE, srcTask, rate, communicationCost, externDataToReceive);
             }
         }
@@ -155,7 +157,7 @@ void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo,
     for (const auto &depIt : dependencies) {
         for (const auto &dep : depIt) {
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+                auto *srcTask = schedule->task(dep.handler_->getAlloc()->getTaskIx(dep.vertex_, k));
                 mapCommunications(mappingInfo, task, srcTask, depIx, schedule);
                 depIx++;
             }

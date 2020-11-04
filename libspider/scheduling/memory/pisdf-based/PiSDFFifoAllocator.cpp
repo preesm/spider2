@@ -39,11 +39,12 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 #include <runtime/message/Notification.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
 #include <runtime-api.h>
-#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Function(s) definition === */
 
@@ -63,7 +64,7 @@ void spider::sched::PiSDFFifoAllocator::updateDynamicBuffersCount() {
         if (count > 0) {
             const auto sndIx = task->mappedLRT()->virtualIx();
             const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-            const auto address = task->handler()->getEdgeAddress(edge, it->firing_);
+            const auto address = task->handler()->getAlloc()->getEdgeAddress(edge, it->firing_);
             auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx, address };
             auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx,
                                                   static_cast<size_t>(count - 1) };
@@ -117,6 +118,7 @@ spider::sched::PiSDFFifoAllocator::buildJobFifos(PiSDFTask *task) {
 
 void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task, const JobFifos *fifos) {
     auto *handler = task->handler();
+    auto *alloc = handler->getAlloc();
     const auto *vertex = task->vertex();
     const auto firing = task->firing();
     switch (vertex->subtype()) {
@@ -124,8 +126,8 @@ void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task, const JobFifos
             const auto inputFifo = fifos->inputFifo(0);
             auto offset = inputFifo.offset_ * (inputFifo.attribute_ != FifoAttribute::R_MERGE);
             for (auto *edge : vertex->outputEdges()) {
-                handler->setEdgeAddress(inputFifo.address_, edge, firing);
-                handler->setEdgeOffset(offset, edge, firing);
+                alloc->setEdgeAddress(inputFifo.address_, edge, firing);
+                alloc->setEdgeOffset(offset, edge, firing);
                 offset += static_cast<u32>(handler->getSrcRate(edge));
             }
         }
@@ -134,16 +136,16 @@ void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task, const JobFifos
             const auto inputFifo = fifos->inputFifo(0);
             auto offset = inputFifo.offset_ * (inputFifo.attribute_ != FifoAttribute::R_MERGE);
             for (auto *edge : vertex->outputEdges()) {
-                handler->setEdgeAddress(inputFifo.address_, edge, firing);
-                handler->setEdgeOffset(offset, edge, firing);
+                alloc->setEdgeAddress(inputFifo.address_, edge, firing);
+                alloc->setEdgeOffset(offset, edge, firing);
             }
         }
             break;
         case pisdf::VertexType::EXTERN_IN:
-            if (handler->getEdgeAddress(vertex->outputEdge(0), firing) == SIZE_MAX) {
+            if (alloc->getEdgeAddress(vertex->outputEdge(0), firing) == SIZE_MAX) {
                 if (vertex->subtype() == pisdf::VertexType::EXTERN_IN) {
                     const auto *ext = vertex->convertTo<pisdf::ExternInterface>();
-                    handler->setEdgeAddress(ext->address(), vertex->outputEdge(0), firing);
+                    alloc->setEdgeAddress(ext->address(), vertex->outputEdge(0), firing);
                 }
             }
             break;
@@ -151,10 +153,10 @@ void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task, const JobFifos
             for (auto *edge : vertex->outputEdges()) {
                 if (edge->sink()->subtype() == pisdf::VertexType::EXTERN_OUT) {
                     const auto *ext = edge->sink()->convertTo<pisdf::ExternInterface>();
-                    handler->setEdgeAddress(ext->address(), edge, firing);
+                    alloc->setEdgeAddress(ext->address(), edge, firing);
                 } else {
                     const auto size = static_cast<size_t>(handler->getSrcRate(edge));
-                    handler->setEdgeAddress(FifoAllocator::allocate(size * handler->getRV(vertex)), edge, firing);
+                    alloc->setEdgeAddress(FifoAllocator::allocate(size * handler->getRV(vertex)), edge, firing);
                 }
             }
             break;
@@ -210,8 +212,9 @@ spider::Fifo spider::sched::PiSDFFifoAllocator::buildInputFifo(const pisdf::Edge
                                                                u32 firing,
                                                                const pisdf::GraphFiring *handler) {
     Fifo fifo{ };
-    fifo.address_ = handler->getEdgeAddress(edge, firing);
-    fifo.offset_ = handler->getEdgeOffset(edge, firing) + offset;
+    auto *alloc = handler->getAlloc();
+    fifo.address_ = alloc->getEdgeAddress(edge, firing);
+    fifo.offset_ = alloc->getEdgeOffset(edge, firing) + offset;
     fifo.size_ = size;
     fifo.count_ = 0;
     fifo.attribute_ = FifoAttribute::RW_OWN;
@@ -225,9 +228,10 @@ spider::Fifo spider::sched::PiSDFFifoAllocator::buildInputFifo(const pisdf::Edge
 spider::Fifo spider::sched::PiSDFFifoAllocator::buildOutputFifo(const pisdf::Edge *edge, const PiSDFTask *task) {
     Fifo fifo{ };
     auto *handler = task->handler();
+    auto *alloc = handler->getAlloc();
     const auto firing = task->firing();
-    fifo.address_ = handler->getEdgeAddress(edge, firing);
-    fifo.offset_ = handler->getEdgeOffset(edge, firing);
+    fifo.address_ = alloc->getEdgeAddress(edge, firing);
+    fifo.offset_ = alloc->getEdgeOffset(edge, firing);
     fifo.size_ = static_cast<u32>(handler->getSrcRate(edge));
     fifo.attribute_ = FifoAttribute::RW_OWN;
     fifo.count_ = 1;

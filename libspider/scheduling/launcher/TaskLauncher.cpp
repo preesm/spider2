@@ -37,11 +37,11 @@
 #include <scheduling/launcher/TaskLauncher.h>
 #include <scheduling/task/PiSDFTask.h>
 #include <scheduling/task/SyncTask.h>
-#include <scheduling/schedule/Schedule.h>
 #include <scheduling/memory/FifoAllocator.h>
 #include <graphs/pisdf/Vertex.h>
-#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/MemoryBus.h>
@@ -209,7 +209,7 @@ void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task,
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                 Task *snkTask = nullptr;
                 if (dep.vertex_) {
-                    const auto taskix = dep.handler_->getTaskIx(dep.vertex_, k);
+                    const auto taskix = dep.handler_->getAlloc()->getTaskIx(dep.vertex_, k);
                     snkTask = schedule->task(taskix);
                 }
                 if (setFlagsFromSink(task, snkTask, flags)) {

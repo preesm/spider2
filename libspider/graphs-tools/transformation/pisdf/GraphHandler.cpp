@@ -59,11 +59,11 @@ spider::pisdf::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
             break;
         }
     }
-    const auto *parentGraph = graph->graph();
     for (u32 k = 0; k < repetitionCount; ++k) {
         firings_[k] = spider::make<GraphFiring>(this, params, k);
     }
-    if (static_ || (parentGraph && !parentGraph->configVertexCount())) {
+    const auto *upperGraph = graph_->graph();
+    if (static_ || (upperGraph && !upperGraph->configVertexCount())) {
         resolveFirings();
     }
 }
@@ -83,12 +83,11 @@ void spider::pisdf::GraphHandler::clear() {
 }
 
 void spider::pisdf::GraphHandler::resolveFirings() {
-    if (repetitionCount_ && !graph_->configVertexCount()) {
-        auto *firstFiring = firings_[0u];
-        firstFiring->resolveBRV();
-        for (u32 k = 1; k < repetitionCount_; ++k) {
-            firings_[k]->apply(firstFiring);
-        }
+    if (!repetitionCount_) {
+        return;
+    }
+    if (static_ && !graph_->configVertexCount()) {
+        firings_[0u]->resolveBRV();
     } else {
         for (u32 k = 0; k < repetitionCount_; ++k) {
             firings_[k]->resolveBRV();

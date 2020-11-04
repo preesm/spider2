@@ -184,8 +184,8 @@ namespace spider {
             const pisdf::Vertex *vertex() const;
 
             /**
-             * @brief Get the handler associated with the task.
-             * @return pointer to the handler.
+             * @brief Get the base associated with the task.
+             * @return pointer to the base.
              */
             inline pisdf::GraphFiring *handler() const { return handler_; }
 

@@ -65,7 +65,7 @@ namespace spider {
         /**
          * @brief Compute execution dependencies for a given input edge of a given firing of a given vertex.
          *        Execution dependencies corresponds to all the vertices (and their firing) that are directly needed for
-         *        this particular input edge and this firing of the vertex inside the graph firing specified by the handler.
+         *        this particular input edge and this firing of the vertex inside the graph firing specified by the base.
          *        Dependencies are computed through input / output interfaces and through delays.
          * @param handler Pointer to the @refitem pisdf::GraphFiring to which this particular firing of the vertex belongs.
          * @param vertex  Pointer to the vertex.
@@ -82,14 +82,14 @@ namespace spider {
         /**
          * @brief Compute the number of execution dependencies for a given input edge of a given firing of a given vertex.
          *        Execution dependencies corresponds to all the vertices (and their firing) that are directly needed for
-         *        this particular input edge and this firing of the vertex inside the graph firing specified by the handler.
+         *        this particular input edge and this firing of the vertex inside the graph firing specified by the base.
          *        Dependencies are computed through input / output interfaces and through delays.
          * @param vertex  Pointer to the vertex.
          * @param firing  Firing of the vertex.
          * @param edgeIx  Index of the input edge.
          * @param handler Pointer to the @refitem pisdf::GraphFiring to which this particular firing of the vertex belongs.
          * @return the exec dependency count.
-         * @throw nullpointer exception in DEBUG mode only if handler or vertex is nullptr.
+         * @throw nullpointer exception in DEBUG mode only if base or vertex is nullptr.
          */
         i32 computeExecDependencyCount(const Vertex *vertex,
                                        u32 firing,
@@ -109,7 +109,7 @@ namespace spider {
         /**
          * @brief Compute consumer dependencies for a given output edge of a given firing of a given vertex.
          *        Consumer dependencies corresponds to all the vertices (and their firing) that directly depends from
-         *        this particular output edge and this firing of the vertex inside the graph firing specified by the handler.
+         *        this particular output edge and this firing of the vertex inside the graph firing specified by the base.
          *        Dependencies are computed through input / output interfaces and through delays.
          * @param handler Pointer to the @refitem pisdf::GraphFiring to which this particular firing of the vertex belongs.
          * @param vertex  Pointer to the vertex.
@@ -126,14 +126,14 @@ namespace spider {
         /**
          * @brief Compute the number of consumer dependencies for a given input edge of a given firing of a given vertex.
          *        Execution dependencies corresponds to all the vertices (and their firing) that are directly needed for
-         *        this particular input edge and this firing of the vertex inside the graph firing specified by the handler.
+         *        this particular input edge and this firing of the vertex inside the graph firing specified by the base.
          *        Dependencies are computed through input / output interfaces and through delays.
          * @param vertex  Pointer to the vertex.
          * @param firing  Firing of the vertex.
          * @param edgeIx  Index of the input edge.
          * @param handler Pointer to the @refitem pisdf::GraphFiring to which this particular firing of the vertex belongs.
          * @return the exec dependency count.
-         * @throw nullpointer exception in DEBUG mode only if handler or vertex is nullptr.
+         * @throw nullpointer exception in DEBUG mode only if base or vertex is nullptr.
          */
         i32 computeConsDependencyCount(const Vertex *vertex,
                                        u32 firing,

@@ -38,6 +38,7 @@
 #include <scheduling/scheduler/Scheduler.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
 #include <scheduling/task/PiSDFTask.h>
 
 #ifndef _NO_BUILD_LEGACY_RT
@@ -64,7 +65,7 @@ void spider::sched::Scheduler::addTask(Schedule *schedule,
     const auto rv = handler->getRV(vertex);
     Task *task = nullptr;
     for (u32 k = 0; k < rv; ++k) {
-        const auto taskIx = handler->getTaskIx(vertex, k);
+        const auto taskIx = handler->getAlloc()->getTaskIx(vertex, k);
         if (taskIx != UINT32_MAX) {
             task = schedule->task(taskIx);
             break;

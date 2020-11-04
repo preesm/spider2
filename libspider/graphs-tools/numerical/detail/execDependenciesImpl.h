@@ -133,7 +133,7 @@ namespace spider {
                     /* == Case of input interface == */
                     const auto *source = edge->source();
                     const auto srcRate = handler->getSrcRate(edge);
-                    const auto *ghdl = handler->getParent()->handler();
+                    const auto *ghdl = handler->getParent()->base();
                     const auto upperLCons = srcRate * handler->firingValue();
                     const auto *upperEdge = source->graph()->inputEdge(source->ix());
                     auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);

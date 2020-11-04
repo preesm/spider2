@@ -39,9 +39,9 @@
 
 #include <common/Types.h>
 #include <memory/unique_ptr.h>
+#include <runtime/common/Fifo.h>
 #include <containers/vector.h>
 #include <containers/array.h>
-#include <runtime/common/Fifo.h>
 #include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
@@ -56,12 +56,14 @@ namespace spider {
 
         class GraphFiring;
 
+        class GraphAlloc;
+
         /* === Class definition === */
 
         class GraphFiring {
         public:
             GraphFiring(const GraphHandler *parent,
-                        const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                        const spider::vector<std::shared_ptr<Param>> &params,
                         u32 firing);
 
             GraphFiring(GraphFiring &&) = default;
@@ -81,12 +83,6 @@ namespace spider {
              * @remark this method automatically set the resolved_ flag to true.
              */
             void resolveBRV();
-
-            /**
-             * @brief Apply BRV and copy exisiting rates from an other GraphFiring into this.
-             * @param srcFiring Pointer to the other GraphFiring.
-             */
-            void apply(const GraphFiring *srcFiring);
 
             /**
              * @brief Clears every values, and set resolved_ flag to false.
@@ -151,16 +147,6 @@ namespace spider {
             u32 getRV(const Vertex *vertex) const;
 
             /**
-             * @brief Get the task index associated with a given firing of a given vertex for this graph firing.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing of the vertex.
-             * @return value of the task index.
-             * @warning if this graph firing has not yet been resolved, value should be UINT32_MAX but it is not guarenteed.
-             * @throw @refitem spider::Exception if firing is greater or equal to the repetition value of the vertex.
-             */
-            u32 getTaskIx(const Vertex *vertex, u32 firing) const;
-
-            /**
              * @brief Get the @refitem GraphFiring of a subgraph in this graph firing context.
              * @param subgraph Pointer to the subgraph.
              * @param firing   Firing of the subgraph to fetch.
@@ -173,7 +159,7 @@ namespace spider {
              * @brief Get the parameters of this graph firing.
              * @return parameters vector.
              */
-            const spider::vector<std::shared_ptr<Param>> &getParams() const { return params_; }
+            const spider::vector<std::shared_ptr<Param>> &getParams() const;
 
             /**
              * @brief Get a given vertex from its graph identifier.
@@ -189,21 +175,7 @@ namespace spider {
              */
             Vertex *vertex(size_t ix);
 
-            /**
-             * @brief Get the allocated memory address of a given edge.
-             * @param edge    Pointer to the edge.
-             * @param firing  Firing of the vertex producing on this edge.
-             * @return allocated memory address.
-             */
-            size_t getEdgeAddress(const Edge *edge, u32 firing) const;
-
-            /**
-             * @brief Get the offset in the allocated memory address of a given edge.
-             * @param edge    Pointer to the edge.
-             * @param firing  Firing of the vertex producing on this edge.
-             * @return offset in the allocated memory address.
-             */
-            u32 getEdgeOffset(const Edge *edge, u32 firing) const;
+            inline GraphAlloc *getAlloc() const { return alloc_.get(); }
 
             /* === Setter(s) === */
 
@@ -214,30 +186,6 @@ namespace spider {
              */
             void setParamValue(size_t ix, int64_t value);
 
-            /**
-             * @brief Registers the Task ix for a given firing of a given vertex.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Value of the firing.
-             * @param taskIx  Value of the task ix to set.
-             */
-            void setTaskIx(const Vertex *vertex, u32 firing, u32 taskIx);
-
-            /**
-             * @brief Set the allocated address of the edge.
-             * @param value    Value of the address.
-             * @param edge     Pointer to the edge.
-             * @param firing   Firing of the producer of the edge.
-             */
-            void setEdgeAddress(size_t value, const Edge *edge, u32 firing);
-
-            /**
-             * @brief Set the allocated offset of the edge.
-             * @param value    Value of the offset.
-             * @param edge     Pointer to the edge.
-             * @param firing   Firing of the producer of the edge.
-             */
-            void setEdgeOffset(u32 value, const Edge *edge, u32 firing);
-
         private:
             struct EdgeRate {
                 int64_t srcRate_;
@@ -247,8 +195,7 @@ namespace spider {
             spider::unique_ptr<GraphHandler *> subgraphHandlers_;  /* == match between subgraphs and their handler == */
             spider::unique_ptr<u32> brvArray_;                     /* == BRV of this firing of the graph == */
             spider::unique_ptr<EdgeRate> ratesArray_;              /* == Array of resolved rates (trade some memory for runtime speed) == */
-            spider::unique_ptr<FifoAlloc *> edgeAllocArray_;       /* == Array of allocated information for every edges == */
-            spider::unique_ptr<u32 *> taskIxRegister_;             /* == Array of schedule task ix == */
+            spider::unique_ptr<GraphAlloc> alloc_;                 /* == Class used to handle everything related to resource allocation == */
             const GraphHandler *parent_;                           /* == Parent handler == */
             u32 firing_ = 0;                                       /* == Firing of this graph instance == */
             u32 dynamicParamCount_ = 0;                            /* == Number of dynamic parameters == */
@@ -261,7 +208,7 @@ namespace spider {
 
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param);
 
-            void updateFromRV(const pisdf::Vertex *vertex, u32 rvValue);
+            void updateFromRV(const pisdf::Vertex *vertex, u32 rv);
 
             void createOrUpdateSubgraphHandlers();
         };

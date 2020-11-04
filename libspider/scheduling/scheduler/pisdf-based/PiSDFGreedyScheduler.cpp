@@ -40,6 +40,7 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
@@ -77,7 +78,7 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                                                    u32 firing,
                                                    Schedule *schedule) {
     auto schedulable = true;
-    if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
+    if (handler->getAlloc()->getTaskIx(vertex, firing) == UINT32_MAX) {
         auto lambda = [&schedule, &schedulable](const pisdf::DependencyInfo &dep) {
             if (!dep.rate_) {
                 return;

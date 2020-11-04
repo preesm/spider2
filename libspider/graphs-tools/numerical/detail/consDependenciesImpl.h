@@ -110,7 +110,7 @@ namespace spider {
                     const auto minValidMemWODelay = minValidMemWDelay + delayValue;
                     const auto parentLProd = snkRate * handler->firingValue();
                     const auto *upperEdge = sink->graph()->outputEdge(sink->ix());
-                    const auto *gh = handler->getParent()->handler();
+                    const auto *gh = handler->getParent()->base();
                     if (dep.memoryEnd_ < minValidMemWDelay) {
                         /* == void dependency == */
                         return -1;

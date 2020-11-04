@@ -94,7 +94,7 @@ namespace spider {
 
             /**
              * @brief Recursively add vertices into the sortedTaskVector_ vector.
-             * @param graphHandler  Top level graph handler;
+             * @param graphHandler  Top level graph base;
              */
             void recursiveAddVertices(spider::pisdf::GraphHandler *graphHandler);
 
@@ -104,13 +104,13 @@ namespace spider {
              *         sortedTaskVector_.
              * @param vertex  Pointer to the vertex associated.
              * @param firing  Firing of the vertex.
-             * @param handler Pointer to the handler of the vertex.
+             * @param handler Pointer to the base of the vertex.
              */
             void createListTask(pisdf::Vertex *vertex, u32 firing, pisdf::GraphFiring *handler);
 
             /**
              * @brief Recursively set all consumer of this vertex as not schedulable.
-             * @param handler Pointer to the handler of the vertex.
+             * @param handler Pointer to the base of the vertex.
              * @param vertex  Pointer to the vertex associated.
              * @param firing  Firing of the vertex.
              */
