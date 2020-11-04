@@ -68,11 +68,7 @@ void spider::sched::PiSDFTask::visit(TaskLauncher *launcher) {
 }
 
 spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeExecDependencies() const {
-    return handler_->computeExecDependencies(vertex(), currentFiring_);
-}
-
-spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeConsDependencies() const {
-    return handler_->computeConsDependencies(vertex(), currentFiring_);
+    return pisdf::computeExecDependencies(handler_, vertex(), currentFiring_);
 }
 
 bool spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {

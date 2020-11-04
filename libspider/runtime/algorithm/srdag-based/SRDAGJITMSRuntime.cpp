@@ -76,7 +76,6 @@ bool spider::SRDAGJITMSRuntime::execute() {
     if (api::exportTraceEnabled()) {
         startIterStamp_ = time::now();
     }
-
     /* == Apply first transformation of root graph == */
     TraceMessage transfoMsg{ };
     TRACE_TRANSFO_START()
@@ -90,7 +89,6 @@ bool spider::SRDAGJITMSRuntime::execute() {
     updateJobStack(resultRootJob.first, staticJobStack);
     updateJobStack(resultRootJob.second, dynamicJobStack);
     TRACE_TRANSFO_END()
-
     /* == Transform, schedule and run == */
     while (!staticJobStack.empty() || !dynamicJobStack.empty()) {
         /* == Transform static jobs == */
@@ -104,10 +102,8 @@ bool spider::SRDAGJITMSRuntime::execute() {
             optims::optimize(srdag_.get());
             TRACE_TRANSFO_END()
         }
-
         /* == Update schedule, run and wait == */
         scheduleRunAndWait();
-
         /* == Wait for all parameters to be resolved == */
         if (!dynamicJobStack.empty()) {
             if (log::enabled<log::TRANSFO>()) {
@@ -133,40 +129,32 @@ bool spider::SRDAGJITMSRuntime::execute() {
                 }
                 TRACE_TRANSFO_END()
             }
-
             /* == Transform dynamic jobs == */
             TRACE_TRANSFO_START()
             transformDynamicJobs(staticJobStack, dynamicJobStack);
             TRACE_TRANSFO_END()
-
             /* == Apply graph optimizations == */
             if (api::shouldOptimizeSRDAG()) {
                 TRACE_TRANSFO_START()
                 optims::optimize(srdag_.get());
                 TRACE_TRANSFO_END()
             }
-
             /* == Update schedule, run and wait == */
             scheduleRunAndWait();
         }
     }
-
     /* == Export srdag if needed  == */
     if (api::exportSRDAGEnabled()) {
         Runtime::exportSRDAG(srdag_.get(), "./srdag.dot");
     }
-
     /* == Runners should clear their parameters == */
     rt::platform()->sendClearToRunners();
-
     /* == Export post-exec gantt if needed  == */
     if (api::exportTraceEnabled()) {
         useExecutionTraces(resourcesAllocator_->schedule(), startIterStamp_);
     }
-
     /* == Clear the srdag == */
     srdag_->clear();
-
     /* == Clear the resource allocator == */
     resourcesAllocator_->clear();
     return true;

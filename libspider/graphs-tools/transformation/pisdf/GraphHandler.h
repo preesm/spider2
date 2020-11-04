@@ -73,6 +73,8 @@ namespace spider {
 
             /* === Method(s) === */
 
+            size_t countInstances() const;
+
             void clear();
 
             void resolveFirings();

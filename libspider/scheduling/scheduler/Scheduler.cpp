@@ -52,7 +52,7 @@
 #ifndef _NO_BUILD_LEGACY_RT
 
 void spider::sched::Scheduler::addTask(Schedule *schedule, srdag::Vertex *vertex) {
-    schedule->addTask(spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex));
+    schedule->addTask(vertex->scheduleTask());
 }
 
 #endif
@@ -61,17 +61,6 @@ void spider::sched::Scheduler::addTask(Schedule *schedule,
                                        pisdf::GraphFiring *handler,
                                        const pisdf::Vertex *vertex,
                                        u32 firing) {
-    const auto rv = handler->getRV(vertex);
-    Task *task = nullptr;
-    for (u32 k = 0; k < rv; ++k) {
-        const auto taskIx = handler->getTaskIx(vertex, k);
-        if (taskIx != UINT32_MAX) {
-            task = schedule->task(taskIx);
-            break;
-        }
-    }
-    if (!task) {
-        task = spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex);
-    }
+    auto *task = handler->getTask(vertex);
     schedule->addTask(task, firing);
 }

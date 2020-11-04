@@ -41,17 +41,13 @@
 
 /* === Method(s) implementation === */
 
-spider::sched::Schedule::~Schedule() {
-    clearTasks();
-}
-
 void spider::sched::Schedule::reserve(size_t size) {
     spider::reserve(tasks_, size);
 }
 
 void spider::sched::Schedule::clear() {
     stats_.reset();
-    clearTasks();
+    tasks_.clear();
 }
 
 void spider::sched::Schedule::reset() {

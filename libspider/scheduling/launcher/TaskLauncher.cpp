@@ -111,7 +111,7 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
     /* == Set Fifos == */
     message.fifos_ = allocator_->buildJobFifos(task);
     /* == Set input params == */
-    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex, handler->getParams());
+    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex, handler);
     /* == Send the job == */
     sendTask(task, message);
 }
