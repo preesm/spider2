@@ -191,7 +191,6 @@ namespace spider {
 
                 const auto *source = edge->source();
                 const auto sourceType = source->subtype();
-                const auto srcRate = handler->getSrcRate(edge);
                 const auto *delay = edge->delay();
                 const auto delayValue = delay ? delay->value() : 0;
                 if (!handler->getSnkRate(edge)) {
@@ -211,6 +210,7 @@ namespace spider {
                         return impl::computeExecDependencyGraph(edge, lowerCons, upperCons, delayValue, handler,
                                                                 std::forward<Args>(args)...);
                     } else {
+                        const auto srcRate = handler->getSrcRate(edge);
                         auto dep = impl::createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);
                         impl::apply(dep, std::forward<Args>(args)...);
                         return static_cast<i32>(dep.firingEnd_ - dep.firingStart_ + 1);

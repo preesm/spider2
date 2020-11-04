@@ -78,20 +78,20 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                                                    Schedule *schedule) {
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
+        auto lambda = [&schedule, &schedulable](const pisdf::DependencyInfo &dep) {
+            if (!dep.rate_) {
+                return;
+            } else if (!dep.vertex_ || dep.rate_ < 0) {
+                schedulable = false;
+                return;
+            }
+            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, schedule);
+            }
+        };
         for (const auto *edge : vertex->inputEdges()) {
             const auto snkRate = handler->getSnkRate(edge);
-            pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler,
-                                                 [&schedule, &schedulable](const pisdf::DependencyInfo &dep) {
-                                                     if (!dep.rate_) {
-                                                         return;
-                                                     } else if (!dep.vertex_ || dep.rate_ < 0) {
-                                                         schedulable = false;
-                                                         return;
-                                                     }
-                                                     for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                                                         schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, schedule);
-                                                     }
-                                                 });
+            pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, lambda);
             if (!schedulable) {
                 return false;
             }

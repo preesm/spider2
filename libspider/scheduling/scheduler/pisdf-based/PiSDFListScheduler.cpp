@@ -42,6 +42,7 @@
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static function === */
 
@@ -64,7 +65,7 @@ void spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandl
     recursiveAddVertices(graphHandler);
     /* == Compute the schedule level == */
     for (auto &task : sortedTaskVector_) {
-        computeScheduleLevel(task);
+        computeScheduleLevel(sortedTaskVector_, task);
     }
     /* == Sort the vector == */
     sortVertices();
@@ -124,7 +125,7 @@ void spider::sched::PiSDFListScheduler::recursiveAddVertices(pisdf::GraphHandler
             const auto *graph = graphHandler->graph();
             const auto *handler = graphHandler->handler();
             const auto firing = firingHandler->firingValue();
-            recursiveSetNonSchedulable(graph, firing, handler);
+            recursiveSetNonSchedulable(sortedTaskVector_, handler, graph, firing);
         }
     }
 }
@@ -139,9 +140,10 @@ void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
     }
 }
 
-void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
-                                                                   u32 firing,
-                                                                   const pisdf::GraphFiring *handler) {
+void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(spider::vector<ListTask> &sortedTaskVector,
+                                                                   const pisdf::GraphFiring *handler,
+                                                                   const pisdf::Vertex *vertex,
+                                                                   u32 firing) {
     for (const auto *edge : vertex->outputEdges()) {
         const auto deps = handler->computeConsDependency(vertex, firing, edge->sourcePortIx());
         for (const auto &dep : deps) {
@@ -149,46 +151,49 @@ void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(const pisdf::
                 /* == Disable non-null edge == */
                 for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                     const auto ix = dep.handler_->getTaskIx(dep.vertex_, k);
-                    auto &sinkTask = sortedTaskVector_[ix];
+                    auto &sinkTask = sortedTaskVector[ix];
                     sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
-                    recursiveSetNonSchedulable(dep.vertex_, k, dep.handler_);
+                    recursiveSetNonSchedulable(sortedTaskVector, dep.handler_, dep.vertex_, k);
                 }
             }
         }
     }
 }
 
-i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(ListTask &listTask) {
+i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(spider::vector<ListTask> &sortedTaskVector,
+                                                            ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
     const auto *handler = listTask.handler_;
     const auto firing = listTask.firing_;
     if (listTask.level_ == NON_SCHEDULABLE_LEVEL) {
-        recursiveSetNonSchedulable(vertex, firing, handler);
+        recursiveSetNonSchedulable(sortedTaskVector, handler, vertex, firing);
     } else if (listTask.level_ < 0) {
         i32 level = 0;
-        for (const auto *edge : vertex->inputEdges()) {
-            auto deps = handler->computeExecDependency(vertex, firing, edge->sinkPortIx());
-            for (const auto &dep : deps) {
-                const auto *source = dep.vertex_;
-                if (source && dep.rate_ > 0) {
-                    const auto *sourceRTInfo = source->runtimeInformation();
-                    for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                        const auto minExecutionTime = computeMinExecTime(sourceRTInfo, dep.handler_->getParams());
-                        const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
-                        if (sourceTaskIx < sortedTaskVector_.size()) {
-                            auto &srcTask = sortedTaskVector_[sourceTaskIx];
-                            if (srcTask.vertex_ == source &&
-                                srcTask.handler_ == dep.handler_ &&
-                                srcTask.firing_ >= dep.firingStart_ && srcTask.firing_ <= dep.firingEnd_) {
-                                const auto sourceLevel = computeScheduleLevel(srcTask);
-                                if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
-                                    level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
-                                }
-                            }
+        const auto lambda = [&level, &sortedTaskVector](const pisdf::DependencyInfo &dep) {
+            const auto *source = dep.vertex_;
+            if (!source || dep.rate_ <= 0) {
+                return;
+            }
+            const auto *sourceRTInfo = source->runtimeInformation();
+            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                const auto minExecutionTime = computeMinExecTime(sourceRTInfo, dep.handler_->getParams());
+                const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
+                if (sourceTaskIx < sortedTaskVector.size()) {
+                    auto &srcTask = sortedTaskVector[sourceTaskIx];
+                    if (srcTask.vertex_ == source &&
+                        srcTask.handler_ == dep.handler_ &&
+                        srcTask.firing_ >= dep.firingStart_ && srcTask.firing_ <= dep.firingEnd_) {
+                        const auto sourceLevel = computeScheduleLevel(sortedTaskVector, srcTask);
+                        if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
+                            level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
                         }
                     }
                 }
             }
+        };
+        for (const auto *edge : vertex->inputEdges()) {
+            const auto snkRate = handler->getSnkRate(edge);
+            pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, lambda);
         }
         listTask.level_ = level;
     }
