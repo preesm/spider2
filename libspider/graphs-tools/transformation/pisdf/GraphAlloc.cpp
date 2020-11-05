@@ -39,17 +39,20 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
+#include <scheduling/task/PiSDFTask.h>
 
 /* === Function(s) definition === */
 
 spider::pisdf::GraphAlloc::GraphAlloc(const Graph *graph) {
     taskIxArray_ = spider::make_unique(make_n<u32 *, StackID::SCHEDULE>(graph->vertexCount(), nullptr));
+    tasksArray_ = spider::make_unique(make_n<sched::PiSDFTask *, StackID::SCHEDULE>(graph->vertexCount(), nullptr));
     edgeAllocArray_ = spider::make_unique(make_n<FifoAlloc *, StackID::SCHEDULE>(graph->edgeCount(), nullptr));
 }
 
 void spider::pisdf::GraphAlloc::clear(const Graph *graph) {
     for (const auto &vertex : graph->vertices()) {
         deallocate(taskIxArray_[vertex->ix()]);
+        destroy(tasksArray_[vertex->ix()]);
     }
     for (const auto &edge : graph->edges()) {
         deallocate(edgeAllocArray_[edge->ix()]);
@@ -63,8 +66,12 @@ void spider::pisdf::GraphAlloc::reset(const Graph *graph, const u32 *brv) {
 }
 
 void spider::pisdf::GraphAlloc::reset(const Vertex *vertex, u32 rv) {
+    if (vertex->hierarchical() || vertex->subtype() == VertexType::DELAY) {
+        return;
+    }
     const auto ix = vertex->ix();
     if (rv != UINT32_MAX) {
+        tasksArray_[ix]->reset();
         std::fill(taskIxArray_[ix], taskIxArray_[ix] + rv, UINT32_MAX);
         const auto isSpecial = vertex->subtype() == VertexType::FORK || vertex->subtype() == VertexType::DUPLICATE;
         const auto size = isSpecial ? rv : 1;
@@ -77,9 +84,15 @@ void spider::pisdf::GraphAlloc::reset(const Vertex *vertex, u32 rv) {
     }
 }
 
-void spider::pisdf::GraphAlloc::initialize(const Vertex *vertex, u32 rv) {
-    deallocate(taskIxArray_[vertex->ix()]);
-    taskIxArray_[vertex->ix()] = spider::make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX);
+void spider::pisdf::GraphAlloc::initialize(GraphFiring *handler, const Vertex *vertex, u32 rv) {
+    if (vertex->hierarchical() || vertex->subtype() == VertexType::DELAY) {
+        return;
+    }
+    const auto ix = vertex->ix();
+    destroy(tasksArray_[ix]);
+    tasksArray_[ix] = spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex);
+    deallocate(taskIxArray_[ix]);
+    taskIxArray_[ix] = spider::make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX);
     const auto isSpecial = vertex->subtype() == VertexType::FORK || vertex->subtype() == VertexType::DUPLICATE;
     const auto size = isSpecial ? rv : 1;
     for (const auto *edge : vertex->outputEdges()) {
@@ -98,6 +111,14 @@ size_t spider::pisdf::GraphAlloc::getEdgeAddress(const Edge *edge, u32 firing) c
 
 u32 spider::pisdf::GraphAlloc::getEdgeOffset(const Edge *edge, u32 firing) const {
     return edgeAllocArray_[edge->ix()][firing].offset_;
+}
+
+spider::sched::PiSDFTask *spider::pisdf::GraphAlloc::getTask(const Vertex *vertex) {
+    return tasksArray_[vertex->ix()];
+}
+
+const spider::sched::PiSDFTask *spider::pisdf::GraphAlloc::getTask(const Vertex *vertex) const {
+    return tasksArray_[vertex->ix()];
 }
 
 void spider::pisdf::GraphAlloc::setTaskIx(const Vertex *vertex, u32 firing, u32 taskIx) {

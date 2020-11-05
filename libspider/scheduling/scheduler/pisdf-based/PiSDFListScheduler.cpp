@@ -134,10 +134,12 @@ void spider::sched::PiSDFListScheduler::recursiveAddVertices(pisdf::GraphHandler
 void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
                                                        u32 firing,
                                                        pisdf::GraphFiring *handler) {
-    const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
-    if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
-        sortedTaskVector_.push_back({ vertex, handler, -1, firing });
-        handler->setTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
+    if (vertex->executable()) {
+        const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
+        if (vertexTaskIx == UINT32_MAX) {
+            sortedTaskVector_.push_back({ vertex, handler, -1, firing });
+            handler->setTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
+        }
     }
 }
 

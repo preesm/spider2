@@ -77,9 +77,9 @@ namespace spider {
              */
             void setOnFiring(u32 firing) final;
 
-            spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
+            void reset();
 
-            spider::vector<pisdf::DependencyIterator> computeConsDependencies() const;
+            spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
 
             /* === Getter(s) === */
 

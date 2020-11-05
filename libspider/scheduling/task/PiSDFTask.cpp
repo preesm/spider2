@@ -72,10 +72,6 @@ spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::comp
     return pisdf::computeExecDependencies(handler_, vertex(), currentFiring_);
 }
 
-spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeConsDependencies() const {
-    return pisdf::computeConsDependencies(handler_, vertex(), currentFiring_);
-}
-
 bool spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
     const auto *vertex = this->vertex();
     if (vertex->subtype() != pisdf::VertexType::CONFIG) {
@@ -100,6 +96,17 @@ void spider::sched::PiSDFTask::setOnFiring(u32 firing) {
     }
 #endif
     currentFiring_ = firing;
+}
+
+void spider::sched::PiSDFTask::reset() {
+    const auto rv = handler_->getRV(vertex());
+    const auto lrtCount = archi::platform()->LRTCount();
+    std::fill(endTimeArray_.get(), endTimeArray_.get() + rv, u64{ 0 });
+    std::fill(syncExecTaskIxArray_.get(), syncExecTaskIxArray_.get() + rv * lrtCount, UINT32_MAX);
+    std::fill(jobExecIxArray_.get(), jobExecIxArray_.get() + rv, UINT32_MAX);
+    std::fill(mappedPEIxArray_.get(), mappedPEIxArray_.get() + rv, UINT32_MAX);
+    std::fill(stateArray_.get(), stateArray_.get() + rv, TaskState::NOT_SCHEDULABLE);
+    currentFiring_ = 0;
 }
 
 u32 spider::sched::PiSDFTask::color() const {

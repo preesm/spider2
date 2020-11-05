@@ -46,6 +46,10 @@
 
 namespace spider {
 
+    namespace sched {
+        class PiSDFTask;
+    }
+
     namespace pisdf {
 
         class Graph;
@@ -180,6 +184,8 @@ namespace spider {
             size_t getEdgeAddress(const Edge *edge, u32 firing) const;
 
             u32 getEdgeOffset(const Edge *edge, u32 firing) const;
+
+            sched::PiSDFTask *getTask(const Vertex *vertex) const;
 
             /* === Setter(s) === */
 

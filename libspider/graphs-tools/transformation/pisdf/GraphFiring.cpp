@@ -221,6 +221,15 @@ u32 spider::pisdf::GraphFiring::getEdgeOffset(const Edge *edge, u32 firing) cons
     return alloc_->getEdgeOffset(edge, firing);
 }
 
+spider::sched::PiSDFTask *spider::pisdf::GraphFiring::getTask(const Vertex *vertex) const {
+#ifndef NDEBUG
+    if (vertex->graph() != parent_->graph()) {
+        throwSpiderException("vertex do not belong to this graph.");
+    }
+#endif
+    return alloc_->getTask(vertex);
+}
+
 void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
     paramResolvedCount_++;
@@ -291,11 +300,12 @@ void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 r
     const auto ix = vertex->ix();
     if (brvArray_[ix] != rv) {
         brvArray_[ix] = rv;
-        alloc_->initialize(vertex, rv);
+        alloc_->initialize(this, vertex, rv);
         if (parent_->isStatic()) {
             const auto parentRV = parent_->repetitionCount();
             for (u32 k = 1; k < parentRV; ++k) {
-                parent_->firing(k)->alloc_->initialize(vertex, rv);
+                auto *graphFiring = parent_->firing(k);
+                graphFiring->alloc_->initialize(graphFiring, vertex, rv);
             }
         }
     } else {
@@ -304,7 +314,8 @@ void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 r
         if (parent_->isStatic()) {
             const auto parentRV = parent_->repetitionCount();
             for (u32 k = 1; k < parentRV; ++k) {
-                parent_->firing(k)->alloc_->reset(vertex, rv);
+                auto *graphFiring = parent_->firing(k);
+                graphFiring->alloc_->reset(vertex, rv);
             }
         }
     }

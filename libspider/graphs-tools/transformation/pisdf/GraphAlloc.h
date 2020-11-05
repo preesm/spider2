@@ -43,6 +43,10 @@
 
 namespace spider {
 
+    namespace sched {
+        class PiSDFTask;
+    }
+
     namespace pisdf {
 
         class Edge;
@@ -51,11 +55,13 @@ namespace spider {
 
         class Graph;
 
+        class GraphFiring;
+
         /* === Class definition === */
 
         class GraphAlloc {
         public:
-            GraphAlloc(const Graph *graph);
+            explicit GraphAlloc(const Graph *graph);
 
             ~GraphAlloc() = default;
 
@@ -67,7 +73,7 @@ namespace spider {
 
             void reset(const Vertex *vertex, u32 rv);
 
-            void initialize(const Vertex *vertex, u32 rv);
+            void initialize(GraphFiring *handler, const Vertex *vertex, u32 rv);
 
             /* === Getter(s) === */
 
@@ -97,6 +103,20 @@ namespace spider {
              */
             u32 getEdgeOffset(const Edge *edge, u32 firing) const;
 
+            /**
+             * @brief Get the schedule task associated with this vertex.
+             * @param vertex  Pointer to the vertex.
+             * @return pointer to the schedule task.
+             */
+            sched::PiSDFTask *getTask(const Vertex *vertex);
+
+            /**
+             * @brief Get the schedule task associated with this vertex.
+             * @param vertex  Pointer to the vertex.
+             * @return pointer to the schedule task.
+             */
+            const sched::PiSDFTask *getTask(const Vertex *vertex) const;
+
             /* === Setter(s) === */
 
             /**
@@ -124,8 +144,9 @@ namespace spider {
             void setEdgeOffset(u32 value, const Edge *edge, u32 firing);
 
         private:
-            spider::unique_ptr<FifoAlloc *> edgeAllocArray_; /* == Array of allocated information for every edges == */
-            spider::unique_ptr<u32 *> taskIxArray_;          /* == Array of schedule task ix == */
+            spider::unique_ptr<FifoAlloc *> edgeAllocArray_;    /* == Array of allocated information for every edges == */
+            spider::unique_ptr<u32 *> taskIxArray_;             /* == Array of schedule task ix == */
+            spider::unique_ptr<sched::PiSDFTask *> tasksArray_; /* == Array of schedule tasks == */
         };
     }
 }

@@ -81,11 +81,9 @@ namespace spider {
 
             inline array_handle<GraphFiring *> firings() const { return make_handle(firings_.get(), repetitionCount_); }
 
-            inline const GraphFiring *firing(size_t ix) const { return firings_[ix]; }
+            inline GraphFiring *firing(size_t ix) const { return firings_[ix]; }
 
             inline array_handle<GraphFiring *> firings() { return make_handle(firings_.get(), repetitionCount_); }
-
-            inline GraphFiring *firing(size_t ix) { return firings_[ix]; }
 
             inline const GraphFiring *base() const { return handler_; }
 

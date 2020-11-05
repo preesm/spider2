@@ -42,7 +42,7 @@
 /* === Method(s) implementation === */
 
 spider::sched::Schedule::~Schedule() {
-    clearTasks();
+    tasks_.clear();
 }
 
 void spider::sched::Schedule::reserve(size_t size) {
@@ -51,7 +51,7 @@ void spider::sched::Schedule::reserve(size_t size) {
 
 void spider::sched::Schedule::clear() {
     stats_.reset();
-    clearTasks();
+    tasks_.clear();
 }
 
 void spider::sched::Schedule::reset() {
@@ -79,22 +79,4 @@ void spider::sched::Schedule::updateTaskAndSetReady(Task *task, const PE *slave,
     stats_.updateJobCount(peIx);
     /* == Update job state == */
     task->setState(TaskState::READY);
-}
-
-/* === Private method(s) === */
-
-void spider::sched::Schedule::clearTasks() {
-    size_t i = 0;
-    for (auto &task : tasks_) {
-        if (task.first) {
-            for (auto j = i + 1; j < tasks_.size(); ++j) {
-                if (tasks_[j].first == task.first) {
-                    tasks_[j].first = nullptr;
-                }
-            }
-            destroy(task.first);
-        }
-        i++;
-    }
-    tasks_.clear();
 }

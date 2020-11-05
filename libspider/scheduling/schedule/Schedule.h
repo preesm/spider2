@@ -175,10 +175,6 @@ namespace spider {
         private:
             spider::vector<ComposedTask> tasks_;
             Stats stats_;
-
-            /* === Private method(s) === */
-
-            void clearTasks();
         };
     }
 }
