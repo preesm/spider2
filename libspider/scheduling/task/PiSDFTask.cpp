@@ -41,7 +41,7 @@
 #include <graphs/pisdf/Graph.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
-#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
+
 #include <archi/Platform.h>
 #include <api/archi-api.h>
 
@@ -161,7 +161,7 @@ u32 spider::sched::PiSDFTask::jobExecIx() const noexcept {
 }
 
 u32 spider::sched::PiSDFTask::ix() const noexcept {
-    return handler_->getAlloc()->getTaskIx(vertex(), currentFiring_);
+    return handler_->getTaskIx(vertex(), currentFiring_);
 }
 
 u32 spider::sched::PiSDFTask::syncExecIxOnLRT(size_t lrtIx) const {
@@ -193,7 +193,7 @@ void spider::sched::PiSDFTask::setJobExecIx(u32 ix) noexcept {
 }
 
 void spider::sched::PiSDFTask::setIx(u32 ix) noexcept {
-    handler_->getAlloc()->setTaskIx(vertex(), currentFiring_, ix);
+    handler_->setTaskIx(vertex(), currentFiring_, ix);
 }
 
 void spider::sched::PiSDFTask::setSyncExecIxOnLRT(size_t lrtIx, u32 value) {

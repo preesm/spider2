@@ -201,6 +201,26 @@ spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) {
     return parent_->graph()->vertex(ix);
 }
 
+u32 spider::pisdf::GraphFiring::getTaskIx(const Vertex *vertex, u32 firing) const {
+    return alloc_->getTaskIx(vertex, firing);
+}
+
+size_t spider::pisdf::GraphFiring::getEdgeAddress(const Edge *edge, u32 firing) const {
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        return alloc_->getEdgeAddress(edge, 0) + static_cast<size_t>(getSrcRate(edge) * firing);
+    }
+    return alloc_->getEdgeAddress(edge, firing);
+}
+
+u32 spider::pisdf::GraphFiring::getEdgeOffset(const Edge *edge, u32 firing) const {
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        return alloc_->getEdgeOffset(edge, 0);
+    }
+    return alloc_->getEdgeOffset(edge, firing);
+}
+
 void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
     paramResolvedCount_++;
@@ -209,6 +229,30 @@ void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
         for (auto *subHandler : subgraphHandlers()) {
             subHandler->resolveFirings();
         }
+    }
+}
+
+void spider::pisdf::GraphFiring::setTaskIx(const Vertex *vertex, u32 firing, u32 taskIx) {
+    alloc_->setTaskIx(vertex, firing, taskIx);
+}
+
+void spider::pisdf::GraphFiring::setEdgeAddress(size_t value, const Edge *edge, u32 firing) {
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        if (alloc_->getEdgeAddress(edge, 0) == SIZE_MAX) {
+            alloc_->setEdgeAddress(value, edge, 0);
+        }
+    } else {
+        alloc_->setEdgeAddress(value, edge, firing);
+    }
+}
+
+void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const Edge *edge, u32 firing) {
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        alloc_->setEdgeOffset(value, edge, 0);
+    } else {
+        alloc_->setEdgeOffset(value, edge, firing);
     }
 }
 
@@ -268,11 +312,11 @@ void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 r
 
 void spider::pisdf::GraphFiring::createOrUpdateSubgraphHandlers() {
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        const auto rvValue = getRV(subgraph);
+        const auto rv = getRV(subgraph);
         auto &currentGraphHandler = subgraphHandlers_[subgraph->subIx()];
-        if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
+        if (!currentGraphHandler || (rv != currentGraphHandler->repetitionCount())) {
             destroy(currentGraphHandler);
-            currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
+            currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rv, this);
         } else {
             /* == Resolve every child == */
             currentGraphHandler->resolveFirings();

@@ -58,33 +58,33 @@ void spider::pisdf::GraphAlloc::clear(const Graph *graph) {
 
 void spider::pisdf::GraphAlloc::reset(const Graph *graph, const u32 *brv) {
     for (const auto &vertex : graph->vertices()) {
-        const auto ix = vertex->ix();
-        const auto rv = brv[ix];
-        if (rv != UINT32_MAX) {
-            std::fill(taskIxArray_[ix], taskIxArray_[ix] + rv, UINT32_MAX);
-            for (const auto *edge : vertex->outputEdges()) {
-                for (u32 k = 0; k < rv; ++k) {
-                    setEdgeAddress(SIZE_MAX, edge, k);
-                    setEdgeOffset(0, edge, k);
-                }
-            }
-        }
+        reset(vertex.get(), brv[vertex->ix()]);
     }
 }
 
 void spider::pisdf::GraphAlloc::reset(const Vertex *vertex, u32 rv) {
     const auto ix = vertex->ix();
-    if (taskIxArray_[ix]) {
+    if (rv != UINT32_MAX) {
         std::fill(taskIxArray_[ix], taskIxArray_[ix] + rv, UINT32_MAX);
+        const auto isSpecial = vertex->subtype() == VertexType::FORK || vertex->subtype() == VertexType::DUPLICATE;
+        const auto size = isSpecial ? rv : 1;
+        for (const auto *edge : vertex->outputEdges()) {
+            for (u32 k = 0; k < size; ++k) {
+                setEdgeAddress(SIZE_MAX, edge, k);
+                setEdgeOffset(0, edge, k);
+            }
+        }
     }
 }
 
 void spider::pisdf::GraphAlloc::initialize(const Vertex *vertex, u32 rv) {
     deallocate(taskIxArray_[vertex->ix()]);
     taskIxArray_[vertex->ix()] = spider::make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX);
+    const auto isSpecial = vertex->subtype() == VertexType::FORK || vertex->subtype() == VertexType::DUPLICATE;
+    const auto size = isSpecial ? rv : 1;
     for (const auto *edge : vertex->outputEdges()) {
         deallocate(edgeAllocArray_[edge->ix()]);
-        edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::SCHEDULE>(rv, { SIZE_MAX, 0 });
+        edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::SCHEDULE>(size, { SIZE_MAX, 0 });
     }
 }
 

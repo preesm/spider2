@@ -175,7 +175,11 @@ namespace spider {
              */
             Vertex *vertex(size_t ix);
 
-            inline GraphAlloc *getAlloc() const { return alloc_.get(); }
+            u32 getTaskIx(const Vertex *vertex, u32 firing) const;
+
+            size_t getEdgeAddress(const Edge *edge, u32 firing) const;
+
+            u32 getEdgeOffset(const Edge *edge, u32 firing) const;
 
             /* === Setter(s) === */
 
@@ -185,6 +189,12 @@ namespace spider {
              * @param value Value of the parameter to be set.
              */
             void setParamValue(size_t ix, int64_t value);
+
+            void setTaskIx(const Vertex *vertex, u32 firing, u32 taskIx);
+
+            void setEdgeAddress(size_t value, const Edge *edge, u32 firing);
+
+            void setEdgeOffset(u32 value, const Edge *edge, u32 firing);
 
         private:
             struct EdgeRate {

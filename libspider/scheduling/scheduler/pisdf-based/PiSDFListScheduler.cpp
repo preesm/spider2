@@ -41,7 +41,7 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
-#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
+
 #include <graphs-tools/numerical/dependencies.h>
 #include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
@@ -78,7 +78,7 @@ void spider::sched::PiSDFListScheduler::schedule(pisdf::GraphHandler *graphHandl
     schedule->reserve(lastSchedulable);
     for (size_t k = 0; k < lastSchedulable; ++k) {
         auto &task = sortedTaskVector_[k];
-        task.handler_->getAlloc()->setTaskIx(task.vertex_, task.firing_, UINT32_MAX);
+        task.handler_->setTaskIx(task.vertex_, task.firing_, UINT32_MAX);
     }
     for (size_t k = 0; k < lastSchedulable; ++k) {
         auto &task = sortedTaskVector_[k];
@@ -104,7 +104,7 @@ void spider::sched::PiSDFListScheduler::clear() {
 void spider::sched::PiSDFListScheduler::resetUnScheduledTasks() {
     for (size_t k = 0; k < sortedTaskVector_.size(); ++k) {
         auto &listTask = sortedTaskVector_[k];
-        listTask.handler_->getAlloc()->setTaskIx(listTask.vertex_, listTask.firing_, static_cast<u32>(k));
+        listTask.handler_->setTaskIx(listTask.vertex_, listTask.firing_, static_cast<u32>(k));
     }
 }
 
@@ -134,10 +134,10 @@ void spider::sched::PiSDFListScheduler::recursiveAddVertices(pisdf::GraphHandler
 void spider::sched::PiSDFListScheduler::createListTask(pisdf::Vertex *vertex,
                                                        u32 firing,
                                                        pisdf::GraphFiring *handler) {
-    const auto vertexTaskIx = handler->getAlloc()->getTaskIx(vertex, firing);
+    const auto vertexTaskIx = handler->getTaskIx(vertex, firing);
     if (vertexTaskIx == UINT32_MAX && vertex->executable()) {
         sortedTaskVector_.push_back({ vertex, handler, -1, firing });
-        handler->getAlloc()->setTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
+        handler->setTaskIx(vertex, firing, static_cast<u32>(sortedTaskVector_.size() - 1));
     }
 }
 
@@ -149,7 +149,7 @@ void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(spider::vecto
         if (dep.vertex_ && dep.rate_ > 0) {
             /* == Disable non-null edge == */
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                auto &sinkTask = sortedTaskVector[dep.handler_->getAlloc()->getTaskIx(dep.vertex_, k)];
+                auto &sinkTask = sortedTaskVector[dep.handler_->getTaskIx(dep.vertex_, k)];
                 sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
                 recursiveSetNonSchedulable(sortedTaskVector, dep.handler_, dep.vertex_, k);
             }
@@ -178,7 +178,7 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(spider::vector<ListT
             const auto *sourceRTInfo = source->runtimeInformation();
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
                 const auto minExecutionTime = computeMinExecTime(sourceRTInfo, dep.handler_->getParams());
-                const auto sourceTaskIx = dep.handler_->getAlloc()->getTaskIx(source, k);
+                const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
                 if (sourceTaskIx < sortedTaskVector.size()) {
                     auto &srcTask = sortedTaskVector[sourceTaskIx];
                     if (srcTask.vertex_ == source &&
@@ -249,7 +249,7 @@ size_t spider::sched::PiSDFListScheduler::countNonSchedulableTasks() {
     size_t count{ };
     for (; (it->level_ == NON_SCHEDULABLE_LEVEL) && (it != sortedTaskVector_.rend()); ++it) {
         count++;
-        it->handler_->getAlloc()->setTaskIx(it->vertex_, it->firing_, UINT32_MAX);
+        it->handler_->setTaskIx(it->vertex_, it->firing_, UINT32_MAX);
         it->level_ = -1; /* = Reset the schedule level = */
     }
     return count;
