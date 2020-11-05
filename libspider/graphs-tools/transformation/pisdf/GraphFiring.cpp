@@ -107,6 +107,7 @@ void spider::pisdf::GraphFiring::resolveBRV() {
         const auto parentRV = parent_->repetitionCount();
         for (u32 k = 1; k < parentRV; ++k) {
             auto *graphFiring = const_cast<GraphFiring *>(parent_->firing(k));
+            graphFiring->resolveDynamicDependentParams();
             graphFiring->createOrUpdateSubgraphHandlers();
             graphFiring->resolved_ = true;
         }

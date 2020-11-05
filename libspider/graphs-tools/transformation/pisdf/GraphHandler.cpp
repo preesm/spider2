@@ -51,19 +51,16 @@ spider::pisdf::GraphHandler::GraphHandler(const spider::pisdf::Graph *graph,
         handler_{ handler },
         graph_{ graph },
         repetitionCount_{ repetitionCount } {
-    static_ = true;
     firings_ = spider::make_unique(spider::make_n<GraphFiring *, StackID::TRANSFO>(repetitionCount, nullptr));
-    for (const auto &param : graph->params()) {
-        if (param->dynamic()) {
-            static_ &= graph->configVertexCount() > 0;
-            break;
-        }
+    static_ = true;
+    const auto *upperGraph = graph_->graph();
+    if (upperGraph && upperGraph->configVertexCount()) {
+        static_ = false;
     }
     for (u32 k = 0; k < repetitionCount; ++k) {
         firings_[k] = spider::make<GraphFiring>(this, params, k);
     }
-    const auto *upperGraph = graph_->graph();
-    if (static_ || (upperGraph && !upperGraph->configVertexCount())) {
+    if (static_) {
         resolveFirings();
     }
 }
@@ -83,10 +80,7 @@ void spider::pisdf::GraphHandler::clear() {
 }
 
 void spider::pisdf::GraphHandler::resolveFirings() {
-    if (!repetitionCount_) {
-        return;
-    }
-    if (static_ && !graph_->configVertexCount()) {
+    if (repetitionCount_ && static_) {
         firings_[0u]->resolveBRV();
     } else {
         for (u32 k = 0; k < repetitionCount_; ++k) {
