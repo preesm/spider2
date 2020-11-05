@@ -73,7 +73,7 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
-            virtual void map(sched::Task *task, Schedule *schedule) = 0;
+            void map(sched::Task *task, Schedule *schedule);
 
             /**
              * @brief Map a vertexTask onto available resources.
@@ -81,7 +81,7 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
-            virtual void map(sched::PiSDFTask *task, Schedule *schedule) = 0;
+            void map(sched::PiSDFTask *task, Schedule *schedule);
 
             /* === Getter(s) === */
 
@@ -99,10 +99,6 @@ namespace spider {
                 bool needToAddCommunication{ false };
             };
 
-            ufast64 startTime_{ 0U };
-
-            /* === Protected method(s) === */
-
             /**
              * @brief Find which PE is the best fit inside a given cluster.
              * @param cluster       Cluster to go through.
@@ -113,6 +109,15 @@ namespace spider {
              */
             virtual const PE *
             findPE(const Cluster *cluster, const Stats &stats, const Task *task, ufast64 minStartTime) const = 0;
+
+        private:
+
+            ufast64 startTime_{ 0U };
+
+            /* === Private method(s) === */
+
+            template<class ...Args>
+            void mapImpl(Task *task, Schedule *schedule, Args &&... args);
 
             /**
              * @brief Compute the minimum start time possible for a given task.

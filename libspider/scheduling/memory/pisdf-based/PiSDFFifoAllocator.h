@@ -116,8 +116,6 @@ namespace spider {
 
             Fifo buildOutputFifo(const pisdf::Edge *edge, const PiSDFTask *task);
 
-            static i32 getFifoCount(const pisdf::DependencyIterator &depIt);
-
         };
     }
 }

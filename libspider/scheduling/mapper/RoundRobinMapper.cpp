@@ -35,13 +35,9 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/RoundRobinMapper.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
-#include <graphs/pisdf/Vertex.h>
-#include <graphs-tools/numerical/detail/dependenciesImpl.h>
-#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 
 /* === Static function === */
 
@@ -51,141 +47,7 @@ spider::sched::RoundRobinMapper::RoundRobinMapper() : Mapper() {
     currentPeIx_ = spider::make_unique(make_n<size_t, StackID::SCHEDULE>(archi::platform()->clusterCount(), 0));
 }
 
-void spider::sched::RoundRobinMapper::map(Task *task, Schedule *schedule) {
-    if (!task) {
-        throwSpiderException("can not map nullptr task.");
-    }
-    if (task->state() == TaskState::SKIPPED) {
-        return;
-    }
-    task->setState(TaskState::PENDING);
-    /* == Map standard task == */
-    mapImpl(task, schedule);
-}
-
-void spider::sched::RoundRobinMapper::map(PiSDFTask *task, Schedule *schedule) {
-    if (!task) {
-        throwSpiderException("can not map nullptr task.");
-    }
-    if (task->state() == TaskState::SKIPPED) {
-        return;
-    }
-    task->setState(TaskState::PENDING);
-    /* == Map pisdf task with dependencies == */
-    mapImpl(task, schedule, task->computeExecDependencies());
-    /* == Compute the minimum start time possible for the task == */
-//    const auto *vertex = task->vertex();
-//    const auto *handler = task->handler();
-//    const auto firing = task->firing();
-//    auto prevTasks = factory::vector<std::pair<u32, u32>>(StackID::SCHEDULE);
-//    for (const auto *edge : vertex->inputEdges()) {
-//        const auto snkRate = handler->getSnkRate(edge);
-//        pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler,
-//                                             [&prevTasks, schedule](const pisdf::DependencyInfo &dep) {
-//                                                 if (!dep.vertex_) {
-//                                                     return;
-//                                                 }
-//                                                 for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-//                                                     const auto taskIx = dep.handler_->getTaskIx(dep.vertex_, k);
-//                                                     auto *srcTask = schedule->task(taskIx);
-//                                                     if (srcTask) {
-//                                                         const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
-//                                                         const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
-//                                                         const auto rate = (dep.rate_ > 0) * (memoryEnd - memoryStart + 1);
-//                                                         prevTasks.emplace_back(taskIx, rate);
-//                                                     }
-//                                                 }
-//                                             });
-//    }
-//    auto minStartTime = Mapper::startTime_;
-//    for (auto &src : prevTasks) {
-//        auto *srcTask = schedule->task(src.first);
-//        task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
-//        minStartTime = std::max(minStartTime, srcTask->endTime());
-//    }
-//    /* == Build the data dependency vector in order to compute receive cost == */
-//    const auto *platform = archi::platform();
-//    /* == Search for a slave to map the task on */
-//    const auto &scheduleStats = schedule->stats();
-//    MappingResult mappingResult{ };
-//    for (const auto *cluster : platform->clusters()) {
-//        /* == Find best fit PE for this cluster == */
-//        const auto *foundPE = findPE(cluster, scheduleStats, task, minStartTime);
-//        if (foundPE) {
-//            ufast64 externDataToReceive = 0u;
-//            ufast64 communicationCost = 0;
-//            for (auto &src : prevTasks) {
-//                auto *srcTask = schedule->task(src.first);
-//                const auto rate = src.second;
-//                if (rate && srcTask->state() != TaskState::NOT_RUNNABLE) {
-//                    const auto *mappedPESource = srcTask->mappedPe();
-//                    communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, foundPE, rate);
-//                    if (foundPE->cluster() != mappedPESource->cluster()) {
-//                        externDataToReceive += rate;
-//                    }
-//                }
-//            }
-//            currentPeIx_[cluster->ix()] = (currentPeIx_[cluster->ix()] + 1u) % cluster->PECount();
-//            mappingResult.needToAddCommunication |= (externDataToReceive != 0);
-//            /* == Check if it is better than previous cluster PE == */
-//            const auto startTime{ std::max(scheduleStats.endTime(foundPE->virtualIx()), minStartTime) };
-//            const auto endTime{ startTime + task->timingOnPE(foundPE) };
-//            const auto scheduleCost{ math::saturateAdd(endTime, communicationCost) };
-//            if (scheduleCost < mappingResult.scheduleCost) {
-//                mappingResult.mappingPE = foundPE;
-//                mappingResult.startTime = startTime;
-//                mappingResult.endTime = endTime;
-//                mappingResult.scheduleCost = scheduleCost;
-//            }
-//            break;
-//        }
-//    }
-//    schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
-}
-
 /* === Private method(s) implementation === */
-
-template<class... Args>
-void spider::sched::RoundRobinMapper::mapImpl(Task *task, Schedule *schedule, Args &&... args) {
-    /* == Compute the minimum start time possible for the task == */
-    const auto minStartTime = Mapper::computeStartTime(task, schedule, std::forward<Args>(args)...);
-    /* == Build the data dependency vector in order to compute receive cost == */
-    const auto *platform = archi::platform();
-    /* == Search for a slave to map the task on */
-    const auto &scheduleStats = schedule->stats();
-    MappingResult mappingResult{ };
-    for (const auto *cluster : platform->clusters()) {
-        /* == Find best fit PE for this cluster == */
-        const auto *foundPE = findPE(cluster, scheduleStats, task, minStartTime);
-        if (foundPE) {
-            currentPeIx_[cluster->ix()] = (currentPeIx_[cluster->ix()] + 1u) % cluster->PECount();
-            const auto result = Mapper::computeCommunicationCost(task, foundPE, schedule, std::forward<Args>(args)...);
-            const auto communicationCost = result.first;
-            const auto externDataToReceive = result.second;
-            mappingResult.needToAddCommunication |= (externDataToReceive != 0);
-            /* == Check if it is better than previous cluster PE == */
-            const auto startTime{ std::max(scheduleStats.endTime(foundPE->virtualIx()), minStartTime) };
-            const auto endTime{ startTime + task->timingOnPE(foundPE) };
-            const auto scheduleCost{ math::saturateAdd(endTime, communicationCost) };
-            if (scheduleCost < mappingResult.scheduleCost) {
-                mappingResult.mappingPE = foundPE;
-                mappingResult.startTime = startTime;
-                mappingResult.endTime = endTime;
-                mappingResult.scheduleCost = scheduleCost;
-            }
-            break;
-        }
-    }
-    /* == Throw if no possible mapping was found == */
-    if (!mappingResult.mappingPE) {
-        throwSpiderException("Could not find suitable processing element for vertex: [%s]", task->name().c_str());
-    }
-    if (mappingResult.needToAddCommunication) {
-        /* == Map communications == */
-        Mapper::mapCommunications(mappingResult, task, schedule, std::forward<Args>(args)...);
-    }
-    schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
-}
 
 const spider::PE *spider::sched::RoundRobinMapper::findPE(const Cluster *cluster,
                                                           const Stats &,
@@ -202,5 +64,6 @@ const spider::PE *spider::sched::RoundRobinMapper::findPE(const Cluster *cluster
     if (!pe->enabled() || !task->isMappableOnPE(pe)) {
         return nullptr;
     }
+    currentPeIx_[cluster->ix()] = (currentPeIx_[cluster->ix()] + 1u) % cluster->PECount();
     return pe;
 }

@@ -39,7 +39,8 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Graph.h>
-#include <scheduling/task/PiSDFTask.h>
+#include <scheduling/task/VectPiSDFTask.h>
+#include <scheduling/task/UniPiSDFTask.h>
 
 /* === Function(s) definition === */
 
@@ -90,7 +91,11 @@ void spider::pisdf::GraphAlloc::initialize(GraphFiring *handler, const Vertex *v
     }
     const auto ix = vertex->ix();
     destroy(tasksArray_[ix]);
-    tasksArray_[ix] = spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex);
+    if (rv > 1) {
+        tasksArray_[ix] = spider::make<sched::VectPiSDFTask, StackID::SCHEDULE>(handler, vertex);
+    } else {
+        tasksArray_[ix] = spider::make<sched::UniPiSDFTask, StackID::SCHEDULE>(handler, vertex);
+    }
     deallocate(taskIxArray_[ix]);
     taskIxArray_[ix] = spider::make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX);
     const auto isSpecial = vertex->subtype() == VertexType::FORK || vertex->subtype() == VertexType::DUPLICATE;
