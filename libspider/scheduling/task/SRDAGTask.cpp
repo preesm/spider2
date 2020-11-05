@@ -56,7 +56,7 @@ spider::sched::SRDAGTask::SRDAGTask(srdag::Vertex *vertex) : Task(), vertex_{ ve
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    syncExecTaskIxArray_ = make_unique(make_n<u32, StackID::SCHEDULE>(archi::platform()->LRTCount(), UINT32_MAX));
+    syncInfoArray_ = make_unique(make_n<SyncInfo, StackID::SCHEDULE>(archi::platform()->LRTCount(), { UINT32_MAX, 0 }));
 }
 
 void spider::sched::SRDAGTask::visit(TaskLauncher *launcher) {
@@ -143,7 +143,8 @@ const spider::PE *spider::sched::SRDAGTask::mappedLRT() const {
 
 void spider::sched::SRDAGTask::setMappedPE(const spider::PE *pe) {
     mappedPEIx_ = static_cast<u32>(pe->virtualIx());
-    syncExecTaskIxArray_[pe->attachedLRT()->virtualIx()] = UINT32_MAX;
+    syncInfoArray_[pe->attachedLRT()->virtualIx()].jobExecIx = UINT32_MAX;
+    syncInfoArray_[pe->attachedLRT()->virtualIx()].rate = 0;
 }
 
 #endif

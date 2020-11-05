@@ -53,7 +53,7 @@ spider::sched::VectPiSDFTask::VectPiSDFTask(pisdf::GraphFiring *handler, const p
         PiSDFTask(handler, vertex) {
     const auto lrtCount = archi::platform()->LRTCount();
     const auto rv = handler->getRV(vertex);
-    syncExecTaskIxArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(lrtCount * rv, UINT32_MAX));
+    syncInfoArray_ = spider::make_unique(make_n<SyncInfo, StackID::SCHEDULE>(lrtCount * rv, SyncInfo{ UINT32_MAX, 0 }));
     endTimeArray_ = spider::make_unique(make_n<u64, StackID::SCHEDULE>(rv, 0));
     mappedPEIxArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX));
     jobExecIxArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(rv, UINT32_MAX));
@@ -64,14 +64,10 @@ void spider::sched::VectPiSDFTask::reset() {
     const auto rv = handler()->getRV(vertex());
     const auto lrtCount = archi::platform()->LRTCount();
     std::fill(endTimeArray_.get(), endTimeArray_.get() + rv, u64{ 0 });
-    std::fill(syncExecTaskIxArray_.get(), syncExecTaskIxArray_.get() + rv * lrtCount, UINT32_MAX);
+    std::fill(syncInfoArray_.get(), syncInfoArray_.get() + rv * lrtCount, SyncInfo{ UINT32_MAX, 0 });
     std::fill(jobExecIxArray_.get(), jobExecIxArray_.get() + rv, UINT32_MAX);
     std::fill(mappedPEIxArray_.get(), mappedPEIxArray_.get() + rv, UINT32_MAX);
     std::fill(stateArray_.get(), stateArray_.get() + rv, TaskState::NOT_SCHEDULABLE);
-}
-
-u64 spider::sched::VectPiSDFTask::startTime() const {
-    return endTimeArray_[firing()] - timingOnPE(mappedPe());
 }
 
 u64 spider::sched::VectPiSDFTask::endTime() const {
@@ -91,7 +87,11 @@ u32 spider::sched::VectPiSDFTask::jobExecIx() const noexcept {
 }
 
 u32 spider::sched::VectPiSDFTask::syncExecIxOnLRT(size_t lrtIx) const {
-    return syncExecTaskIxArray_[lrtIx + firing() * archi::platform()->LRTCount()];
+    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].jobExecIx;
+}
+
+u32 spider::sched::VectPiSDFTask::syncRateOnLRT(size_t lrtIx) const {
+    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].rate;
 }
 
 void spider::sched::VectPiSDFTask::setEndTime(u64 time) {
@@ -112,8 +112,14 @@ void spider::sched::VectPiSDFTask::setJobExecIx(u32 ix) noexcept {
 
 void spider::sched::VectPiSDFTask::setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
     const auto offsetLRTIx = lrtIx + firing() * archi::platform()->LRTCount();
-    if (syncExecTaskIxArray_[offsetLRTIx] == UINT32_MAX || value > syncExecTaskIxArray_[offsetLRTIx]) {
-        syncExecTaskIxArray_[offsetLRTIx] = value;
+    const auto currentJob = syncInfoArray_[offsetLRTIx].jobExecIx;
+    if (currentJob == UINT32_MAX || value > currentJob) {
+        syncInfoArray_[offsetLRTIx].jobExecIx = value;
     }
+}
+
+void spider::sched::VectPiSDFTask::setSyncRateOnLRT(size_t lrtIx, u32 value) {
+    const auto offsetLRTIx = lrtIx + firing() * archi::platform()->LRTCount();
+    syncInfoArray_[offsetLRTIx].rate = value;
 }
 

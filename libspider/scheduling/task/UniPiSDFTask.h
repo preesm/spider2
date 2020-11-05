@@ -67,89 +67,41 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            /**
-             * @brief Get the start time of the given firing.
-             * @param firing  Firing value.
-             * @return mapping start time of the vertexTask, UINT64_MAX else
-             */
-            u64 startTime() const final;
+            inline u64 endTime() const final { return endTime_; }
 
-            /**
-             * @brief Get the end time of the given firing.
-             * @param firing  Firing value.
-             * @return mapping end time of the vertexTask, UINT64_MAX else
-             */
-            u64 endTime() const final;
-
-            /**
-             * @brief Returns the PE on which the given firing is mapped.
-             * @param firing  Firing value.
-             * @return pointer to the PE onto which the vertexTask is mapped, nullptr else
-             */
             const PE *mappedPe() const final;
 
-            /**
-             * @brief Returns the state of the given firing.
-             * @param firing  Firing value.
-             * @return @refitem TaskState of the vertexTask
-             */
-            TaskState state() const noexcept final;
+            inline u32 jobExecIx() const noexcept final { return jobExecIx_; }
 
-            /**
-             * @brief Returns the executable job index value of the vertexTask in the job queue of the mapped PE.
-             * @param firing  Firing value.
-             * @return ix value, SIZE_MAX else.
-             */
-            u32 jobExecIx() const noexcept final;
+            inline TaskState state() const noexcept final { return state_; }
 
-            /**
-             * @brief Get the dependency task ix on given LRT and for a given firing.
-             * @param lrtIx    Index of the LRT to evaluate.
-             * @param firing   Firing value.
-             * @return value of the task ix, UINT32_MAX else.
-             */
-            u32 syncExecIxOnLRT(size_t lrtIx) const final;
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].jobExecIx; }
+
+            inline u32 syncRateOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].rate; }
 
             /* === Setter(s) === */
 
-            inline void setStartTime(u64) final { }
+            inline void setEndTime(u64 time) final { endTime_ = time; }
 
-            /**
-             * @brief Set the end time of the task for a given firing.
-             * @remark This method will overwrite current value.
-             * @param time  Value to set.
-             * @param firing  Firing value.
-             */
-            void setEndTime(u64 time) final;
-
-            /**
-            * @brief Set the processing element of the job.
-            * @remark This method will overwrite current values.
-            * @param mappedPE  Lrt ix inside spider.
-             * @param firing  Firing value.
-            */
             void setMappedPE(const PE *pe) final;
 
-            /**
-             * @brief Set the state of the job.
-             * @remark This method will overwrite current value.
-             * @param state State to set.
-             * @param firing  Firing value.
-             */
-            void setState(TaskState state) noexcept final;
+            inline void setState(TaskState state) noexcept final { state_ = state; }
 
-            /**
-             * @brief Set the execution job index value of the vertexTask (that will be used for synchronization).
-             * @remark This method will overwrite current values.
-             * @param ix Ix to set.
-             * @param firing  Firing value.
-             */
-            void setJobExecIx(u32 ix) noexcept final;
+            inline void setJobExecIx(u32 ix) noexcept final { jobExecIx_ = ix; }
 
-            void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final;
+            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
+                const auto currentJob = syncInfoArray_[lrtIx].jobExecIx;
+                if (currentJob == UINT32_MAX || value > currentJob) {
+                    syncInfoArray_[lrtIx].jobExecIx = value;
+                }
+            }
+
+            inline void setSyncRateOnLRT(size_t lrtIx, u32 value) final {
+                syncInfoArray_[lrtIx].rate = value;
+            }
 
         private:
-            spider::unique_ptr<u32> syncExecTaskIxArray_;  /*!< Exec constraints array of the instances of the vertex*/
+            spider::unique_ptr<SyncInfo> syncInfoArray_;   /*!< Exec constraints array of the instances of the vertex*/
             u64 endTime_ = 0;                              /*!< Mapping end time array of the instances of the vertex */
             u32 mappedPEIx_ = UINT32_MAX;                  /*!< Mapping PE array of the instances of the vertex */
             u32 jobExecIx_ = UINT32_MAX;                   /*!< Index array of the job sent to the PE */

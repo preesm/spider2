@@ -93,51 +93,22 @@ namespace spider {
 
             inline size_t successorCount() const final { return 0u; }
 
-            /**
-             * @brief Return a color value for the vertexTask.
-             *        format is RGB with 8 bits per component in the lower part of the returned value.
-             * @return  color of the vertexTask.
-             */
             u32 color() const final;
 
-            /**
-             * @brief Returns the name of the vertexTask
-             * @return name of the vertexTask
-             */
             std::string name() const final;
 
-            /**
-             * @brief Check if the vertexTask is mappable on a given PE.
-             * @param pe  Pointer to the PE.
-             * @return true if mappable on PE, false else.
-             */
+            inline u64 startTime() const final {
+                return endTime() - timingOnPE(mappedPe());
+            }
+
             bool isMappableOnPE(const PE *pe) const final;
 
-            /**
-             * @brief Get the execution timing on a given PE.
-             * @param pe  Pointer to the PE.
-             * @return exec timing on the PE, UINT64_MAX else.
-             */
             u64 timingOnPE(const PE *pe) const final;
 
-            /**
-             * @brief Returns the LRT attached to the PE on which the given firing is mapped.
-             * @param firing  Firing value.
-             * @return pointer to the LRT, nullptr else
-             */
             const PE *mappedLRT() const final;
 
-            /**
-             * @brief Returns the ix of the vertexTask in the schedule.
-             * @param firing  Firing value.
-             * @return ix of the vertexTask in the schedule, -1 else.
-             */
             u32 ix() const noexcept final;
 
-            /**
-             * @brief Get the vertex associated with the task.
-             * @return pointer to the vertex.
-             */
             const pisdf::Vertex *vertex() const;
 
             /**
@@ -154,12 +125,8 @@ namespace spider {
 
             /* === Setter(s) === */
 
-            /**
-             * @brief Set the ix of the job.
-             * @remark This method will overwrite current value.
-             * @param ix Ix to set.
-             * @param firing  Firing value.
-             */
+            inline void setStartTime(u64) final { }
+
             void setIx(u32 ix) noexcept final;
 
         private:

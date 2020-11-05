@@ -44,7 +44,13 @@
 #include <archi/PE.h>
 #include <api/archi-api.h>
 
-/* === Static function === */
+/* === Static variable(s) === */
+
+namespace {
+    constexpr auto DUMMY_PAYLOAD = 100; /* = Dummy value used to moderate cost of mapping a PE instead of another = */
+                                        /* = Ideal would be to be able to actually use exact exchanged rate but unfortunatly,
+                                         *   it is not necesserly possible = */
+}
 
 /* === Method(s) implementation === */
 
@@ -87,7 +93,7 @@ void spider::sched::Mapper::mapImpl(Task *task, Schedule *schedule, Args &&... a
         /* == Find best fit PE for this cluster == */
         const auto *foundPE = findPE(cluster, scheduleStats, task, minStartTime);
         if (foundPE) {
-            const auto result = computeCommunicationCost(task, foundPE, schedule, std::forward<Args>(args)...);
+            const auto result = computeCommunicationCost(task, foundPE, schedule);
             const auto communicationCost = result.first;
             const auto externDataToReceive = result.second;
             mappingResult.needToAddCommunication |= (externDataToReceive != 0);
@@ -122,7 +128,11 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *sche
     for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
         const auto *srcTask = task->previousTask(ix, schedule);
         if (srcTask) {
-            task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
+            const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
+            task->setSyncExecIxOnLRT(srcLRTIx, srcTask->jobExecIx());
+            if (srcTask->jobExecIx() == task->syncExecIxOnLRT(srcLRTIx)) {
+                task->setSyncRateOnLRT(srcLRTIx, static_cast<u32>(task->inputRate(ix)));
+            }
             minTime = std::max(minTime, srcTask->endTime());
         }
     }
@@ -144,7 +154,13 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task,
                 }
                 auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
                 if (srcTask) {
-                    task->setSyncExecIxOnLRT(srcTask->mappedLRT()->virtualIx(), srcTask->jobExecIx());
+                    const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
+                    task->setSyncExecIxOnLRT(srcLRTIx, srcTask->jobExecIx());
+                    if (srcTask->jobExecIx() == task->syncExecIxOnLRT(srcLRTIx)) {
+                        const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
+                        const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
+                        task->setSyncRateOnLRT(srcLRTIx, (dep.rate_ > 0) * (memoryEnd - memoryStart + 1));
+                    }
                     minTime = std::max(minTime, srcTask->endTime());
                 }
             }
@@ -159,52 +175,23 @@ std::pair<ufast64, ufast64> spider::sched::Mapper::computeCommunicationCost(cons
     /* == Compute communication cost == */
     ufast64 externDataToReceive = 0u;
     ufast64 communicationCost = 0;
-    for (size_t ix = 0; ix < task->dependencyCount(); ++ix) {
-        const auto *srcTask = task->previousTask(ix, schedule);
-        const auto rate = static_cast<ufast64>(task->inputRate(ix));
-        updateCommunicationCost(mappedPE, srcTask, rate, communicationCost, externDataToReceive);
-    }
-    return { communicationCost, externDataToReceive };
-}
-
-std::pair<ufast64, ufast64>
-spider::sched::Mapper::computeCommunicationCost(const Task *,
-                                                const spider::PE *mappedPE,
-                                                const Schedule *schedule,
-                                                const spider::vector<pisdf::DependencyIterator> &dependencies) {
-    /* == Compute communication cost == */
-    ufast64 externDataToReceive = 0u;
-    ufast64 communicationCost = 0;
-    for (const auto &depIt : dependencies) {
-        for (const auto &dep : depIt) {
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                if (!dep.vertex_) {
-                    continue;
+    const auto *platform = archi::platform();
+    const auto lrtCount = platform->LRTCount();
+    for (size_t i = 0; i < lrtCount; ++i) {
+        const auto taskIx = task->syncExecIxOnLRT(i);
+        if (taskIx != UINT32_MAX) {
+            const auto rate = task->syncRateOnLRT(i);
+            const auto *srcTask = schedule->task(taskIx);
+            if (srcTask && srcTask->state() != TaskState::NOT_RUNNABLE) {
+                const auto *mappedPESource = srcTask->mappedPe();
+                communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
+                if (mappedPE->cluster() != mappedPESource->cluster()) {
+                    externDataToReceive += 1;
                 }
-                const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
-                const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
-                const auto rate = (dep.rate_ > 0) * (memoryEnd - memoryStart + 1);
-                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
-                updateCommunicationCost(mappedPE, srcTask, rate, communicationCost, externDataToReceive);
             }
         }
     }
     return { communicationCost, externDataToReceive };
-}
-
-void spider::sched::Mapper::updateCommunicationCost(const spider::PE *mappedPE,
-                                                    const Task *srcTask,
-                                                    ufast64 rate,
-                                                    ufast64 &communicationCost,
-                                                    ufast64 &externDataToReceive) {
-    const auto *platform = archi::platform();
-    if (rate && srcTask && srcTask->state() != TaskState::NOT_RUNNABLE) {
-        const auto *mappedPESource = srcTask->mappedPe();
-        communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
-        if (mappedPE->cluster() != mappedPESource->cluster()) {
-            externDataToReceive += rate;
-        }
-    }
 }
 
 void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo, Task *task, Schedule *schedule) const {

@@ -99,13 +99,15 @@ namespace spider {
 
             inline TaskState state() const noexcept final { return state_; }
 
-            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncExecTaskIxArray_[lrtIx]; }
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].jobExecIx; }
+
+            inline u32 syncRateOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].rate; }
 
             inline srdag::Vertex *vertex() const { return vertex_; }
 
             /* === Setter(s) === */
 
-            inline void setStartTime(u64) final {  }
+            inline void setStartTime(u64) final { }
 
             inline void setEndTime(u64 time) final { endTime_ = time; }
 
@@ -117,16 +119,21 @@ namespace spider {
 
             inline void setMappedPE(const spider::PE *pe) final;
 
-            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) override {
-                if (syncExecTaskIxArray_[lrtIx] == UINT32_MAX || value > syncExecTaskIxArray_[lrtIx]) {
-                    syncExecTaskIxArray_[lrtIx] = value;
+            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
+                const auto currentJob = syncInfoArray_[lrtIx].jobExecIx;
+                if (currentJob == UINT32_MAX || value > currentJob) {
+                    syncInfoArray_[lrtIx].jobExecIx = value;
                 }
             }
 
+            inline void setSyncRateOnLRT(size_t lrtIx, u32 value) final {
+                syncInfoArray_[lrtIx].rate = value;
+            }
+
         private:
-            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
-            spider::unique_ptr<u32> syncExecTaskIxArray_;
+            spider::unique_ptr<SyncInfo> syncInfoArray_;
             srdag::Vertex *vertex_ = nullptr;
+            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
             u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */
             u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
             TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */

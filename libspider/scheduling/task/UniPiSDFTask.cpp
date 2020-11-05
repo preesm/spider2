@@ -52,61 +52,22 @@
 spider::sched::UniPiSDFTask::UniPiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex) :
         PiSDFTask(handler, vertex) {
     const auto lrtCount = archi::platform()->LRTCount();
-    syncExecTaskIxArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(lrtCount, UINT32_MAX));
+    syncInfoArray_ = spider::make_unique(make_n<SyncInfo, StackID::SCHEDULE>(lrtCount, { UINT32_MAX, 0 }));
 }
 
 void spider::sched::UniPiSDFTask::reset() {
     const auto lrtCount = archi::platform()->LRTCount();
-    std::fill(syncExecTaskIxArray_.get(), syncExecTaskIxArray_.get() + lrtCount, UINT32_MAX);
+    std::fill(syncInfoArray_.get(), syncInfoArray_.get() + lrtCount, SyncInfo{ UINT32_MAX, 0 });
     endTime_ = 0;
     jobExecIx_ = UINT32_MAX;
     mappedPEIx_ = UINT32_MAX;
     state_ = TaskState::NOT_SCHEDULABLE;
 }
 
-u64 spider::sched::UniPiSDFTask::startTime() const {
-    return endTime_ - timingOnPE(mappedPe());
-}
-
-u64 spider::sched::UniPiSDFTask::endTime() const {
-    return endTime_;
-}
-
 const spider::PE *spider::sched::UniPiSDFTask::mappedPe() const {
     return archi::platform()->peFromVirtualIx(mappedPEIx_);
-}
-
-spider::sched::TaskState spider::sched::UniPiSDFTask::state() const noexcept {
-    return state_;
-}
-
-u32 spider::sched::UniPiSDFTask::jobExecIx() const noexcept {
-    return jobExecIx_;
-}
-
-u32 spider::sched::UniPiSDFTask::syncExecIxOnLRT(size_t lrtIx) const {
-    return syncExecTaskIxArray_[lrtIx];
-}
-
-void spider::sched::UniPiSDFTask::setEndTime(u64 time) {
-    endTime_ = time;
 }
 
 void spider::sched::UniPiSDFTask::setMappedPE(const PE *pe) {
     mappedPEIx_ = static_cast<u32>(pe->virtualIx());
 }
-
-void spider::sched::UniPiSDFTask::setState(TaskState state) noexcept {
-    state_ = state;
-}
-
-void spider::sched::UniPiSDFTask::setJobExecIx(u32 ix) noexcept {
-    jobExecIx_ = ix;
-}
-
-void spider::sched::UniPiSDFTask::setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
-    if (syncExecTaskIxArray_[lrtIx] == UINT32_MAX || value > syncExecTaskIxArray_[lrtIx]) {
-        syncExecTaskIxArray_[lrtIx] = value;
-    }
-}
-

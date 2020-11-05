@@ -150,26 +150,6 @@ namespace spider {
                                                                         const PE *mappedPE,
                                                                         const Schedule *schedule);
 
-            /**
-             * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
-             *        on a given PE.
-             * @param mappedPE     PE on which the vertexTask is currently mapped.
-             * @param schedule     Schedule to which the vertexTask is associated.
-             * @param dependencies Dependencies of the task.
-             * @return pair containing the communication cost as first and the total size of data to send as second.
-             */
-            static std::pair<ufast64, ufast64> computeCommunicationCost(const Task *,
-                                                                        const PE *mappedPE,
-                                                                        const Schedule *schedule,
-                                                                        const spider::vector<pisdf::DependencyIterator> &dependencies);
-
-            static void updateCommunicationCost(const spider::PE *mappedPE,
-                                                const Task *srcTask,
-                                                ufast64 rate,
-                                                ufast64 &communicationCost,
-                                                ufast64 &externDataToReceive);
-
-
             void mapCommunications(MappingResult &mappingInfo,
                                    Task *task,
                                    Schedule *schedule) const;
