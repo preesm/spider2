@@ -116,8 +116,8 @@ namespace spider {
 
             /* === Private method(s) === */
 
-            template<class ...Args>
-            void mapImpl(Task *task, Schedule *schedule, Args &&... args);
+            template<class T>
+            void mapImpl(T *task, Schedule *schedule);
 
             /**
              * @brief Compute the minimum start time possible for a given task.
@@ -131,12 +131,9 @@ namespace spider {
              * @brief Compute the minimum start time possible for a given task.
              * @param task         Pointer to the task.
              * @param schedule     Pointer to the schedule.
-             * @param dependencies Dependencies of the task.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(Task *task,
-                                     const Schedule *schedule,
-                                     const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+            ufast64 computeStartTime(PiSDFTask *task, const Schedule *schedule) const;
 
             /**
              * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
@@ -150,14 +147,9 @@ namespace spider {
                                                                         const PE *mappedPE,
                                                                         const Schedule *schedule);
 
-            void mapCommunications(MappingResult &mappingInfo,
-                                   Task *task,
-                                   Schedule *schedule) const;
+            void mapCommunications(MappingResult &mappingInfo, Task *task, Schedule *schedule) const;
 
-            void mapCommunications(MappingResult &mappingInfo,
-                                   Task *task,
-                                   Schedule *schedule,
-                                   const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+            void mapCommunications(MappingResult &mappingInfo, PiSDFTask *task, Schedule *schedule) const;
 
             void mapCommunications(MappingResult &mappingInfo,
                                    Task *task,

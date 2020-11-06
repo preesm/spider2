@@ -120,10 +120,7 @@ namespace spider {
             inline void setMappedPE(const spider::PE *pe) final;
 
             inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
-                const auto currentJob = syncInfoArray_[lrtIx].jobExecIx;
-                if (currentJob == UINT32_MAX || value > currentJob) {
-                    syncInfoArray_[lrtIx].jobExecIx = value;
-                }
+                syncInfoArray_[lrtIx].jobExecIx = value;
             }
 
             inline void setSyncRateOnLRT(size_t lrtIx, u32 value) final {

@@ -158,8 +158,7 @@ void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(spider::vecto
         }
     };
     for (const auto *edge : vertex->outputEdges()) {
-        const auto srcRate = handler->getSrcRate(edge);
-        pisdf::detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, lambda);
+        pisdf::detail::computeConsDependency(handler, edge, firing, lambda);
     }
 }
 
@@ -172,35 +171,37 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(spider::vector<ListT
         recursiveSetNonSchedulable(sortedTaskVector, handler, vertex, firing);
     } else if (listTask.level_ < 0) {
         i32 level = 0;
-        const auto lambda = [&level, &sortedTaskVector](const pisdf::DependencyInfo &dep) {
-            const auto *source = dep.vertex_;
-            if (!source || dep.rate_ <= 0) {
-                return;
-            }
-            const auto *sourceRTInfo = source->runtimeInformation();
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                const auto minExecutionTime = computeMinExecTime(sourceRTInfo, dep.handler_->getParams());
-                const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
-                if (sourceTaskIx < sortedTaskVector.size()) {
-                    auto &srcTask = sortedTaskVector[sourceTaskIx];
-                    if (srcTask.vertex_ == source &&
-                        srcTask.handler_ == dep.handler_ &&
-                        srcTask.firing_ >= dep.firingStart_ && srcTask.firing_ <= dep.firingEnd_) {
-                        const auto sourceLevel = computeScheduleLevel(sortedTaskVector, srcTask);
-                        if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
-                            level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
-                        }
-                    }
-                }
-            }
-        };
         for (const auto *edge : vertex->inputEdges()) {
-            const auto snkRate = handler->getSnkRate(edge);
-            pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, lambda);
+            pisdf::detail::computeExecDependency(handler, edge, firing, computeLevelForDep, sortedTaskVector, level);
         }
         listTask.level_ = level;
     }
     return listTask.level_;
+}
+
+void spider::sched::PiSDFListScheduler::computeLevelForDep(const pisdf::DependencyInfo &dep,
+                                                           spider::vector<ListTask> &sortedTaskVector,
+                                                           i32 &level) {
+    const auto *source = dep.vertex_;
+    if (!source || dep.rate_ <= 0) {
+        return;
+    }
+    const auto *sourceRTInfo = source->runtimeInformation();
+    for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+        const auto minExecutionTime = computeMinExecTime(sourceRTInfo, dep.handler_->getParams());
+        const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
+        if (sourceTaskIx < sortedTaskVector.size()) {
+            auto &srcTask = sortedTaskVector[sourceTaskIx];
+            if (srcTask.vertex_ == source &&
+                srcTask.handler_ == dep.handler_ &&
+                srcTask.firing_ >= dep.firingStart_ && srcTask.firing_ <= dep.firingEnd_) {
+                const auto sourceLevel = computeScheduleLevel(sortedTaskVector, srcTask);
+                if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
+                    level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));
+                }
+            }
+        }
+    }
 }
 
 i64 spider::sched::PiSDFListScheduler::computeMinExecTime(const RTInfo *rtInfo,

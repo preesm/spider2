@@ -147,19 +147,6 @@ void spider::sched::TaskLauncher::sendTask(Task *task, JobMessage &message) {
     task->setState(TaskState::RUNNING);
 }
 
-template<class ...Args>
-spider::unique_ptr<bool>
-spider::sched::TaskLauncher::buildJobNotificationFlags(const Task *task, Args &&...args) const {
-    auto flags = spider::make_n<bool, StackID::RUNTIME>(archi::platform()->LRTCount(), false);
-    updateNotificationFlags(task, flags, std::forward<Args>(args)...);
-    if (std::any_of(flags, flags + archi::platform()->LRTCount(), [](bool value) { return value; })) {
-        return make_unique(flags);
-    } else {
-        deallocate(flags);
-        return spider::unique_ptr<bool>();
-    }
-}
-
 spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraints(const Task *task) {
     const auto lrtCount = archi::platform()->LRTCount();
     size_t constraintsCount = 0;
@@ -185,6 +172,19 @@ spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraint
         }
     }
     return result;
+}
+
+template<class ...Args>
+spider::unique_ptr<bool>
+spider::sched::TaskLauncher::buildJobNotificationFlags(const Task *task, Args &&...args) const {
+    auto flags = spider::make_n<bool, StackID::RUNTIME>(archi::platform()->LRTCount(), false);
+    updateNotificationFlags(task, flags, std::forward<Args>(args)...);
+    if (std::any_of(flags, flags + archi::platform()->LRTCount(), [](bool value) { return value; })) {
+        return make_unique(flags);
+    } else {
+        deallocate(flags);
+        return spider::unique_ptr<bool>();
+    }
 }
 
 /* === Task type specific functions === */
@@ -218,8 +218,7 @@ void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task,
                 }
             }
         };
-        const auto srcRate = handler->getSrcRate(edge);
-        pisdf::detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, lambda);
+        pisdf::detail::computeConsDependency(handler, edge, firing, lambda);
         if (broadcast) {
             break;
         }

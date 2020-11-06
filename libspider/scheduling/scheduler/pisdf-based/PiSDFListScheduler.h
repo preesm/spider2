@@ -45,6 +45,7 @@ namespace spider {
 
     namespace pisdf {
         struct DependencyIterator;
+        struct DependencyInfo;
 
         class GraphFiring;
     }
@@ -139,6 +140,8 @@ namespace spider {
              * @return level value of the vertex for its given firing.
              */
             static i32 computeScheduleLevel(spider::vector<ListTask> &sortedTaskVector, ListTask &listTask);
+
+            static void computeLevelForDep(const pisdf::DependencyInfo &dep, spider::vector<ListTask> &sortedTaskVector, i32 &level);
 
             static i64
             computeMinExecTime(const RTInfo *rtInfo, const spider::vector<std::shared_ptr<pisdf::Param>> &params);

@@ -246,6 +246,27 @@ namespace spider {
                     throwSpiderException("unexpected behavior.");
                 }
             }
+
+            /**
+             * @brief Compute consumer dependencies for a given OUTPUT edge and a given firing of the associated
+             *        vertex.
+             * @tparam Args    Additional parameters to be used "on site" of each dependency computation.
+             *                 For now, are supported:
+             *                 - functions with arbitraty number of arguments but first MUST be of type const DependencyInfo &.
+             *                 - void args
+             *                 - spider::vector<DependencyInfo&> &
+             * @param handler  Pointer to the @refitem GraphFiring (used for rate resolution).
+             * @param edge     Pointer to the edge.
+             * @param firing   Value of the firing of the SOURCE of the edge.
+             * @param args     Additionnal arguments to be passed along.
+             * @return number of dependencies.
+             */
+            template<class ...Args>
+            i32 computeConsDependency(const GraphFiring *handler, const Edge *edge, u32 firing, Args &&...args) {
+                const auto srcRate = handler->getSrcRate(edge);
+                return computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler,
+                                             std::forward<Args>(args)...);
+            }
         }
     }
 }

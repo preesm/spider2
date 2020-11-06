@@ -111,11 +111,7 @@ void spider::sched::VectPiSDFTask::setJobExecIx(u32 ix) noexcept {
 }
 
 void spider::sched::VectPiSDFTask::setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
-    const auto offsetLRTIx = lrtIx + firing() * archi::platform()->LRTCount();
-    const auto currentJob = syncInfoArray_[offsetLRTIx].jobExecIx;
-    if (currentJob == UINT32_MAX || value > currentJob) {
-        syncInfoArray_[offsetLRTIx].jobExecIx = value;
-    }
+    syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].jobExecIx = value;
 }
 
 void spider::sched::VectPiSDFTask::setSyncRateOnLRT(size_t lrtIx, u32 value) {

@@ -97,8 +97,9 @@ namespace spider {
                     result.emplace_back(dep);
                 }
 
-                inline void apply(const DependencyInfo &dep, const std::function<void(const DependencyInfo &)> &func) {
-                    func(dep);
+                template<class Function, class ...Args>
+                inline void apply(const DependencyInfo &dep, const Function &func, Args &&...args) {
+                    func(dep, std::forward<Args>(args)...);
                 }
 
                 template<class ...Args>
@@ -229,6 +230,27 @@ namespace spider {
                 } else {
                     throwNullptrException();
                 }
+            }
+
+            /**
+             * @brief Compute execution dependencies for a given INPUT edge and a given firing of the associated
+             *        vertex.
+             * @tparam Args    Additional parameters to be used "on site" of each dependency computation.
+             *                 For now, are supported:
+             *                 - functions with arbitraty number of arguments but first MUST be of type const DependencyInfo &.
+             *                 - void args
+             *                 - spider::vector<DependencyInfo&> &
+             * @param handler  Pointer to the @refitem GraphFiring (used for rate resolution).
+             * @param edge     Pointer to the edge.
+             * @param firing   Value of the firing of the SINK of the edge.
+             * @param args     Additionnal arguments to be passed along.
+             * @return number of dependencies.
+             */
+            template<class ...Args>
+            i32 computeExecDependency(const GraphFiring *handler, const Edge *edge, u32 firing, Args &&...args) {
+                const auto snkRate = handler->getSnkRate(edge);
+                return computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler,
+                                             std::forward<Args>(args)...);
             }
         }
     }

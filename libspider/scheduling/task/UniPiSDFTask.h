@@ -90,10 +90,7 @@ namespace spider {
             inline void setJobExecIx(u32 ix) noexcept final { jobExecIx_ = ix; }
 
             inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
-                const auto currentJob = syncInfoArray_[lrtIx].jobExecIx;
-                if (currentJob == UINT32_MAX || value > currentJob) {
-                    syncInfoArray_[lrtIx].jobExecIx = value;
-                }
+                syncInfoArray_[lrtIx].jobExecIx = value;
             }
 
             inline void setSyncRateOnLRT(size_t lrtIx, u32 value) final {

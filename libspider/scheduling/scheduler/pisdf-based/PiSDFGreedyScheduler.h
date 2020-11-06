@@ -42,6 +42,7 @@
 namespace spider {
 
     namespace pisdf {
+        struct DependencyInfo;
         class GraphFiring;
     }
 
@@ -83,6 +84,8 @@ namespace spider {
                                  const pisdf::Vertex *vertex,
                                  u32 firing,
                                  Schedule *schedule);
+
+            static void eval(const pisdf::DependencyInfo &dep, Schedule *schedule, bool &schedulable);
         };
     }
 }

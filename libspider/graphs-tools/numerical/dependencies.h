@@ -80,23 +80,6 @@ namespace spider {
                               i32 *count = nullptr);
 
         /**
-         * @brief Compute the number of execution dependencies for a given input edge of a given firing of a given vertex.
-         *        Execution dependencies corresponds to all the vertices (and their firing) that are directly needed for
-         *        this particular input edge and this firing of the vertex inside the graph firing specified by the base.
-         *        Dependencies are computed through input / output interfaces and through delays.
-         * @param vertex  Pointer to the vertex.
-         * @param firing  Firing of the vertex.
-         * @param edgeIx  Index of the input edge.
-         * @param handler Pointer to the @refitem pisdf::GraphFiring to which this particular firing of the vertex belongs.
-         * @return the exec dependency count.
-         * @throw nullpointer exception in DEBUG mode only if base or vertex is nullptr.
-         */
-        i32 computeExecDependencyCount(const Vertex *vertex,
-                                       u32 firing,
-                                       size_t edgeIx,
-                                       const pisdf::GraphFiring *handler);
-
-        /**
          * @brief Compute all consumer dependencies of a given vertex.
          * @param handler Pointer to the @refitem pisdf::GraphFiring to which this particular firing of the vertex belongs.
          * @param vertex  Pointer to the vertex.
@@ -122,23 +105,6 @@ namespace spider {
         DependencyIterator
         computeConsDependency(const GraphFiring *handler, const Vertex *vertex, u32 firing, size_t edgeIx,
                               i32 *count = nullptr);
-
-        /**
-         * @brief Compute the number of consumer dependencies for a given input edge of a given firing of a given vertex.
-         *        Execution dependencies corresponds to all the vertices (and their firing) that are directly needed for
-         *        this particular input edge and this firing of the vertex inside the graph firing specified by the base.
-         *        Dependencies are computed through input / output interfaces and through delays.
-         * @param vertex  Pointer to the vertex.
-         * @param firing  Firing of the vertex.
-         * @param edgeIx  Index of the input edge.
-         * @param handler Pointer to the @refitem pisdf::GraphFiring to which this particular firing of the vertex belongs.
-         * @return the exec dependency count.
-         * @throw nullpointer exception in DEBUG mode only if base or vertex is nullptr.
-         */
-        i32 computeConsDependencyCount(const Vertex *vertex,
-                                       u32 firing,
-                                       size_t edgeIx,
-                                       const pisdf::GraphFiring *handler);
 
         /**
          * @brief Compute the lower consumption dependencies of a vertex in a flat graph:

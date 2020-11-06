@@ -43,13 +43,14 @@
 #include <archi/Platform.h>
 #include <archi/PE.h>
 #include <api/archi-api.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static variable(s) === */
 
 namespace {
     constexpr auto DUMMY_PAYLOAD = 100; /* = Dummy value used to moderate cost of mapping a PE instead of another = */
-                                        /* = Ideal would be to be able to actually use exact exchanged rate but unfortunatly,
-                                         *   it is not necesserly possible = */
+    /* = Ideal would be to be able to actually use exact exchanged rate but unfortunatly,
+     *   it is not necesserly possible = */
 }
 
 /* === Method(s) implementation === */
@@ -75,15 +76,15 @@ void spider::sched::Mapper::map(PiSDFTask *task, Schedule *schedule) {
     }
     task->setState(TaskState::PENDING);
     /* == Map pisdf task with dependencies == */
-    mapImpl(task, schedule, task->computeExecDependencies());
+    mapImpl(task, schedule);
 }
 
 /* === Private method(s) implementation === */
 
-template<class... Args>
-void spider::sched::Mapper::mapImpl(Task *task, Schedule *schedule, Args &&... args) {
+template<class T>
+void spider::sched::Mapper::mapImpl(T *task, Schedule *schedule) {
     /* == Compute the minimum start time possible for the task == */
-    const auto minStartTime = computeStartTime(task, schedule, std::forward<Args>(args)...);
+    const auto minStartTime = computeStartTime(task, schedule);
     /* == Build the data dependency vector in order to compute receive cost == */
     const auto *platform = archi::platform();
     /* == Search for a slave to map the task on */
@@ -115,7 +116,7 @@ void spider::sched::Mapper::mapImpl(Task *task, Schedule *schedule, Args &&... a
     }
     if (mappingResult.needToAddCommunication) {
         /* == Map communications == */
-        mapCommunications(mappingResult, task, schedule, std::forward<Args>(args)...);
+        mapCommunications(mappingResult, task, schedule);
     }
     schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
 }
@@ -129,8 +130,10 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *sche
         const auto *srcTask = task->previousTask(ix, schedule);
         if (srcTask) {
             const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
-            task->setSyncExecIxOnLRT(srcLRTIx, srcTask->jobExecIx());
-            if (srcTask->jobExecIx() == task->syncExecIxOnLRT(srcLRTIx)) {
+            const auto currentJob = task->syncExecIxOnLRT(srcLRTIx);
+            const auto srcJobExecIx = srcTask->jobExecIx();
+            if (currentJob == UINT32_MAX || srcJobExecIx > currentJob) {
+                task->setSyncExecIxOnLRT(srcLRTIx, srcJobExecIx);
                 task->setSyncRateOnLRT(srcLRTIx, static_cast<u32>(task->inputRate(ix)));
             }
             minTime = std::max(minTime, srcTask->endTime());
@@ -139,32 +142,36 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *sche
     return minTime;
 }
 
-ufast64 spider::sched::Mapper::computeStartTime(Task *task,
-                                                const Schedule *schedule,
-                                                const spider::vector<pisdf::DependencyIterator> &dependencies) const {
+ufast64 spider::sched::Mapper::computeStartTime(PiSDFTask *task, const Schedule *schedule) const {
     auto minTime = startTime_;
     if (!task) {
         return minTime;
     }
-    for (const auto &depIt : dependencies) {
-        for (const auto &dep : depIt) {
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                if (!dep.vertex_) {
-                    continue;
+    const auto lambda = [&schedule, &minTime, &task](const pisdf::DependencyInfo &dep) {
+        if (!dep.vertex_) {
+            return;
+        }
+        for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+            auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+            if (srcTask) {
+                const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
+                const auto currentJob = task->syncExecIxOnLRT(srcLRTIx);
+                const auto srcJobExecIx = srcTask->jobExecIx();
+                if (currentJob == UINT32_MAX || srcJobExecIx > currentJob) {
+                    task->setSyncExecIxOnLRT(srcLRTIx, srcJobExecIx);
+                    const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
+                    const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
+                    task->setSyncRateOnLRT(srcLRTIx, (dep.rate_ > 0) * (memoryEnd - memoryStart + 1));
                 }
-                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
-                if (srcTask) {
-                    const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
-                    task->setSyncExecIxOnLRT(srcLRTIx, srcTask->jobExecIx());
-                    if (srcTask->jobExecIx() == task->syncExecIxOnLRT(srcLRTIx)) {
-                        const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
-                        const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
-                        task->setSyncRateOnLRT(srcLRTIx, (dep.rate_ > 0) * (memoryEnd - memoryStart + 1));
-                    }
-                    minTime = std::max(minTime, srcTask->endTime());
-                }
+                minTime = std::max(minTime, srcTask->endTime());
             }
         }
+    };
+    const auto *vertex = task->vertex();
+    const auto firing = task->firing();
+    const auto *handler = task->handler();
+    for (const auto *edge : vertex->inputEdges()) {
+        pisdf::detail::computeExecDependency(handler, edge, firing, lambda);
     }
     return minTime;
 }
@@ -201,20 +208,22 @@ void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo, Task *
     }
 }
 
-void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo,
-                                              Task *task,
-                                              Schedule *schedule,
-                                              const spider::vector<pisdf::DependencyIterator> &dependencies) const {
+void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo, PiSDFTask *task, Schedule *schedule) const {
     size_t depIx = 0;
-    for (const auto &depIt : dependencies) {
-        for (const auto &dep : depIt) {
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
-                mapCommunications(mappingInfo, task, srcTask, depIx, schedule);
-                depIx++;
-            }
+    const auto lambda = [&depIx, &mappingInfo, schedule, task, this](const pisdf::DependencyInfo &dep) {
+        for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+            auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
+            mapCommunications(mappingInfo, task, srcTask, depIx, schedule);
+            depIx++;
         }
+    };
+    const auto *vertex = task->vertex();
+    const auto firing = task->firing();
+    const auto *handler = task->handler();
+    for (const auto *edge : vertex->inputEdges()) {
+        pisdf::detail::computeExecDependency(handler, edge, firing, lambda);
     }
+
 }
 
 void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo,

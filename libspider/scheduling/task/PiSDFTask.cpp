@@ -70,10 +70,6 @@ void spider::sched::PiSDFTask::setOnFiring(u32 firing) {
     currentFiring_ = firing;
 }
 
-spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeExecDependencies() const {
-    return pisdf::computeExecDependencies(handler_, vertex(), currentFiring_);
-}
-
 bool spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
     const auto *vertex = this->vertex();
     if (vertex->subtype() != pisdf::VertexType::CONFIG) {

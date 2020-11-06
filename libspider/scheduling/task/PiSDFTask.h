@@ -79,8 +79,6 @@ namespace spider {
 
             virtual void reset() = 0;
 
-            spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
-
             /* === Getter(s) === */
 
             inline i64 inputRate(size_t) const final { return 0; };
