@@ -68,11 +68,15 @@ spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
         dynamicParamCount_ += param->type() == pisdf::ParamType::DYNAMIC;
         params_.emplace_back(copyParameter(param));
     }
+    depsCountArray_ = spider::make_unique(make_n<u32 *, StackID::TRANSFO>(graph->vertexCount(), nullptr));
     subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
     alloc_ = spider::make_unique(make<GraphAlloc, StackID::SCHEDULE>(parent->graph()));
 }
 
 spider::pisdf::GraphFiring::~GraphFiring() {
+    for (const auto &vertex : parent_->graph()->vertices()) {
+        deallocate(depsCountArray_[vertex->ix()]);
+    }
     for (auto &child : subgraphHandlers()) {
         destroy(child);
     }
@@ -201,6 +205,15 @@ spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) {
     return parent_->graph()->vertex(ix);
 }
 
+spider::sched::PiSDFTask *spider::pisdf::GraphFiring::getTask(const Vertex *vertex) const {
+#ifndef NDEBUG
+    if (vertex->graph() != parent_->graph()) {
+        throwSpiderException("vertex do not belong to this graph.");
+    }
+#endif
+    return alloc_->getTask(vertex);
+}
+
 u32 spider::pisdf::GraphFiring::getTaskIx(const Vertex *vertex, u32 firing) const {
     return alloc_->getTaskIx(vertex, firing);
 }
@@ -221,13 +234,9 @@ u32 spider::pisdf::GraphFiring::getEdgeOffset(const Edge *edge, u32 firing) cons
     return alloc_->getEdgeOffset(edge, firing);
 }
 
-spider::sched::PiSDFTask *spider::pisdf::GraphFiring::getTask(const Vertex *vertex) const {
-#ifndef NDEBUG
-    if (vertex->graph() != parent_->graph()) {
-        throwSpiderException("vertex do not belong to this graph.");
-    }
-#endif
-    return alloc_->getTask(vertex);
+u32 spider::pisdf::GraphFiring::getEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing) const {
+    const auto offset = firing * vertex->inputEdgeCount();
+    return depsCountArray_[vertex->ix()][offset + edge->sinkPortIx()];
 }
 
 void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
@@ -265,6 +274,11 @@ void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const Edge *edge, u32 
     }
 }
 
+void spider::pisdf::GraphFiring::setEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing, u32 value) {
+    const auto offset = firing * vertex->inputEdgeCount();
+    depsCountArray_[vertex->ix()][offset + edge->sinkPortIx()] = value;
+}
+
 /* === Private method(s) implementation === */
 
 void spider::pisdf::GraphFiring::resolveDynamicDependentParams() {
@@ -298,24 +312,31 @@ spider::pisdf::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &p
 
 void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 rv) {
     const auto ix = vertex->ix();
+    const auto count = rv * vertex->inputEdgeCount();
     if (brvArray_[ix] != rv) {
         brvArray_[ix] = rv;
         alloc_->initialize(this, vertex, rv);
+        deallocate(depsCountArray_[ix]);
+        depsCountArray_[ix] = make_n<u32, StackID::TRANSFO>(count, 0);
         if (parent_->isStatic()) {
             const auto parentRV = parent_->repetitionCount();
             for (u32 k = 1; k < parentRV; ++k) {
                 auto *graphFiring = parent_->firing(k);
                 graphFiring->alloc_->initialize(graphFiring, vertex, rv);
+                deallocate(graphFiring->depsCountArray_[ix]);
+                graphFiring->depsCountArray_[ix] = make_n<u32, StackID::TRANSFO>(count, 0);
             }
         }
     } else {
         /* == reset values == */
+        std::fill(depsCountArray_[ix], depsCountArray_[ix] + count, 0);
         alloc_->reset(vertex, rv);
         if (parent_->isStatic()) {
             const auto parentRV = parent_->repetitionCount();
             for (u32 k = 1; k < parentRV; ++k) {
                 auto *graphFiring = parent_->firing(k);
                 graphFiring->alloc_->reset(vertex, rv);
+                std::fill(graphFiring->depsCountArray_[ix], graphFiring->depsCountArray_[ix] + count, 0);
             }
         }
     }

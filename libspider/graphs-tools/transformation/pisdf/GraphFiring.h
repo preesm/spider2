@@ -179,13 +179,15 @@ namespace spider {
              */
             Vertex *vertex(size_t ix);
 
+            sched::PiSDFTask *getTask(const Vertex *vertex) const;
+
             u32 getTaskIx(const Vertex *vertex, u32 firing) const;
 
             size_t getEdgeAddress(const Edge *edge, u32 firing) const;
 
             u32 getEdgeOffset(const Edge *edge, u32 firing) const;
 
-            sched::PiSDFTask *getTask(const Vertex *vertex) const;
+            u32 getEdgeDepCount(const Vertex* vertex, const Edge *edge, u32 firing) const;
 
             /* === Setter(s) === */
 
@@ -202,6 +204,8 @@ namespace spider {
 
             void setEdgeOffset(u32 value, const Edge *edge, u32 firing);
 
+            void setEdgeDepCount(const Vertex* vertex, const Edge *edge, u32 firing, u32 value);
+
         private:
             struct EdgeRate {
                 int64_t srcRate_;
@@ -212,6 +216,7 @@ namespace spider {
             spider::unique_ptr<u32> brvArray_;                     /* == BRV of this firing of the graph == */
             spider::unique_ptr<EdgeRate> ratesArray_;              /* == Array of resolved rates (trade some memory for runtime speed) == */
             spider::unique_ptr<GraphAlloc> alloc_;                 /* == Class used to handle everything related to resource allocation == */
+            spider::unique_ptr<u32 *> depsCountArray_;             /* == Array of dependencies count == */
             const GraphHandler *parent_;                           /* == Parent handler == */
             u32 firing_ = 0;                                       /* == Firing of this graph instance == */
             u32 dynamicParamCount_ = 0;                            /* == Number of dynamic parameters == */

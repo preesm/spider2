@@ -73,6 +73,26 @@ void spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphHandler *graphHan
     }
 }
 
+bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
+                                                   const pisdf::Vertex *vertex,
+                                                   u32 firing,
+                                                   Schedule *schedule) {
+    auto schedulable = true;
+    if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
+        for (const auto *edge : vertex->inputEdges()) {
+            const auto count = pisdf::detail::computeExecDependency(handler, edge, firing, eval, schedule, schedulable);
+            handler->setEdgeDepCount(vertex, edge, firing, static_cast<u32>(count > 0 ? count : 1));
+            if (!schedulable) {
+                return false;
+            }
+        }
+        if (schedulable) {
+            Scheduler::addTask(schedule, handler, vertex, firing);
+        }
+    }
+    return schedulable;
+}
+
 void spider::sched::PiSDFGreedyScheduler::eval(const pisdf::DependencyInfo &dep, Schedule *schedule, bool &schedulable) {
     if (!dep.rate_) {
         return;
@@ -83,23 +103,4 @@ void spider::sched::PiSDFGreedyScheduler::eval(const pisdf::DependencyInfo &dep,
     for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
         schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, schedule);
     }
-}
-
-bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
-                                                   const pisdf::Vertex *vertex,
-                                                   u32 firing,
-                                                   Schedule *schedule) {
-    auto schedulable = true;
-    if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
-        for (const auto *edge : vertex->inputEdges()) {
-            pisdf::detail::computeExecDependency(handler, edge, firing, eval, schedule, schedulable);
-            if (!schedulable) {
-                return false;
-            }
-        }
-        if (schedulable) {
-            Scheduler::addTask(schedule, handler, vertex, firing);
-        }
-    }
-    return schedulable;
 }

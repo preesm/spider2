@@ -165,14 +165,16 @@ void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(spider::vecto
 i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(spider::vector<ListTask> &sortedTaskVector,
                                                             ListTask &listTask) {
     const auto *vertex = listTask.vertex_;
-    const auto *handler = listTask.handler_;
     const auto firing = listTask.firing_;
+    auto *handler = listTask.handler_;
     if (listTask.level_ == NON_SCHEDULABLE_LEVEL) {
         recursiveSetNonSchedulable(sortedTaskVector, handler, vertex, firing);
     } else if (listTask.level_ < 0) {
         i32 level = 0;
         for (const auto *edge : vertex->inputEdges()) {
-            pisdf::detail::computeExecDependency(handler, edge, firing, computeLevelForDep, sortedTaskVector, level);
+            const auto count = pisdf::detail::computeExecDependency(handler, edge, firing, computeLevelForDep,
+                                                                    sortedTaskVector, level);
+            handler->setEdgeDepCount(vertex, edge, firing, static_cast<u32>(count > 0 ? count : 1));
         }
         listTask.level_ = level;
     }
