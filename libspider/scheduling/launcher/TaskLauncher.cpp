@@ -112,7 +112,7 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
     u32 totalFifoCount = 0;
     for (const auto *edge : vertex->inputEdges()) {
         const auto count = handler->getEdgeDepCount(vertex, edge, firing);
-        totalFifoCount += static_cast<u32>(count + (count > 1));
+        totalFifoCount += count + (count > 1);
     }
     auto fifos = spider::make<JobFifos, StackID::RUNTIME>(totalFifoCount, static_cast<u32>(vertex->outputEdgeCount()));
     /* == Set the synchronization flags == */
@@ -199,7 +199,7 @@ spider::sched::TaskLauncher::buildJobNotificationFlags(Task *task, Args &&...arg
 
 /* === Task type specific functions === */
 
-void spider::sched::TaskLauncher::updateNotificationFlags(Task *task, bool *flags) const {
+void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task, bool *flags) const {
     const auto taskIx = task->ix();
     const auto mappedLRTIx = task->mappedLRT()->virtualIx();
     for (size_t i = 0; i < task->successorCount(); ++i) {

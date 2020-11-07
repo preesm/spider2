@@ -52,7 +52,7 @@ namespace spider {
 
             using const_iterator = const DependencyInfo *;
 
-            explicit DependencyIterator(spider::vector<DependencyInfo> infos) {
+            explicit DependencyIterator(const spider::vector<DependencyInfo> &infos) {
                 dependencies_ = spider::make_unique(allocate<DependencyInfo, StackID::TRANSFO>(infos.size()));
                 for (size_t i = 0; i < infos.size(); ++i) {
                     dependencies_[i] = infos[i];

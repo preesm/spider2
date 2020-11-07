@@ -52,14 +52,14 @@
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-void spider::sched::Scheduler::addTask(Schedule *schedule, srdag::Vertex *vertex) {
+void spider::sched::Scheduler::addTask(Schedule *schedule, const srdag::Vertex *vertex) {
     schedule->addTask(vertex->scheduleTask());
 }
 
 #endif
 
 void spider::sched::Scheduler::addTask(Schedule *schedule,
-                                       pisdf::GraphFiring *handler,
+                                       const pisdf::GraphFiring *handler,
                                        const pisdf::Vertex *vertex,
                                        u32 firing) {
     schedule->addTask(handler->getTask(vertex), firing);

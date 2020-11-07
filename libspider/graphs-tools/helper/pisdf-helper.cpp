@@ -133,7 +133,8 @@ static spider::unique_ptr<i64> buildTailRuntimeInputParameters(const spider::pis
     result[3] = rate;
     size_t i = 4;
     for (auto it = itRBegin; it != itREnd - static_cast<long>(inputCount) + 1; --it) {
-        result[i++] = handler->getSnkRate(*it);
+        result[i] = handler->getSnkRate(*it);
+        i++;
     }
     return result;
 }
@@ -465,7 +466,7 @@ spider::pisdf::buildVertexRuntimeInputParameters(const Vertex *vertex, const Gra
         case VertexType::END:
             return buildEndRuntimeInputParameters(vertex);
         case VertexType::EXTERN_OUT:
-            return buildExternOutRuntimeInputParameters(vertex, handler);;
+            return buildExternOutRuntimeInputParameters(vertex, handler);
         default:
             return buildDefaultVertexRuntimeParameters(vertex, handler->getParams());
     }

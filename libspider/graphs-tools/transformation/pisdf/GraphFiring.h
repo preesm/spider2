@@ -187,7 +187,7 @@ namespace spider {
 
             u32 getEdgeOffset(const Edge *edge, u32 firing) const;
 
-            u32 getEdgeDepCount(const Vertex* vertex, const Edge *edge, u32 firing) const;
+            u32 getEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing) const;
 
             /* === Setter(s) === */
 
@@ -204,7 +204,7 @@ namespace spider {
 
             void setEdgeOffset(u32 value, const Edge *edge, u32 firing);
 
-            void setEdgeDepCount(const Vertex* vertex, const Edge *edge, u32 firing, u32 value);
+            void setEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing, u32 value);
 
         private:
             struct EdgeRate {
@@ -225,7 +225,7 @@ namespace spider {
 
             /* === private method(s) === */
 
-            void resolveDynamicDependentParams();
+            void resolveDynamicDependentParams() const;
 
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param);
 

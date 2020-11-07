@@ -117,7 +117,7 @@ namespace spider {
              * @param schedule Pointer to the schedule.
              * @return True if at least one LRT will be notified by this task.
              */
-            void updateNotificationFlags(Task *task, bool *flags) const;
+            void updateNotificationFlags(const Task *task, bool *flags) const;
 
             void updateNotificationFlags(Task *task,
                                          bool *flags,

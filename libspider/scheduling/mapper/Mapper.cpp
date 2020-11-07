@@ -39,19 +39,11 @@
 #include <scheduling/task/Task.h>
 #include <scheduling/task/PiSDFTask.h>
 #include <scheduling/task/SyncTask.h>
-#include <graphs-tools/transformation/pisdf/GraphFiring.h>
-#include <archi/Platform.h>
 #include <archi/PE.h>
 #include <api/archi-api.h>
 #include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static variable(s) === */
-
-namespace {
-    constexpr auto DUMMY_PAYLOAD = 100; /* = Dummy value used to moderate cost of mapping a PE instead of another = */
-    /* = Ideal would be to be able to actually use exact exchanged rate but unfortunatly,
-     *   it is not necesserly possible = */
-}
 
 /* === Method(s) implementation === */
 
@@ -152,13 +144,18 @@ ufast64 spider::sched::Mapper::computeStartTime(PiSDFTask *task, const Schedule 
     const auto *vertex = task->vertex();
     const auto *handler = task->handler();
     const auto lambda = [task, schedule, firing, &minTime](const pisdf::DependencyInfo &dep) {
-        if (!dep.vertex_) {
+        if (!dep.vertex_ || !dep.handler_) {
             return;
         }
         for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
             const auto srcTaskIx = dep.handler_->getTaskIx(dep.vertex_, k);
             if (srcTaskIx != UINT32_MAX) {
-                auto *srcTask = schedule->task(srcTaskIx);
+                const auto *srcTask = schedule->task(srcTaskIx);
+#ifndef NDEBUG
+                if (!srcTask) {
+                    throwNullptrException();
+                }
+#endif
                 const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
                 const auto srcJobIx = srcTask->ix();
                 const auto srcEndTime = srcTask->endTime();
@@ -200,7 +197,7 @@ std::pair<ufast64, ufast64> spider::sched::Mapper::computeCommunicationCost(Task
                 const auto *mappedPESource = srcTask->mappedPe();
                 communicationCost += platform->dataCommunicationCostPEToPE(mappedPESource, mappedPE, rate);
                 if (mappedPE->cluster() != mappedPESource->cluster()) {
-                    externDataToReceive += 1;
+                    externDataToReceive += rate;
                 }
             }
             task->setOnFiring(firing);
@@ -219,6 +216,9 @@ void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo, Task *
 void spider::sched::Mapper::mapCommunications(MappingResult &mappingInfo, PiSDFTask *task, Schedule *schedule) const {
     size_t depIx = 0;
     const auto lambda = [&depIx, &mappingInfo, schedule, task, this](const pisdf::DependencyInfo &dep) {
+        if (!dep.handler_ || !dep.vertex_) {
+            return;
+        }
         for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
             auto *srcTask = schedule->task(dep.handler_->getTaskIx(dep.vertex_, k));
             mapCommunications(mappingInfo, task, srcTask, depIx, schedule);

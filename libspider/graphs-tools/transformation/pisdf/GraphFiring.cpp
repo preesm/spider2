@@ -110,7 +110,7 @@ void spider::pisdf::GraphFiring::resolveBRV() {
     if (parent_->isStatic()) {
         const auto parentRV = parent_->repetitionCount();
         for (u32 k = 1; k < parentRV; ++k) {
-            auto *graphFiring = const_cast<GraphFiring *>(parent_->firing(k));
+            auto *graphFiring = parent_->firing(k);
             graphFiring->resolveDynamicDependentParams();
             graphFiring->createOrUpdateSubgraphHandlers();
             graphFiring->resolved_ = true;
@@ -281,7 +281,7 @@ void spider::pisdf::GraphFiring::setEdgeDepCount(const Vertex *vertex, const Edg
 
 /* === Private method(s) implementation === */
 
-void spider::pisdf::GraphFiring::resolveDynamicDependentParams() {
+void spider::pisdf::GraphFiring::resolveDynamicDependentParams() const {
     /* == Resolve dynamic dependent parameters == */
     for (auto &param : params_) {
         if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {

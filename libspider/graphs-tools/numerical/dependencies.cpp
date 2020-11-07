@@ -76,7 +76,7 @@ spider::pisdf::computeExecDependency(const GraphFiring *handler, const Vertex *v
     if (count) {
         *count = depCount;
     }
-    return DependencyIterator{ std::move(result) };
+    return DependencyIterator{ result };
 }
 
 spider::vector<spider::pisdf::DependencyIterator>
@@ -100,11 +100,11 @@ spider::pisdf::computeConsDependency(const GraphFiring *handler, const Vertex *v
     }
 #endif
     auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    auto depCount = detail::computeConsDependency(handler, vertex->outputEdge(edgeIx), firing,  result);
+    auto depCount = detail::computeConsDependency(handler, vertex->outputEdge(edgeIx), firing, result);
     if (count) {
         *count = depCount;
     }
-    return DependencyIterator{ std::move(result) };
+    return DependencyIterator{ result };
 }
 
 

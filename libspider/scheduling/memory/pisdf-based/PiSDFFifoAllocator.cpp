@@ -80,8 +80,8 @@ void spider::sched::PiSDFFifoAllocator::updateDynamicBuffersCount() {
 spider::unique_ptr<spider::JobFifos>
 spider::sched::PiSDFFifoAllocator::buildJobFifos(PiSDFTask *task, JobFifos *fifos) {
     const auto *vertex = task->vertex();
+    const auto *handler = task->handler();
     const auto firing = task->firing();
-    auto *handler = task->handler();
     /* == Allocate input fifos == */
     auto *inputFifos = fifos->inputFifos().data();
     for (const auto *edge : vertex->inputEdges()) {
@@ -174,9 +174,11 @@ void spider::sched::PiSDFFifoAllocator::buildMergeFifo(Fifo *fifos,
     /* == Allocate the Fifos == */
     u32 fifoIx = 1;
     auto lambda = [fifos, &fifoIx](const pisdf::DependencyInfo &dep) {
+        if (!dep.vertex_ || !dep.handler_) {
+            return;
+        }
         for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-            const auto *srcVertex = dep.vertex_;
-            const auto *srcEdge = srcVertex->outputEdge(dep.edgeIx_);
+            const auto *srcEdge = dep.vertex_->outputEdge(dep.edgeIx_);
             const auto memStart = k == dep.firingStart_ ? dep.memoryStart_ : 0;
             const auto memEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
             fifos[fifoIx] = buildInputFifo(srcEdge, memEnd - memStart + 1, memStart, k, dep.handler_);
