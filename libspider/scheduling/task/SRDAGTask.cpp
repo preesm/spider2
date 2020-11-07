@@ -56,7 +56,10 @@ spider::sched::SRDAGTask::SRDAGTask(srdag::Vertex *vertex) : Task(), vertex_{ ve
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
-    syncInfoArray_ = make_unique(make_n<SyncInfo, StackID::SCHEDULE>(archi::platform()->LRTCount(), { UINT32_MAX, 0 }));
+    const auto *platform = archi::platform();
+    if (platform) {
+        syncInfoArray_ = make_unique(make_n<SyncInfo, StackID::SCHEDULE>(archi::platform()->LRTCount(), { UINT32_MAX, 0 }));
+    }
 }
 
 void spider::sched::SRDAGTask::visit(TaskLauncher *launcher) {
