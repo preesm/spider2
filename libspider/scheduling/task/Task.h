@@ -214,6 +214,8 @@ namespace spider {
              */
             virtual u32 syncRateOnLRT(size_t lrtIx) const = 0;
 
+            virtual inline u32 firing() const { return 0; }
+
             /* === Setter(s) === */
 
             /**

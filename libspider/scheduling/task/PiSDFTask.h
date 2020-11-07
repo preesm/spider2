@@ -119,7 +119,7 @@ namespace spider {
              * @brief Get the current firing of this task.
              * @return firing of the vertex associated to the task.
              */
-            u32 firing() const;
+            u32 firing() const final;
 
             /* === Setter(s) === */
 
