@@ -143,7 +143,7 @@ namespace spider {
              * @param schedule  Schedule to which the vertexTask is associated.
              * @return pair containing the communication cost as first and the total size of data to send as second.
              */
-            static std::pair<ufast64, ufast64> computeCommunicationCost(const Task *task,
+            static std::pair<ufast64, ufast64> computeCommunicationCost(Task *task,
                                                                         const PE *mappedPE,
                                                                         const Schedule *schedule);
 
