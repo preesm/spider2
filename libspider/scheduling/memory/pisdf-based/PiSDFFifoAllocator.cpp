@@ -78,25 +78,15 @@ void spider::sched::PiSDFFifoAllocator::updateDynamicBuffersCount() {
 }
 
 spider::unique_ptr<spider::JobFifos>
-spider::sched::PiSDFFifoAllocator::buildJobFifos(PiSDFTask *task) {
+spider::sched::PiSDFFifoAllocator::buildJobFifos(PiSDFTask *task, JobFifos *fifos) {
     const auto *vertex = task->vertex();
     const auto firing = task->firing();
     auto *handler = task->handler();
-    auto inputCountArray = factory::vector<u32>(vertex->inputEdgeCount(), StackID::SCHEDULE);
-    u32 totalFifoCount = 0;
-    for (const auto *edge : vertex->inputEdges()) {
-        auto count = pisdf::detail::computeExecDependency(handler, edge, firing);
-        count = count > 0 ? count : 1;
-        totalFifoCount += static_cast<u32>(count + (count > 1));
-        inputCountArray[edge->sinkPortIx()] = static_cast<u32>(count);
-    }
-    auto fifos = spider::make<JobFifos, StackID::RUNTIME>(totalFifoCount, static_cast<u32>(vertex->outputEdgeCount()));
     /* == Allocate input fifos == */
     auto *inputFifos = fifos->inputFifos().data();
     for (const auto *edge : vertex->inputEdges()) {
-        const auto depCount = inputCountArray[edge->sinkPortIx()];
+        const auto depCount = handler->getEdgeDepCount(vertex, edge, firing);
         if (depCount > 1) {
-            /* == Allocate merged fifo == */
             buildMergeFifo(inputFifos, handler, edge, firing);
             inputFifos += depCount + 1;
         } else {
@@ -106,9 +96,9 @@ spider::sched::PiSDFFifoAllocator::buildJobFifos(PiSDFTask *task) {
     }
     /* == Allocate output fifos == */
     allocate(task, fifos);
+    auto *outputFifos = fifos->outputFifos().data();
     for (const auto *edge : vertex->outputEdges()) {
-        const auto edgeIx = edge->sourcePortIx();
-        fifos->setOutputFifo(edgeIx, buildOutputFifo(edge, task));
+        buildOutputFifo(*(outputFifos++), edge, task);
     }
     return spider::make_unique(fifos);
 }
@@ -221,23 +211,20 @@ spider::Fifo spider::sched::PiSDFFifoAllocator::buildInputFifo(const pisdf::Edge
     return fifo;
 }
 
-spider::Fifo spider::sched::PiSDFFifoAllocator::buildOutputFifo(const pisdf::Edge *edge, const PiSDFTask *task) {
-    Fifo fifo{ };
+void spider::sched::PiSDFFifoAllocator::buildOutputFifo(Fifo &fifo, const pisdf::Edge *edge, const PiSDFTask *task) {
     auto *handler = task->handler();
     const auto firing = task->firing();
     fifo.address_ = handler->getEdgeAddress(edge, firing);
     fifo.offset_ = handler->getEdgeOffset(edge, firing);
     fifo.size_ = static_cast<u32>(handler->getSrcRate(edge));
     fifo.attribute_ = FifoAttribute::RW_OWN;
-    fifo.count_ = 1;
-    auto consCount = spider::pisdf::detail::computeConsDependency(handler, edge, firing);
-    if (!consCount) {
+    if (!fifo.count_) {
         /* == Dynamic case, the FIFO will be automatically managed == */
+        fifo.count_ = 1;
         dynamicBuffers_.push_back({ task, static_cast<u32>(edge->sourcePortIx()), firing });
-    } else if (consCount < 0) {
+    } else if (fifo.count_ < 0) {
+        fifo.count_ = 1;
         fifo.attribute_ = FifoAttribute::W_SINK;
-    } else {
-        fifo.count_ = consCount;
     }
     /* == Set attribute == */
     const auto sourceSubType = edge->source()->subtype();
@@ -247,5 +234,4 @@ spider::Fifo spider::sched::PiSDFFifoAllocator::buildOutputFifo(const pisdf::Edg
     } else if (sourceSubType == pisdf::VertexType::FORK || sourceSubType == pisdf::VertexType::DUPLICATE) {
         fifo.attribute_ = FifoAttribute::RW_ONLY;
     }
-    return fifo;
 }

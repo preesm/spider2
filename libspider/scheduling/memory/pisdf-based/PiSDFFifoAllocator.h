@@ -70,7 +70,7 @@ namespace spider {
              * @param task     Pointer to the task.
              * @return @refitem unique_ptr of @refitem JobFifos
              */
-            spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task) final;
+            spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task, JobFifos *fifos) final;
 
         private:
             struct dynaBuffer_t {
@@ -108,13 +108,28 @@ namespace spider {
                                 const pisdf::Edge *edge,
                                 u32 firing);
 
+            /**
+             * @brief Creates an input @refitem spider::Fifo from raw information.
+             * @param edge    Pointer to the input edge.
+             * @param size    Size of the fifo.
+             * @param offset  Offset to be applied with respect to the allocated virtual address of the fifo.
+             * @param firing  Firing of the original producer of the edge.
+             * @param handler Handler associated with the original producer of the edge.
+             * @return created Fifo.
+             */
             static Fifo buildInputFifo(const pisdf::Edge *edge,
                                        u32 size,
                                        u32 offset,
                                        u32 firing,
                                        const pisdf::GraphFiring *handler);
 
-            Fifo buildOutputFifo(const pisdf::Edge *edge, const PiSDFTask *task);
+            /**
+             * @brief Set every attribute members of an output fifo (except of the count which should already be set by now).
+             * @param fifo  Reference to the fifo to be built.
+             * @param edge  Pointer to the output edge/
+             * @param task  Pointer to the task.
+             */
+            void buildOutputFifo(Fifo &fifo, const pisdf::Edge *edge, const PiSDFTask *task);
 
         };
     }

@@ -66,7 +66,7 @@ namespace spider {
                 deferedSyncTasks_ = factory::vector<std::pair<SyncTask *, u32>>(StackID::RUNTIME);
             }
 
-            ~TaskLauncher() = default;
+            ~TaskLauncher() noexcept = default;
 
             /* === Method(s) === */
 
@@ -101,14 +101,14 @@ namespace spider {
              *         array with corresponding flags for each LRT else.
              */
             template<class ...Args>
-            spider::unique_ptr<bool> buildJobNotificationFlags(const Task *task, Args &&...args) const;
+            spider::unique_ptr<bool> buildJobNotificationFlags(Task *task, Args &&...args) const;
 
             /**
              * @brief Build execution constraints for this task (needed job + lrt).
              * @param task Pointer to the task.
              * @return array of constraints if any, empty array else.
              */
-            static spider::array<SyncInfo> buildExecConstraints(const Task *task);
+            spider::array<SyncInfo> buildExecConstraints(const Task *task) const;
 
             /**
              * @brief Based on current state of the mapping / scheduling, fill the boolean array "flags" with
@@ -117,15 +117,16 @@ namespace spider {
              * @param schedule Pointer to the schedule.
              * @return True if at least one LRT will be notified by this task.
              */
-            void updateNotificationFlags(const Task *task, bool *flags) const;
+            void updateNotificationFlags(Task *task, bool *flags) const;
 
-            void updateNotificationFlags(const Task *task,
+            void updateNotificationFlags(Task *task,
                                          bool *flags,
                                          const pisdf::GraphFiring *handler,
                                          const pisdf::Vertex *vertex,
-                                         u32 firing) const;
+                                         u32 firing,
+                                         Fifo *fifos) const;
 
-            static bool setFlagsFromSink(const Task *task, const Task *sinkTask, bool *flags);
+            static bool setFlagsFromSink(u32 taskIx, size_t mappedLRTIx, const Task *sinkTask, bool *flags);
 
         };
     }

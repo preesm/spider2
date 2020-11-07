@@ -118,7 +118,7 @@ namespace spider {
 
             inline virtual void updateDynamicBuffersCount() { }
 
-            inline virtual spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *) {
+            inline virtual spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *, JobFifos *) {
                 return spider::make_unique<JobFifos>(0, 0);
             }
 
