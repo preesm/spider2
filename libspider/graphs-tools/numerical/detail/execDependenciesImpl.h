@@ -109,14 +109,13 @@ namespace spider {
                                                 const pisdf::GraphFiring *handler,
                                                 Args &&...args) {
                     /* == Case of getter vertex == */
-                    const auto *source = edge->source();
-                    const auto srcRate = handler->getSrcRate(edge);
-                    const auto *delayFromVertex = source->convertTo<DelayVertex>()->delay();
+                    const auto *delayFromVertex = edge->source()->convertTo<DelayVertex>()->delay();
                     const auto *delayEdge = delayFromVertex->edge();
                     const auto *sink = delayEdge->sink();
+                    const auto srcRate = handler->getSrcRate(edge);
                     const auto snkRate = handler->getSnkRate(delayEdge);
-                    const auto snkRV = handler->getRV(sink);
                     const auto srcRV = handler->getRV(delayEdge->source());
+                    const auto snkRV = handler->getRV(sink);
                     const auto offset =
                             sink->subtype() == VertexType::OUTPUT ? srcRate * srcRV - snkRate : snkRate * snkRV;
                     lowerCons += offset;
@@ -189,15 +188,13 @@ namespace spider {
                                       int64_t upperCons,
                                       const GraphFiring *handler,
                                       Args &&...args) {
-
-                const auto *source = edge->source();
-                const auto sourceType = source->subtype();
-                const auto *delay = edge->delay();
-                const auto delayValue = delay ? delay->value() : 0;
                 if (!handler->getSnkRate(edge)) {
                     impl::apply({ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }, std::forward<Args>(args)...);
                     return 0;
                 }
+                const auto sourceType = edge->source()->subtype();
+                const auto *delay = edge->delay();
+                const auto delayValue = delay ? delay->value() : 0;
                 /* == Handle specific cases == */
                 if (sourceType == VertexType::DELAY) {
                     return impl::computeExecDependencyGetter(edge, lowerCons, upperCons, handler,
