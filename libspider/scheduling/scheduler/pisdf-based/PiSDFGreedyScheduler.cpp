@@ -40,7 +40,9 @@
 #include <graphs/pisdf/Vertex.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
+
 #include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static function === */
 
@@ -77,19 +79,11 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
                                                    Schedule *schedule) {
     auto schedulable = true;
     if (handler->getTaskIx(vertex, firing) == UINT32_MAX) {
-        u32 depCount{ };
         for (const auto *edge : vertex->inputEdges()) {
-            const auto deps = handler->computeExecDependency(vertex, firing, edge->sinkPortIx());
-            for (const auto &dep : deps) {
-                depCount += (dep.firingEnd_ - dep.firingStart_ + 1u);
-                if (!dep.rate_) {
-                    continue;
-                } else if (!dep.vertex_ || dep.rate_ < 0) {
-                    return false;
-                }
-                for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                    schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, schedule);
-                }
+            const auto count = pisdf::detail::computeExecDependency(handler, edge, firing, eval, schedule, schedulable);
+            handler->setEdgeDepCount(vertex, edge, firing, static_cast<u32>(count > 0 ? count : 1));
+            if (!schedulable) {
+                return false;
             }
         }
         if (schedulable) {
@@ -97,4 +91,16 @@ bool spider::sched::PiSDFGreedyScheduler::evaluate(pisdf::GraphFiring *handler,
         }
     }
     return schedulable;
+}
+
+void spider::sched::PiSDFGreedyScheduler::eval(const pisdf::DependencyInfo &dep, Schedule *schedule, bool &schedulable) {
+    if (!dep.rate_) {
+        return;
+    } else if (!dep.vertex_ || dep.rate_ < 0) {
+        schedulable = false;
+        return;
+    }
+    for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+        schedulable &= evaluate(const_cast<pisdf::GraphFiring *>(dep.handler_), dep.vertex_, k, schedule);
+    }
 }

@@ -73,7 +73,7 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
-            virtual void map(sched::Task *task, Schedule *schedule) = 0;
+            void map(sched::Task *task, Schedule *schedule);
 
             /**
              * @brief Map a vertexTask onto available resources.
@@ -81,7 +81,7 @@ namespace spider {
              * @param schedule pointer to the schedule to update.
              * @throw @refitem spider::Exception if the mapper was unable to find any processing elements for the vertexTask.
              */
-            virtual void map(sched::PiSDFTask *task, Schedule *schedule) = 0;
+            void map(sched::PiSDFTask *task, Schedule *schedule);
 
             /* === Getter(s) === */
 
@@ -99,10 +99,6 @@ namespace spider {
                 bool needToAddCommunication{ false };
             };
 
-            ufast64 startTime_{ 0U };
-
-            /* === Protected method(s) === */
-
             /**
              * @brief Find which PE is the best fit inside a given cluster.
              * @param cluster       Cluster to go through.
@@ -113,6 +109,15 @@ namespace spider {
              */
             virtual const PE *
             findPE(const Cluster *cluster, const Stats &stats, const Task *task, ufast64 minStartTime) const = 0;
+
+        private:
+
+            ufast64 startTime_{ 0U };
+
+            /* === Private method(s) === */
+
+            template<class T>
+            void mapImpl(T *task, Schedule *schedule);
 
             /**
              * @brief Compute the minimum start time possible for a given task.
@@ -126,12 +131,9 @@ namespace spider {
              * @brief Compute the minimum start time possible for a given task.
              * @param task         Pointer to the task.
              * @param schedule     Pointer to the schedule.
-             * @param dependencies Dependencies of the task.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(Task *task,
-                                     const Schedule *schedule,
-                                     const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+            ufast64 computeStartTime(PiSDFTask *task, const Schedule *schedule) const;
 
             /**
              * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
@@ -141,38 +143,13 @@ namespace spider {
              * @param schedule  Schedule to which the vertexTask is associated.
              * @return pair containing the communication cost as first and the total size of data to send as second.
              */
-            static std::pair<ufast64, ufast64> computeCommunicationCost(const Task *task,
+            static std::pair<ufast64, ufast64> computeCommunicationCost(Task *task,
                                                                         const PE *mappedPE,
                                                                         const Schedule *schedule);
 
-            /**
-             * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
-             *        on a given PE.
-             * @param mappedPE     PE on which the vertexTask is currently mapped.
-             * @param schedule     Schedule to which the vertexTask is associated.
-             * @param dependencies Dependencies of the task.
-             * @return pair containing the communication cost as first and the total size of data to send as second.
-             */
-            static std::pair<ufast64, ufast64> computeCommunicationCost(const Task *,
-                                                                        const PE *mappedPE,
-                                                                        const Schedule *schedule,
-                                                                        const spider::vector<pisdf::DependencyIterator> &dependencies);
+            void mapCommunications(MappingResult &mappingInfo, Task *task, Schedule *schedule) const;
 
-            static void updateCommunicationCost(const spider::PE *mappedPE,
-                                                const Task *srcTask,
-                                                ufast64 rate,
-                                                ufast64 &communicationCost,
-                                                ufast64 &externDataToReceive);
-
-
-            void mapCommunications(MappingResult &mappingInfo,
-                                   Task *task,
-                                   Schedule *schedule) const;
-
-            void mapCommunications(MappingResult &mappingInfo,
-                                   Task *task,
-                                   Schedule *schedule,
-                                   const spider::vector<pisdf::DependencyIterator> &dependencies) const;
+            void mapCommunications(MappingResult &mappingInfo, PiSDFTask *task, Schedule *schedule) const;
 
             void mapCommunications(MappingResult &mappingInfo,
                                    Task *task,

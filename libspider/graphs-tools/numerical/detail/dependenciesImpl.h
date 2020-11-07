@@ -37,33 +37,7 @@
 
 /* === Include(s) === */
 
-#include <graphs-tools/numerical/detail/DependencyIterator.h>
-
-namespace spider {
-    namespace pisdf {
-
-        class Vertex;
-
-        class Edge;
-
-        namespace detail {
-
-            /* === Function(s) prototype === */
-
-            i32 computeExecDependency(const Edge *edge,
-                                      int64_t lowerCons,
-                                      int64_t upperCons,
-                                      const pisdf::GraphFiring *handler,
-                                      spider::vector<DependencyInfo> *result);
-
-            i32 computeConsDependency(const Edge *edge,
-                                      int64_t lowerProd,
-                                      int64_t upperProd,
-                                      const pisdf::GraphFiring *handler,
-                                      spider::vector<DependencyInfo> *result);
-
-        }
-    }
-}
+#include <graphs-tools/numerical/detail/execDependenciesImpl.h>
+#include <graphs-tools/numerical/detail/consDependenciesImpl.h>
 
 #endif //SPIDER2_DEPENDENCIESIMPL_H

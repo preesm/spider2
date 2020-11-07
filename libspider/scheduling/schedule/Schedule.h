@@ -104,9 +104,11 @@ namespace spider {
              * @param task  Pointer to the task.
              */
             inline void addTask(Task *task, u32 firing = 0) {
-                task->setOnFiring(firing);
-                task->setIx(static_cast<u32>(tasks_.size()));
-                tasks_.emplace_back(task, firing);
+                if (task) {
+                    task->setOnFiring(firing);
+                    task->setIx(static_cast<u32>(tasks_.size()));
+                    tasks_.emplace_back(task, firing);
+                }
             }
 
             template<class ...Args>
@@ -173,10 +175,6 @@ namespace spider {
         private:
             spider::vector<ComposedTask> tasks_;
             Stats stats_;
-
-            /* === Private method(s) === */
-
-            void clearTasks();
         };
     }
 }

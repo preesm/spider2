@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,68 +32,44 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRDAGTASK_H
-#define SPIDER2_SRDAGTASK_H
-
-#ifndef _NO_BUILD_LEGACY_RT
+#ifndef SPIDER2_UNIPISDFTASK_H
+#define SPIDER2_UNIPISDFTASK_H
 
 /* === Include(s) === */
 
-#include <scheduling/task/Task.h>
+#include <scheduling/task/PiSDFTask.h>
 #include <memory/unique_ptr.h>
-#include <containers/array.h>
+#include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
 
-    namespace srdag {
+    namespace pisdf {
         class Vertex;
+
+        class Edge;
+
+        class GraphFiring;
     }
 
     namespace sched {
 
         /* === Class definition === */
 
-        class SRDAGTask final : public Task {
+        class UniPiSDFTask final : public PiSDFTask {
         public:
-            explicit SRDAGTask(srdag::Vertex *vertex);
+            UniPiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
 
-            ~SRDAGTask() noexcept override = default;
+            ~UniPiSDFTask() final = default;
 
             /* === Method(s) === */
 
-            void visit(TaskLauncher *launcher) final;
-
-            bool receiveParams(const spider::array<i64> &values) final;
+            void reset() final;
 
             /* === Getter(s) === */
-
-            i64 inputRate(size_t ix) const final;
-
-            Task *previousTask(size_t ix, const Schedule *schedule) const final;
-
-            Task *nextTask(size_t ix, const Schedule *schedule) const final;
-
-            u32 color() const final;
-
-            std::string name() const final;
-
-            u32 ix() const noexcept final;
-
-            bool isMappableOnPE(const PE *pe) const final;
-
-            u64 timingOnPE(const PE *pe) const final;
-
-            size_t dependencyCount() const final;
-
-            size_t successorCount() const final;
-
-            u64 startTime() const final;
 
             inline u64 endTime() const final { return endTime_; }
 
             const PE *mappedPe() const final;
-
-            const PE *mappedLRT() const final;
 
             inline u32 jobExecIx() const noexcept final { return jobExecIx_; }
 
@@ -103,21 +79,15 @@ namespace spider {
 
             inline u32 syncRateOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].second; }
 
-            inline srdag::Vertex *vertex() const { return vertex_; }
-
             /* === Setter(s) === */
-
-            inline void setStartTime(u64) final { }
 
             inline void setEndTime(u64 time) final { endTime_ = time; }
 
-            void setIx(u32 ix) noexcept final;
+            void setMappedPE(const PE *pe) final;
 
             inline void setState(TaskState state) noexcept final { state_ = state; }
 
             inline void setJobExecIx(u32 ix) noexcept final { jobExecIx_ = ix; }
-
-            inline void setMappedPE(const spider::PE *pe) final;
 
             inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
                 syncInfoArray_[lrtIx].first = value;
@@ -128,14 +98,13 @@ namespace spider {
             }
 
         private:
-            spider::unique_ptr<SyncInfo> syncInfoArray_;
-            srdag::Vertex *vertex_ = nullptr;
-            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
-            u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */
-            u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
-            TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */
+            spider::unique_ptr<SyncInfo> syncInfoArray_;   /*!< Exec constraints array of the instances of the vertex*/
+            u64 endTime_ = 0;                              /*!< Mapping end time array of the instances of the vertex */
+            u32 mappedPEIx_ = UINT32_MAX;                  /*!< Mapping PE array of the instances of the vertex */
+            u32 jobExecIx_ = UINT32_MAX;                   /*!< Index array of the job sent to the PE */
+            TaskState state_ = TaskState::NOT_SCHEDULABLE; /*!< State array of the instances of the vertex */
         };
     }
 }
-#endif
-#endif //SPIDER2_SRDAGTASK_H
+
+#endif //SPIDER2_UNIPISDFTASK_H

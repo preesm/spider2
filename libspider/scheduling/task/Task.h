@@ -200,7 +200,21 @@ namespace spider {
              */
             virtual u32 jobExecIx() const noexcept = 0;
 
+            /**
+             * @brief Get the dependency task ix on given LRT and for a given firing.
+             * @param lrtIx    Index of the LRT to evaluate.
+             * @return value of the task ix, UINT32_MAX else.
+             */
             virtual u32 syncExecIxOnLRT(size_t lrtIx) const = 0;
+
+            /**
+             * @brief Get the exchanged rate with given LRT.
+             * @param lrtIx  Index of the LRT.
+             * @return value of the rate, 0 else.
+             */
+            virtual u32 syncRateOnLRT(size_t lrtIx) const = 0;
+
+            virtual inline u32 firing() const { return 0; }
 
             /* === Setter(s) === */
 
@@ -246,7 +260,24 @@ namespace spider {
              */
             virtual void setIx(u32 ix) noexcept = 0;
 
+            /**
+            * @brief Set the execution job index value of the Task that will be used for synchronization.
+            * @remark This method will overwrite current value only if value is greater than existing value.
+            * @param lrtIx Index of the LRT of the sync task.
+            * @param value Value of the job exec ix of the sync task.
+            */
             virtual void setSyncExecIxOnLRT(size_t lrtIx, u32 value) = 0;
+
+            /**
+            * @brief Set the execution rate of the Task that will be used for synchronization.
+            * @remark This method will overwrite current value.
+            * @param lrtIx Index of the LRT of the sync task.
+            * @param value Value of the rate of the sync task.
+            */
+            virtual void setSyncRateOnLRT(size_t lrtIx, u32 value) = 0;
+
+        protected:
+            using SyncInfo = std::pair<u32, u32>;
         };
     }
 }

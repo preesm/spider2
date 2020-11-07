@@ -55,27 +55,10 @@ namespace spider {
 
             ~RoundRobinMapper() noexcept override = default;
 
-            /* === Method(s) === */
-
-            void map(sched::Task *task, Schedule *schedule) override;
-
-            void map(sched::PiSDFTask *task, Schedule *schedule) override;
-
-            /* === Getter(s) === */
-
-            /* === Setter(s) === */
-
         private:
             spider::unique_ptr<size_t> currentPeIx_;
 
-            using StartTimeFct = ufast64 (*)(const Task *, const Schedule *);
-            using ComCostFct = std::pair<ufast64, ufast64>(*)(const Task *, const PE *mappedPE, const Schedule *);
-            using MapSyncFct = void (*)(Task *, const Cluster *cluster, Schedule *);
-
             /* === Private method(s) === */
-
-            template<class ...Args>
-            void mapImpl(Task *task, Schedule *schedule, Args &&... args);
 
             /**
              * @brief Find which PE is the best fit inside a given cluster.

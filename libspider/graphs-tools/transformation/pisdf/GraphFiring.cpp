@@ -36,12 +36,10 @@
 
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
-#include <graphs-tools/numerical/dependencies.h>
+#include <graphs-tools/transformation/pisdf/GraphAlloc.h>
 #include <graphs-tools/numerical/brv.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs/pisdf/DelayVertex.h>
-#include <graphs-tools/helper/pisdf-helper.h>
-#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 /* === Static function === */
 
@@ -58,11 +56,11 @@ spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
         throwNullptrException();
     }
     const auto *graph = parent->graph();
-    brvArray_ = spider::make_unique(make_n<u32, StackID::TRANSFO>(graph->vertexCount(), UINT32_MAX));
-    subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
-    ratesArray_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
-    taskIxRegister_ = spider::make_unique(make_n<u32 *, StackID::SCHEDULE>(graph->vertexCount(), nullptr));
-    edgeAllocArray_ = spider::make_unique(make_n<FifoAlloc *, StackID::SCHEDULE>(graph->edgeCount(), nullptr));
+    if (!firing || !parent->isStatic()) {
+        /* == small optimization to avoid allocating same information for static graphs == */
+        brvArray_ = spider::make_unique(make_n<u32, StackID::TRANSFO>(graph->vertexCount(), UINT32_MAX));
+        ratesArray_ = spider::make_unique(make_n<EdgeRate, StackID::TRANSFO>(graph->edgeCount(), { 0, 0 }));
+    }
     /* == copy parameters == */
     params_.reserve(params.size());
     dynamicParamCount_ = 0;
@@ -70,24 +68,29 @@ spider::pisdf::GraphFiring::GraphFiring(const GraphHandler *parent,
         dynamicParamCount_ += param->type() == pisdf::ParamType::DYNAMIC;
         params_.emplace_back(copyParameter(param));
     }
+    depsCountArray_ = spider::make_unique(make_n<u32 *, StackID::TRANSFO>(graph->vertexCount(), nullptr));
+    subgraphHandlers_ = spider::make_unique(make_n<GraphHandler *, StackID::TRANSFO>(graph->subgraphCount(), nullptr));
+    alloc_ = spider::make_unique(make<GraphAlloc, StackID::SCHEDULE>(parent->graph()));
 }
 
 spider::pisdf::GraphFiring::~GraphFiring() {
-    for (auto &ptr : make_handle(taskIxRegister_.get(), parent_->graph()->vertexCount())) {
-        deallocate(ptr);
+    for (const auto &vertex : parent_->graph()->vertices()) {
+        deallocate(depsCountArray_[vertex->ix()]);
     }
     for (auto &child : subgraphHandlers()) {
         destroy(child);
     }
-    for (const auto &edge : parent_->graph()->edges()) {
-        deallocate(edgeAllocArray_[edge->ix()]);
-    }
+    alloc_->clear(parent_->graph());
 }
 
 void spider::pisdf::GraphFiring::resolveBRV() {
     if (resolved_) {
         return;
     }
+    if (parent_->isStatic() && firing_) {
+        return;
+    }
+    resolveDynamicDependentParams();
     /* == Compute BRV == */
     spider::brv::compute(parent_->graph(), params_);
     /* == Save RV values into the array == */
@@ -103,45 +106,24 @@ void spider::pisdf::GraphFiring::resolveBRV() {
         ratesArray_[ix].snkRate_ = edge->sinkRateValue();
     }
     resolved_ = true;
-}
-
-void spider::pisdf::GraphFiring::apply(const GraphFiring *srcFiring) {
-#ifndef NDEBUG
-    if (!srcFiring) {
-        throwNullptrException();
-    } else if (srcFiring->parent_ != parent_) {
-        throwSpiderException("expected a firing from the same parent_.");
-    } else if (!srcFiring->resolved_) {
-        throwSpiderException("expected a resolved firing.");
+    /* == do other firings == */
+    if (parent_->isStatic()) {
+        const auto parentRV = parent_->repetitionCount();
+        for (u32 k = 1; k < parentRV; ++k) {
+            auto *graphFiring = parent_->firing(k);
+            graphFiring->resolveDynamicDependentParams();
+            graphFiring->createOrUpdateSubgraphHandlers();
+            graphFiring->resolved_ = true;
+        }
     }
-#endif
-    if (resolved_ || srcFiring == this) {
-        return;
-    }
-    for (const auto &vertex : parent_->graph()->vertices()) {
-        updateFromRV(vertex.get(), srcFiring->brvArray_[vertex->ix()]);
-    }
-    /* == creates subgraph handlers == */
-    createOrUpdateSubgraphHandlers();
-    /* == Copy rates == */
-    memcpy(ratesArray_.get(), srcFiring->ratesArray_.get(), parent_->graph()->edgeCount() * sizeof(EdgeRate));
-    resolved_ = true;
 }
 
 void spider::pisdf::GraphFiring::clear() {
-    for (const auto &vertex : parent_->graph()->vertices()) {
-        const auto ix = vertex->ix();
-        const auto rvValue = brvArray_[ix];
-        if (rvValue != UINT32_MAX) {
-            std::fill(taskIxRegister_[ix], taskIxRegister_[ix] + rvValue, UINT32_MAX);
-            for (const auto *edge : vertex->outputEdges()) {
-                for (u32 k = 0; k < rvValue; ++k) {
-                    setEdgeAddress(SIZE_MAX, edge, k);
-                    setEdgeOffset(0, edge, k);
-                }
-            }
-        }
+    const auto *brv = brvArray_.get();
+    if (firing_ && parent_->isStatic()) {
+        brv = parent_->firing(0)->brvArray_.get();
     }
+    alloc_->reset(parent_->graph(), brv);
     for (auto &graphHandler : subgraphHandlers()) {
         if (graphHandler) {
             graphHandler->clear();
@@ -149,71 +131,6 @@ void spider::pisdf::GraphFiring::clear() {
     }
     paramResolvedCount_ = 0;
     resolved_ = parent_->isStatic();
-}
-
-spider::vector<spider::pisdf::DependencyIterator>
-spider::pisdf::GraphFiring::computeExecDependencies(const Vertex *vertex, u32 firing) const {
-    auto result = factory::vector<DependencyIterator>(StackID::SCHEDULE);
-    if (vertex->inputEdgeCount()) {
-        spider::reserve(result, vertex->inputEdgeCount());
-        for (const auto *edge : vertex->inputEdges()) {
-            result.emplace_back(computeExecDependency(vertex, firing, edge->sinkPortIx()));
-        }
-    }
-    return result;
-}
-
-spider::pisdf::DependencyIterator
-spider::pisdf::GraphFiring::computeExecDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
-#ifndef NDEBUG
-    if (!vertex) {
-        throwNullptrException();
-    }
-#endif
-    const auto *edge = vertex->inputEdge(edgeIx);
-    const auto snkRate = getSnkRate(edge);
-    if (!snkRate) {
-        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
-    }
-    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    spider::reserve(result, 20);
-    auto depCount = pisdf::detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, this, &result);
-    if (count) {
-        *count = depCount;
-    }
-    return DependencyIterator{ std::move(result) };
-}
-
-spider::vector<spider::pisdf::DependencyIterator>
-spider::pisdf::GraphFiring::computeConsDependencies(const Vertex *vertex, u32 firing) const {
-    auto result = factory::vector<pisdf::DependencyIterator>(StackID::SCHEDULE);
-    if (vertex->outputEdgeCount()) {
-        spider::reserve(result, vertex->outputEdgeCount());
-        for (const auto *edge : vertex->outputEdges()) {
-            result.emplace_back(computeConsDependency(vertex, firing, edge->sourcePortIx()));
-        }
-    }
-    return result;
-}
-
-spider::pisdf::DependencyIterator
-spider::pisdf::GraphFiring::computeConsDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count) const {
-#ifndef NDEBUG
-    if (!vertex) {
-        throwNullptrException();
-    }
-#endif
-    const auto *edge = vertex->outputEdge(edgeIx);
-    const auto srcRate = getSrcRate(edge);
-    if (!srcRate) {
-        return DependencyIterator{{{ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }}};
-    }
-    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
-    auto depCount = detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, this, &result);
-    if (count) {
-        *count = depCount;
-    }
-    return DependencyIterator{ std::move(result) };
 }
 
 spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphFirings() const {
@@ -230,8 +147,11 @@ int64_t spider::pisdf::GraphFiring::getSrcRate(const Edge *edge) const {
         throwSpiderException("edge does not belong to this graph.");
     }
 #endif
-    // TODO:: add possibility to switch off this optim with compiler flag
-    return ratesArray_[edge->ix()].srcRate_;
+    if (!firing_ || !parent_->isStatic()) {
+        return ratesArray_[edge->ix()].srcRate_;
+    } else {
+        return parent_->firing(0)->ratesArray_[edge->ix()].srcRate_;
+    }
 }
 
 int64_t spider::pisdf::GraphFiring::getSnkRate(const Edge *edge) const {
@@ -240,8 +160,11 @@ int64_t spider::pisdf::GraphFiring::getSnkRate(const Edge *edge) const {
         throwSpiderException("edge does not belong to this graph.");
     }
 #endif
-    // TODO:: add possibility to switch off this optim with compiler flag
-    return ratesArray_[edge->ix()].snkRate_;
+    if (!firing_ || !parent_->isStatic()) {
+        return ratesArray_[edge->ix()].snkRate_;
+    } else {
+        return parent_->firing(0)->ratesArray_[edge->ix()].snkRate_;
+    }
 }
 
 u32 spider::pisdf::GraphFiring::getRV(const Vertex *vertex) const {
@@ -253,16 +176,11 @@ u32 spider::pisdf::GraphFiring::getRV(const Vertex *vertex) const {
     if (vertex->subtype() == pisdf::VertexType::INPUT || vertex->subtype() == pisdf::VertexType::OUTPUT) {
         return 1;
     }
-    return brvArray_[vertex->ix()];
-}
-
-u32 spider::pisdf::GraphFiring::getTaskIx(const Vertex *vertex, u32 firing) const {
-#ifndef NDEBUG
-    if (firing >= getRV(vertex)) {
-        throwSpiderException("invalid vertex firing.");
+    if (!firing_ || !parent_->isStatic()) {
+        return brvArray_[vertex->ix()];
+    } else {
+        return parent_->firing(0)->brvArray_[vertex->ix()];
     }
-#endif
-    return taskIxRegister_[vertex->ix()][firing];
 }
 
 const spider::pisdf::GraphFiring *
@@ -272,7 +190,11 @@ spider::pisdf::GraphFiring::getSubgraphGraphFiring(const Graph *subgraph, u32 fi
         throwSpiderException("subgraph does not belong to this graph.");
     }
 #endif
-    return subgraphHandlers_[subgraph->subIx()]->firings()[firing];
+    return subgraphHandlers_[subgraph->subIx()]->firing(firing);
+}
+
+const spider::vector<std::shared_ptr<spider::pisdf::Param>> &spider::pisdf::GraphFiring::getParams() const {
+    return params_;
 }
 
 const spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) const {
@@ -283,93 +205,150 @@ spider::pisdf::Vertex *spider::pisdf::GraphFiring::vertex(size_t ix) {
     return parent_->graph()->vertex(ix);
 }
 
+spider::sched::PiSDFTask *spider::pisdf::GraphFiring::getTask(const Vertex *vertex) const {
+#ifndef NDEBUG
+    if (vertex->graph() != parent_->graph()) {
+        throwSpiderException("vertex do not belong to this graph.");
+    }
+#endif
+    return alloc_->getTask(vertex);
+}
+
+u32 spider::pisdf::GraphFiring::getTaskIx(const Vertex *vertex, u32 firing) const {
+    return alloc_->getTaskIx(vertex, firing);
+}
+
 size_t spider::pisdf::GraphFiring::getEdgeAddress(const Edge *edge, u32 firing) const {
-    return edgeAllocArray_[edge->ix()][firing].address_;
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        return alloc_->getEdgeAddress(edge, 0) + static_cast<size_t>(getSrcRate(edge) * firing);
+    }
+    return alloc_->getEdgeAddress(edge, firing);
 }
 
 u32 spider::pisdf::GraphFiring::getEdgeOffset(const Edge *edge, u32 firing) const {
-    return edgeAllocArray_[edge->ix()][firing].offset_;
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        return alloc_->getEdgeOffset(edge, 0);
+    }
+    return alloc_->getEdgeOffset(edge, firing);
+}
+
+u32 spider::pisdf::GraphFiring::getEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing) const {
+    const auto offset = firing * vertex->inputEdgeCount();
+    return depsCountArray_[vertex->ix()][offset + edge->sinkPortIx()];
 }
 
 void spider::pisdf::GraphFiring::setParamValue(size_t ix, int64_t value) {
     spider::get_at(params_, ix)->setValue(value);
     paramResolvedCount_++;
     if (paramResolvedCount_ == dynamicParamCount_) {
-        /* == Resolve dynamic dependent parameters == */
-        for (auto &param : params_) {
-            if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
-                param->value(params_);
-            }
-        }
+        resolveDynamicDependentParams();
         for (auto *subHandler : subgraphHandlers()) {
             subHandler->resolveFirings();
         }
     }
 }
 
-void spider::pisdf::GraphFiring::setTaskIx(const pisdf::Vertex *vertex, u32 firing, u32 taskIx) {
-#ifndef NDEBUG
-    if (firing >= getRV(vertex)) {
-        throwSpiderException("invalid vertex firing.");
+void spider::pisdf::GraphFiring::setTaskIx(const Vertex *vertex, u32 firing, u32 taskIx) {
+    alloc_->setTaskIx(vertex, firing, taskIx);
+}
+
+void spider::pisdf::GraphFiring::setEdgeAddress(size_t value, const Edge *edge, u32 firing) {
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        if (alloc_->getEdgeAddress(edge, 0) == SIZE_MAX) {
+            alloc_->setEdgeAddress(value, edge, 0);
+        }
+    } else {
+        alloc_->setEdgeAddress(value, edge, firing);
     }
-#endif
-    taskIxRegister_[vertex->ix()][firing] = taskIx;
 }
 
-void spider::pisdf::GraphFiring::setEdgeAddress(size_t value, const pisdf::Edge *edge, u32 firing) {
-    edgeAllocArray_[edge->ix()][firing].address_ = value;
+void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const Edge *edge, u32 firing) {
+    const auto type = edge->source()->subtype();
+    if (type != VertexType::FORK && type != VertexType::DUPLICATE) {
+        alloc_->setEdgeOffset(value, edge, 0);
+    } else {
+        alloc_->setEdgeOffset(value, edge, firing);
+    }
 }
 
-void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const pisdf::Edge *edge, u32 firing) {
-    edgeAllocArray_[edge->ix()][firing].offset_ = value;
+void spider::pisdf::GraphFiring::setEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing, u32 value) {
+    const auto offset = firing * vertex->inputEdgeCount();
+    depsCountArray_[vertex->ix()][offset + edge->sinkPortIx()] = value;
 }
 
 /* === Private method(s) implementation === */
 
+void spider::pisdf::GraphFiring::resolveDynamicDependentParams() const {
+    /* == Resolve dynamic dependent parameters == */
+    for (auto &param : params_) {
+        if (param->type() == pisdf::ParamType::DYNAMIC_DEPENDANT) {
+            param->value(params_);
+        }
+    }
+}
+
 std::shared_ptr<spider::pisdf::Param>
 spider::pisdf::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &param) {
-    if (param->type() == pisdf::ParamType::DYNAMIC) {
-        return spider::make_shared<pisdf::Param, StackID::PISDF>(*param);
-    } else if (param->type() == pisdf::ParamType::INHERITED) {
-        const auto *parentHandler = parent_->handler();
+    if (param->type() == ParamType::DYNAMIC || param->type() == ParamType::DYNAMIC_DEPENDANT) {
+        return spider::make_shared<Param, StackID::PISDF>(*param);
+    } else if (param->type() == ParamType::INHERITED) {
+        const auto *parentHandler = parent_->base();
         auto paramParentIx = param->parent() ? param->parent()->ix() : throwNullptrException();
-        const auto *parent = &parentHandler->params_[paramParentIx];
-        while (parent && ((*parent)->type() == pisdf::ParamType::INHERITED)) {
-            parentHandler = parentHandler->parent_->handler();
+        const auto *parent = &parentHandler->getParams()[paramParentIx];
+        while (parent && ((*parent)->type() == ParamType::INHERITED)) {
+            parentHandler = parentHandler->parent_->base();
             paramParentIx = (*parent)->parent() ? (*parent)->parent()->ix() : throwNullptrException();
-            parent = &parentHandler->params_[paramParentIx];
+            parent = &parentHandler->getParams()[paramParentIx];
         }
-        auto newParam = spider::make_shared<pisdf::Param, StackID::PISDF>(param->name(), *parent);
+        auto newParam = spider::make_shared<Param, StackID::PISDF>(param->name(), *parent);
         newParam->setIx(param->ix());
         return newParam;
     }
     return param;
 }
 
-void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 rvValue) {
+void spider::pisdf::GraphFiring::updateFromRV(const pisdf::Vertex *vertex, u32 rv) {
     const auto ix = vertex->ix();
-    if (brvArray_[ix] != rvValue) {
-        brvArray_[ix] = rvValue;
-        deallocate(taskIxRegister_[ix]);
-        taskIxRegister_[ix] = spider::make_n<u32, StackID::SCHEDULE>(rvValue, UINT32_MAX);
-        for (const auto *edge : vertex->outputEdges()) {
-            deallocate(edgeAllocArray_[edge->ix()]);
-            edgeAllocArray_[edge->ix()] = spider::make_n<FifoAlloc, StackID::SCHEDULE>(rvValue, { SIZE_MAX, 0 });
+    const auto count = rv * vertex->inputEdgeCount();
+    if (brvArray_[ix] != rv) {
+        brvArray_[ix] = rv;
+        alloc_->initialize(this, vertex, rv);
+        deallocate(depsCountArray_[ix]);
+        depsCountArray_[ix] = make_n<u32, StackID::TRANSFO>(count, 0);
+        if (parent_->isStatic()) {
+            const auto parentRV = parent_->repetitionCount();
+            for (u32 k = 1; k < parentRV; ++k) {
+                auto *graphFiring = parent_->firing(k);
+                graphFiring->alloc_->initialize(graphFiring, vertex, rv);
+                deallocate(graphFiring->depsCountArray_[ix]);
+                graphFiring->depsCountArray_[ix] = make_n<u32, StackID::TRANSFO>(count, 0);
+            }
         }
     } else {
         /* == reset values == */
-        std::fill(taskIxRegister_[ix], taskIxRegister_[ix] + rvValue, UINT32_MAX);
+        std::fill(depsCountArray_[ix], depsCountArray_[ix] + count, 0);
+        alloc_->reset(vertex, rv);
+        if (parent_->isStatic()) {
+            const auto parentRV = parent_->repetitionCount();
+            for (u32 k = 1; k < parentRV; ++k) {
+                auto *graphFiring = parent_->firing(k);
+                graphFiring->alloc_->reset(vertex, rv);
+                std::fill(graphFiring->depsCountArray_[ix], graphFiring->depsCountArray_[ix] + count, 0);
+            }
+        }
     }
 }
 
 void spider::pisdf::GraphFiring::createOrUpdateSubgraphHandlers() {
     for (const auto &subgraph : parent_->graph()->subgraphs()) {
-        const auto ix = subgraph->ix();
-        const auto rvValue = brvArray_[ix];
+        const auto rv = getRV(subgraph);
         auto &currentGraphHandler = subgraphHandlers_[subgraph->subIx()];
-        if (!currentGraphHandler || (rvValue != currentGraphHandler->repetitionCount())) {
+        if (!currentGraphHandler || (rv != currentGraphHandler->repetitionCount())) {
             destroy(currentGraphHandler);
-            currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rvValue, this);
+            currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rv, this);
         } else {
             /* == Resolve every child == */
             currentGraphHandler->resolveFirings();

@@ -123,10 +123,19 @@ namespace spider {
      * @return pointer to the array.
      */
     template<class T, StackID stack = StackID::GENERAL>
-    inline T *make_n(size_t count, const T &value = T()) {
+    inline T *make_n(size_t count, const T &value) {
         auto *ptr = allocate<T, stack>(count);
         for (size_t i = 0; i < count; ++i) {
             new(&ptr[i]) T(value);
+        }
+        return ptr;
+    }
+
+    template<class T, StackID stack = StackID::GENERAL>
+    inline T *make_n(size_t count) {
+        auto *ptr = allocate<T, stack>(count);
+        for (size_t i = 0; i < count; ++i) {
+            new(&ptr[i]) T();
         }
         return ptr;
     }

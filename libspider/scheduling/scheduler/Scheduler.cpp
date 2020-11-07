@@ -38,6 +38,7 @@
 #include <scheduling/scheduler/Scheduler.h>
 #include <scheduling/schedule/Schedule.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
+
 #include <scheduling/task/PiSDFTask.h>
 
 #ifndef _NO_BUILD_LEGACY_RT
@@ -51,27 +52,15 @@
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-void spider::sched::Scheduler::addTask(Schedule *schedule, srdag::Vertex *vertex) {
-    schedule->addTask(spider::make<sched::SRDAGTask, StackID::SCHEDULE>(vertex));
+void spider::sched::Scheduler::addTask(Schedule *schedule, const srdag::Vertex *vertex) {
+    schedule->addTask(vertex->scheduleTask());
 }
 
 #endif
 
 void spider::sched::Scheduler::addTask(Schedule *schedule,
-                                       pisdf::GraphFiring *handler,
+                                       const pisdf::GraphFiring *handler,
                                        const pisdf::Vertex *vertex,
                                        u32 firing) {
-    const auto rv = handler->getRV(vertex);
-    Task *task = nullptr;
-    for (u32 k = 0; k < rv; ++k) {
-        const auto taskIx = handler->getTaskIx(vertex, k);
-        if (taskIx != UINT32_MAX) {
-            task = schedule->task(taskIx);
-            break;
-        }
-    }
-    if (!task) {
-        task = spider::make<sched::PiSDFTask, StackID::SCHEDULE>(handler, vertex);
-    }
-    schedule->addTask(task, firing);
+    schedule->addTask(handler->getTask(vertex), firing);
 }

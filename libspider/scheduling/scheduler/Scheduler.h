@@ -106,12 +106,12 @@ namespace spider {
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-            static void addTask(Schedule *schedule, srdag::Vertex *vertex);
+            static void addTask(Schedule *schedule, const srdag::Vertex *vertex);
 
 #endif
 
             static void addTask(Schedule *schedule,
-                                pisdf::GraphFiring *handler,
+                                const pisdf::GraphFiring *handler,
                                 const pisdf::Vertex *vertex,
                                 u32 firing);
         };

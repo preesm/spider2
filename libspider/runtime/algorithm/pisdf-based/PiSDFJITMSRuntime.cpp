@@ -209,7 +209,7 @@ size_t spider::PiSDFJITMSRuntime::countExpectedNumberOfParams(const pisdf::Graph
                 count += countExpectedNumberOfParams(subHandler);
             }
         } else {
-            const auto &params = graphHandler->handler()->getParams();
+            const auto &params = graphHandler->base()->getParams();
             count += static_cast<size_t> (std::count_if(std::begin(params), std::end(params),
                                                         [](const std::shared_ptr<pisdf::Param> &param) {
                                                             return param->type() == pisdf::ParamType::DYNAMIC;

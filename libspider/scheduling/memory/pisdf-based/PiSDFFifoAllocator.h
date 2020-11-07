@@ -68,13 +68,9 @@ namespace spider {
             /**
              * @brief Creates the fifos needed for the runtime execution of a task.
              * @param task     Pointer to the task.
-             * @param execDeps Execution dependencies of the task.
-             * @param consDeps Consumer dependencies of the task.
              * @return @refitem unique_ptr of @refitem JobFifos
              */
-            spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task,
-                                                       const pisdf::VertexDependencies &execDeps,
-                                                       const pisdf::VertexDependencies &consDeps) final;
+            spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *task, JobFifos *fifos) final;
 
         private:
             struct dynaBuffer_t {
@@ -92,18 +88,14 @@ namespace spider {
             void allocate(PiSDFTask *task, const JobFifos *fifos);
 
             /**
-             * @brief Compute the total number of input fifos (including merged fifos) needed by a task.
-             * @param dependencies Execution dependencies of the task
-             * @return total number of fifos of the task.
-             */
-            static u32 computeInputFifoCount(const pisdf::VertexDependencies &dependencies);
-
-            /**
              * @brief Creates a single input fifo.
              * @param fifos Pointer to the fifo array (should be offsetted to the current fifo to be set).
              * @param dep   Execution dependency.
              */
-            static void buildSingleFifo(Fifo *fifos, const pisdf::DependencyInfo &dep);
+            static void buildSingleFifo(Fifo *fifos,
+                                        const pisdf::GraphFiring *handler,
+                                        const pisdf::Edge *edge,
+                                        u32 firing);
 
             /**
              * @brief Creates a merged input fifo.
@@ -112,20 +104,32 @@ namespace spider {
              * @param dependencies Execution dependencies of the task.
              */
             void buildMergeFifo(Fifo *fifos,
-                                size_t mergedSize,
-                                const pisdf::DependencyIterator &dependencies);
+                                const pisdf::GraphFiring *handler,
+                                const pisdf::Edge *edge,
+                                u32 firing);
 
+            /**
+             * @brief Creates an input @refitem spider::Fifo from raw information.
+             * @param edge    Pointer to the input edge.
+             * @param size    Size of the fifo.
+             * @param offset  Offset to be applied with respect to the allocated virtual address of the fifo.
+             * @param firing  Firing of the original producer of the edge.
+             * @param handler Handler associated with the original producer of the edge.
+             * @return created Fifo.
+             */
             static Fifo buildInputFifo(const pisdf::Edge *edge,
                                        u32 size,
                                        u32 offset,
                                        u32 firing,
                                        const pisdf::GraphFiring *handler);
 
-            Fifo buildOutputFifo(const pisdf::Edge *edge,
-                                 const PiSDFTask *task,
-                                 const pisdf::DependencyIterator &depIt);
-
-            static i32 getFifoCount(const pisdf::DependencyIterator &depIt);
+            /**
+             * @brief Set every attribute members of an output fifo (except of the count which should already be set by now).
+             * @param fifo  Reference to the fifo to be built.
+             * @param edge  Pointer to the output edge/
+             * @param task  Pointer to the task.
+             */
+            void buildOutputFifo(Fifo &fifo, const pisdf::Edge *edge, const PiSDFTask *task);
 
         };
     }

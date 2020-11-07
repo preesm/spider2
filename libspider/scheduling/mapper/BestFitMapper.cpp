@@ -35,81 +35,11 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/BestFitMapper.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
-#include <common/Time.h>
-
-/* === Static function === */
-
-/* === Method(s) implementation === */
-
-void spider::sched::BestFitMapper::map(Task *task, Schedule *schedule) {
-    if (!task) {
-        throwSpiderException("can not map nullptr task.");
-    }
-    if (task->state() == TaskState::SKIPPED) {
-        return;
-    }
-    task->setState(TaskState::PENDING);
-    /* == Map standard task == */
-    mapImpl(task, schedule);
-}
-
-void spider::sched::BestFitMapper::map(PiSDFTask *task, Schedule *schedule) {
-    if (!task) {
-        throwSpiderException("can not map nullptr task.");
-    }
-    if (task->state() == TaskState::SKIPPED) {
-        return;
-    }
-    task->setState(TaskState::PENDING);
-    /* == Map pisdf task with dependencies == */
-    mapImpl(task, schedule, task->computeExecDependencies());
-}
 
 /* === Private method(s) implementation === */
-
-template<class... Args>
-void spider::sched::BestFitMapper::mapImpl(Task *task, Schedule *schedule, Args &&... args) {
-    /* == Compute the minimum start time possible for the task == */
-    const auto minStartTime = Mapper::computeStartTime(task, schedule, std::forward<Args>(args)...);
-    /* == Build the data dependency vector in order to compute receive cost == */
-    const auto *platform = archi::platform();
-    /* == Search for a slave to map the task on */
-    const auto &scheduleStats = schedule->stats();
-    MappingResult mappingResult{ };
-    for (const auto *cluster : platform->clusters()) {
-        /* == Find best fit PE for this cluster == */
-        const auto *foundPE = findPE(cluster, scheduleStats, task, minStartTime);
-        if (foundPE) {
-            const auto result = Mapper::computeCommunicationCost(task, foundPE, schedule, std::forward<Args>(args)...);
-            const auto communicationCost = result.first;
-            const auto externDataToReceive = result.second;
-            mappingResult.needToAddCommunication |= (externDataToReceive != 0);
-            /* == Check if it is better than previous cluster PE == */
-            const auto startTime{ std::max(scheduleStats.endTime(foundPE->virtualIx()), minStartTime) };
-            const auto endTime{ startTime + task->timingOnPE(foundPE) };
-            const auto scheduleCost{ math::saturateAdd(endTime, communicationCost) };
-            if (scheduleCost < mappingResult.scheduleCost) {
-                mappingResult.mappingPE = foundPE;
-                mappingResult.startTime = startTime;
-                mappingResult.endTime = endTime;
-                mappingResult.scheduleCost = scheduleCost;
-            }
-        }
-    }
-    /* == Throw if no possible mapping was found == */
-    if (!mappingResult.mappingPE) {
-        throwSpiderException("Could not find suitable processing element for vertex: [%s]", task->name().c_str());
-    }
-    if (mappingResult.needToAddCommunication) {
-        /* == Map communications == */
-        Mapper::mapCommunications(mappingResult, task, schedule, std::forward<Args>(args)...);
-    }
-    schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
-}
 
 const spider::PE *spider::sched::BestFitMapper::findPE(const Cluster *cluster,
                                                        const Stats &stats,

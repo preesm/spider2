@@ -41,6 +41,7 @@
 
 #include <containers/vector.h>
 #include <runtime/common/RTInfo.h>
+#include <scheduling/task/SRDAGTask.h>
 
 namespace spider {
 
@@ -282,6 +283,8 @@ namespace spider {
              */
             inline size_t scheduleTaskIx() const { return scheduleJobIx_; };
 
+            inline sched::SRDAGTask *scheduleTask() const { return scheduleTask_.get(); };
+
             /**
              * @brief Get the instance value associated to this clone vertex (0 if original).
              * @return instance value of the vertex, 0 by default.
@@ -326,8 +329,9 @@ namespace spider {
             spider::vector<std::shared_ptr<pisdf::Param>> inputParamVector_;      /* = Vector of input Params = */
             spider::vector<std::shared_ptr<pisdf::Param>> refinementParamVector_; /* = Vector of refinement Params = */
             spider::vector<std::shared_ptr<pisdf::Param>> outputParamVector_;     /* = Vector of output Params = */
-            srdag::Edge **inputEdgeArray_ = nullptr;                             /* = Vector of input Edge = */
-            srdag::Edge **outputEdgeArray_ = nullptr;                            /* = Vector of output Edge = */
+            spider::unique_ptr<sched::SRDAGTask> scheduleTask_;                   /* = Scheduled task associated with this vertex = */
+            srdag::Edge **inputEdgeArray_ = nullptr;                              /* = Vector of input Edge = */
+            srdag::Edge **outputEdgeArray_ = nullptr;                             /* = Vector of output Edge = */
             const pisdf::Vertex *reference_ = nullptr;                            /* = Pointer to the reference Vertex. = */
             const srdag::Graph *graph_ = nullptr;                                 /* = Graph of the vertex = */
             size_t ix_ = SIZE_MAX;                                                /* = Index of the Vertex in the containing Graph = */

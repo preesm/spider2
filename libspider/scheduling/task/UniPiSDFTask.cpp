@@ -1,9 +1,9 @@
-/**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+/*
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
- * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
+ * Spider is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
  *
  * This software is governed by the CeCILL  license under French law and
@@ -32,38 +32,42 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
+
 /* === Include(s) === */
 
-#include <scheduling/mapper/RoundRobinMapper.h>
-#include <scheduling/schedule/Schedule.h>
+#include <scheduling/task/UniPiSDFTask.h>
+#include <scheduling/launcher/TaskLauncher.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
+
 #include <archi/Platform.h>
-#include <archi/Cluster.h>
+#include <api/archi-api.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::sched::RoundRobinMapper::RoundRobinMapper() : Mapper() {
-    currentPeIx_ = spider::make_unique(make_n<size_t, StackID::SCHEDULE>(archi::platform()->clusterCount(), 0));
+spider::sched::UniPiSDFTask::UniPiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex) :
+        PiSDFTask(handler, vertex) {
+    const auto lrtCount = archi::platform()->LRTCount();
+    syncInfoArray_ = spider::make_unique(make_n<SyncInfo, StackID::SCHEDULE>(lrtCount, { UINT32_MAX, 0 }));
 }
 
-/* === Private method(s) implementation === */
+void spider::sched::UniPiSDFTask::reset() {
+    const auto lrtCount = archi::platform()->LRTCount();
+    std::fill(syncInfoArray_.get(), syncInfoArray_.get() + lrtCount, SyncInfo{ UINT32_MAX, 0 });
+    endTime_ = 0;
+    jobExecIx_ = UINT32_MAX;
+    mappedPEIx_ = UINT32_MAX;
+    state_ = TaskState::NOT_SCHEDULABLE;
+}
 
-const spider::PE *spider::sched::RoundRobinMapper::findPE(const Cluster *cluster,
-                                                          const Stats &,
-                                                          const Task *task,
-                                                          ufast64) const {
-    const auto clusterIx = cluster->ix();
-    const auto *pe = cluster->peArray()[currentPeIx_[clusterIx]];
-    size_t count = 0;
-    while ((!pe->enabled() || !task->isMappableOnPE(pe)) && count < cluster->PECount()) {
-        currentPeIx_[clusterIx] = (currentPeIx_[clusterIx] + 1u) % cluster->PECount();
-        pe = cluster->peArray()[currentPeIx_[clusterIx]];
-        count++;
-    }
-    if (!pe->enabled() || !task->isMappableOnPE(pe)) {
-        return nullptr;
-    }
-    currentPeIx_[cluster->ix()] = (currentPeIx_[cluster->ix()] + 1u) % cluster->PECount();
-    return pe;
+const spider::PE *spider::sched::UniPiSDFTask::mappedPe() const {
+    return archi::platform()->peFromVirtualIx(mappedPEIx_);
+}
+
+void spider::sched::UniPiSDFTask::setMappedPE(const PE *pe) {
+    mappedPEIx_ = static_cast<u32>(pe->virtualIx());
 }

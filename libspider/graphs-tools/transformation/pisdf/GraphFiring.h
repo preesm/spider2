@@ -39,12 +39,16 @@
 
 #include <common/Types.h>
 #include <memory/unique_ptr.h>
+#include <runtime/common/Fifo.h>
 #include <containers/vector.h>
 #include <containers/array.h>
-#include <runtime/common/Fifo.h>
 #include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
+
+    namespace sched {
+        class PiSDFTask;
+    }
 
     namespace pisdf {
 
@@ -56,12 +60,14 @@ namespace spider {
 
         class GraphFiring;
 
+        class GraphAlloc;
+
         /* === Class definition === */
 
         class GraphFiring {
         public:
             GraphFiring(const GraphHandler *parent,
-                        const spider::vector<std::shared_ptr<pisdf::Param>> &params,
+                        const spider::vector<std::shared_ptr<Param>> &params,
                         u32 firing);
 
             GraphFiring(GraphFiring &&) = default;
@@ -83,61 +89,9 @@ namespace spider {
             void resolveBRV();
 
             /**
-             * @brief Apply BRV and copy exisiting rates from an other GraphFiring into this.
-             * @param srcFiring Pointer to the other GraphFiring.
-             */
-            void apply(const GraphFiring *srcFiring);
-
-            /**
              * @brief Clears every values, and set resolved_ flag to false.
              */
             void clear();
-
-            /**
-             * @brief Compute all execution dependencies of a given vertex.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing value to be evaluated.
-             * @return vector of @refitem pisdf::DependencyIterator for all input edges of the vertex.
-             */
-            spider::vector<DependencyIterator> computeExecDependencies(const Vertex *vertex, u32 firing) const;
-
-            /**
-             * @brief Compute execution dependencies for a given input edge of a given firing of a given vertex.
-             *        Execution dependencies corresponds to all the vertices (and their firing) that are directly needed for
-             *        this particular input edge and this firing of the vertex inside the graph firing specified by the handler.
-             *        Dependencies are computed through input / output interfaces and through delays.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing of the vertex.
-             * @param edgeIx  Index of the input edge.
-             * @param count   If not nullptr, this will be filled with the number of consumer dependencies.
-             * @return a @refitem DependencyIterator to the execution dependencies of the vertex.
-             * @throw nullpointer exception in DEBUG mode only if vertex is nullptr.
-             */
-            DependencyIterator
-            computeExecDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count = nullptr) const;
-
-            /**
-             * @brief Compute all consumer dependencies of a given vertex.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing value to be evaluated.
-             * @return vector of @refitem pisdf::DependencyIterator for all output edges of the vertex.
-             */
-            spider::vector<DependencyIterator> computeConsDependencies(const Vertex *vertex, u32 firing) const;
-
-            /**
-             * @brief Compute consumer dependencies for a given output edge of a given firing of a given vertex.
-             *        Consumer dependencies corresponds to all the vertices (and their firing) that directly depends from
-             *        this particular output edge and this firing of the vertex inside the graph firing specified by the handler.
-             *        Dependencies are computed through input / output interfaces and through delays.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing of the vertex.
-             * @param edgeIx  Index of the output edge.
-             * @param count   If not nullptr, this will be filled with the number of execution dependencies.
-             * @return a @refitem DependencyIterator to the consumer dependencies of the vertex.
-             * @throw nullpointer exception in DEBUG mode only if vertex is nullptr.
-             */
-            DependencyIterator
-            computeConsDependency(const Vertex *vertex, u32 firing, size_t edgeIx, i32 *count = nullptr) const;
 
             /* === Getter(s) === */
 
@@ -197,16 +151,6 @@ namespace spider {
             u32 getRV(const Vertex *vertex) const;
 
             /**
-             * @brief Get the task index associated with a given firing of a given vertex for this graph firing.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing of the vertex.
-             * @return value of the task index.
-             * @warning if this graph firing has not yet been resolved, value should be UINT32_MAX but it is not guarenteed.
-             * @throw @refitem spider::Exception if firing is greater or equal to the repetition value of the vertex.
-             */
-            u32 getTaskIx(const Vertex *vertex, u32 firing) const;
-
-            /**
              * @brief Get the @refitem GraphFiring of a subgraph in this graph firing context.
              * @param subgraph Pointer to the subgraph.
              * @param firing   Firing of the subgraph to fetch.
@@ -219,7 +163,7 @@ namespace spider {
              * @brief Get the parameters of this graph firing.
              * @return parameters vector.
              */
-            const spider::vector<std::shared_ptr<Param>> &getParams() const { return params_; }
+            const spider::vector<std::shared_ptr<Param>> &getParams() const;
 
             /**
              * @brief Get a given vertex from its graph identifier.
@@ -235,21 +179,15 @@ namespace spider {
              */
             Vertex *vertex(size_t ix);
 
-            /**
-             * @brief Get the allocated memory address of a given edge.
-             * @param edge    Pointer to the edge.
-             * @param firing  Firing of the vertex producing on this edge.
-             * @return allocated memory address.
-             */
+            sched::PiSDFTask *getTask(const Vertex *vertex) const;
+
+            u32 getTaskIx(const Vertex *vertex, u32 firing) const;
+
             size_t getEdgeAddress(const Edge *edge, u32 firing) const;
 
-            /**
-             * @brief Get the offset in the allocated memory address of a given edge.
-             * @param edge    Pointer to the edge.
-             * @param firing  Firing of the vertex producing on this edge.
-             * @return offset in the allocated memory address.
-             */
             u32 getEdgeOffset(const Edge *edge, u32 firing) const;
+
+            u32 getEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing) const;
 
             /* === Setter(s) === */
 
@@ -260,29 +198,13 @@ namespace spider {
              */
             void setParamValue(size_t ix, int64_t value);
 
-            /**
-             * @brief Registers the Task ix for a given firing of a given vertex.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Value of the firing.
-             * @param taskIx  Value of the task ix to set.
-             */
             void setTaskIx(const Vertex *vertex, u32 firing, u32 taskIx);
 
-            /**
-             * @brief Set the allocated address of the edge.
-             * @param value    Value of the address.
-             * @param edge     Pointer to the edge.
-             * @param firing   Firing of the producer of the edge.
-             */
             void setEdgeAddress(size_t value, const Edge *edge, u32 firing);
 
-            /**
-             * @brief Set the allocated offset of the edge.
-             * @param value    Value of the offset.
-             * @param edge     Pointer to the edge.
-             * @param firing   Firing of the producer of the edge.
-             */
             void setEdgeOffset(u32 value, const Edge *edge, u32 firing);
+
+            void setEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing, u32 value);
 
         private:
             struct EdgeRate {
@@ -293,8 +215,8 @@ namespace spider {
             spider::unique_ptr<GraphHandler *> subgraphHandlers_;  /* == match between subgraphs and their handler == */
             spider::unique_ptr<u32> brvArray_;                     /* == BRV of this firing of the graph == */
             spider::unique_ptr<EdgeRate> ratesArray_;              /* == Array of resolved rates (trade some memory for runtime speed) == */
-            spider::unique_ptr<FifoAlloc *> edgeAllocArray_;       /* == Array of allocated information for every edges == */
-            spider::unique_ptr<u32 *> taskIxRegister_;             /* == Array of schedule task ix == */
+            spider::unique_ptr<GraphAlloc> alloc_;                 /* == Class used to handle everything related to resource allocation == */
+            spider::unique_ptr<u32 *> depsCountArray_;             /* == Array of dependencies count == */
             const GraphHandler *parent_;                           /* == Parent handler == */
             u32 firing_ = 0;                                       /* == Firing of this graph instance == */
             u32 dynamicParamCount_ = 0;                            /* == Number of dynamic parameters == */
@@ -303,9 +225,11 @@ namespace spider {
 
             /* === private method(s) === */
 
+            void resolveDynamicDependentParams() const;
+
             std::shared_ptr<pisdf::Param> copyParameter(const std::shared_ptr<pisdf::Param> &param);
 
-            void updateFromRV(const pisdf::Vertex *vertex, u32 rvValue);
+            void updateFromRV(const pisdf::Vertex *vertex, u32 rv);
 
             void createOrUpdateSubgraphHandlers();
         };

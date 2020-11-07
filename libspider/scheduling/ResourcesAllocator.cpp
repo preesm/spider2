@@ -60,6 +60,8 @@
 #include <api/archi-api.h>
 #include <archi/PE.h>
 
+#include <common/Time.h>
+
 /* === Static function === */
 
 static void checkFifoAllocatorTraits(const spider::sched::FifoAllocator *allocator, spider::ExecutionPolicy policy) {
@@ -98,21 +100,35 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 #ifndef _NO_BUILD_LEGACY_RT
 
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
+    auto start = time::now();
     /* == Schedule the graph == */
     const auto currentSize = schedule_->size();
     scheduler_->schedule(graph, schedule_.get());
+    auto end = time::now();
+    const auto sched = time::duration::nanoseconds(start, end);
     /* == Map, Allocate and Send tasks == */
+    start = time::now();
     execute<SRDAGTask>(currentSize);
+    end = time::now();
+    const auto map = time::duration::nanoseconds(start, end);
+    log::info("alloc: %lld ns -- sched: %lld ns -- map: %lld ns\n", sched + map, sched, map);
 }
 
 #endif
 
 void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
+    auto start = time::now();
     /* == Schedule the graph == */
     const auto currentSize = schedule_->size();
     scheduler_->schedule(graphHandler, schedule_.get());
+    auto end = time::now();
+    const auto sched = time::duration::nanoseconds(start, end);
     /* == Map, Allocate and Send tasks == */
+    start = time::now();
     execute<PiSDFTask>(currentSize);
+    end = time::now();
+    const auto map = time::duration::nanoseconds(start, end);
+    log::info("alloc: %lld ns -- sched: %lld ns -- map: %lld ns\n", sched + map, sched, map);
 }
 
 void spider::sched::ResourcesAllocator::clear() {

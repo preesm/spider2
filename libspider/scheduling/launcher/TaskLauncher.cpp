@@ -37,11 +37,12 @@
 #include <scheduling/launcher/TaskLauncher.h>
 #include <scheduling/task/PiSDFTask.h>
 #include <scheduling/task/SyncTask.h>
-#include <scheduling/schedule/Schedule.h>
 #include <scheduling/memory/FifoAllocator.h>
-#include <graphs/pisdf/Vertex.h>
-#include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/helper/pisdf-helper.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
+#include <graphs/pisdf/Vertex.h>
+
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
 #include <archi/MemoryBus.h>
@@ -55,6 +56,7 @@
 #include <scheduling/task/SRDAGTask.h>
 #include <graphs/srdag/SRDAGVertex.h>
 #include <graphs-tools/helper/srdag-helper.h>
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 
 #endif
 /* === Static function === */
@@ -100,20 +102,25 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
         return;
     }
     JobMessage message{ };
-    /* == Compute exec dependencies == */
-    const auto execDeps = task->computeExecDependencies();
-    /* == Compute cons dependencies == */
-    const auto consDeps = task->computeConsDependencies();
-    /* == Setting core properties == */
     const auto *vertex = task->vertex();
+    const auto *handler = task->handler();
+    const auto firing = task->firing();
+    /* == Setting core properties == */
     message.nParamsOut_ = static_cast<u32>(vertex->outputParamCount());
     message.kernelIx_ = static_cast<u32>(vertex->runtimeInformation()->kernelIx());
-    /* == Set the synchronization flags == */
-    message.synchronizationFlags_ = buildJobNotificationFlags(task, consDeps);
     /* == Set Fifos == */
-    message.fifos_ = allocator_->buildJobFifos(task, execDeps, consDeps);
+    u32 totalFifoCount = 0;
+    for (const auto *edge : vertex->inputEdges()) {
+        const auto count = handler->getEdgeDepCount(vertex, edge, firing);
+        totalFifoCount += count + (count > 1);
+    }
+    auto fifos = spider::make<JobFifos, StackID::RUNTIME>(totalFifoCount, static_cast<u32>(vertex->outputEdgeCount()));
+    /* == Set the synchronization flags == */
+    message.synchronizationFlags_ = buildJobNotificationFlags(task, handler, vertex, firing, fifos->outputFifos().data());
+    /* == Set Fifos == */
+    message.fifos_ = allocator_->buildJobFifos(task, fifos);
     /* == Set input params == */
-    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex, task->handler()->getParams());
+    message.inputParams_ = pisdf::buildVertexRuntimeInputParameters(vertex, handler);
     /* == Send the job == */
     sendTask(task, message);
 }
@@ -149,20 +156,7 @@ void spider::sched::TaskLauncher::sendTask(Task *task, JobMessage &message) {
     task->setState(TaskState::RUNNING);
 }
 
-template<class ...Args>
-spider::unique_ptr<bool>
-spider::sched::TaskLauncher::buildJobNotificationFlags(const Task *task, Args &&...args) const {
-    auto flags = spider::make_n<bool, StackID::RUNTIME>(archi::platform()->LRTCount(), false);
-    updateNotificationFlags(task, flags, std::forward<Args>(args)...);
-    if (std::any_of(flags, flags + archi::platform()->LRTCount(), [](bool value) { return value; })) {
-        return make_unique(flags);
-    } else {
-        deallocate(flags);
-        return spider::unique_ptr<bool>();
-    }
-}
-
-spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraints(const Task *task) {
+spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraints(const Task *task) const {
     const auto lrtCount = archi::platform()->LRTCount();
     size_t constraintsCount = 0;
     /* == Count the number of dependencies == */
@@ -177,7 +171,8 @@ spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraint
             if (task->syncExecIxOnLRT(i) != UINT32_MAX) {
                 /* == Set this dependency as a synchronization constraint == */
                 resultIt->lrtToWait_ = i;
-                resultIt->jobToWait_ = task->syncExecIxOnLRT(i);
+                const auto *srcTask = schedule_->task(task->syncExecIxOnLRT(i));
+                resultIt->jobToWait_ = srcTask->jobExecIx();
                 /* == Update iterator == */
                 if ((++resultIt) == std::end(result)) {
                     /* == shortcut to avoid useless other checks == */
@@ -189,33 +184,54 @@ spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraint
     return result;
 }
 
+template<class ...Args>
+spider::unique_ptr<bool>
+spider::sched::TaskLauncher::buildJobNotificationFlags(Task *task, Args &&...args) const {
+    auto flags = spider::make_n<bool, StackID::RUNTIME>(archi::platform()->LRTCount(), false);
+    updateNotificationFlags(task, flags, std::forward<Args>(args)...);
+    if (std::any_of(flags, flags + archi::platform()->LRTCount(), [](bool value) { return value; })) {
+        return make_unique(flags);
+    } else {
+        deallocate(flags);
+        return spider::unique_ptr<bool>();
+    }
+}
+
 /* === Task type specific functions === */
 
 void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task, bool *flags) const {
-    for (size_t iOut = 0; iOut < task->successorCount(); ++iOut) {
-        if (setFlagsFromSink(task, task->nextTask(iOut, schedule_), flags)) {
+    const auto taskIx = task->ix();
+    const auto mappedLRTIx = task->mappedLRT()->virtualIx();
+    for (size_t i = 0; i < task->successorCount(); ++i) {
+        if (setFlagsFromSink(taskIx, mappedLRTIx, task->nextTask(i, schedule_), flags)) {
             return;
         }
     }
 }
 
-void spider::sched::TaskLauncher::updateNotificationFlags(const Task *task,
+void spider::sched::TaskLauncher::updateNotificationFlags(Task *task,
                                                           bool *flags,
-                                                          const spider::vector<pisdf::DependencyIterator> &consDeps) const {
-    for (const auto &depIt : consDeps) {
-        for (const auto &dep : depIt) {
-            for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                auto *snkTask = dep.vertex_ ? schedule_->task(dep.handler_->getTaskIx(dep.vertex_, k)) : nullptr;
-                if (setFlagsFromSink(task, snkTask, flags)) {
-                    return;
-                }
-            }
+                                                          const pisdf::GraphFiring *handler,
+                                                          const pisdf::Vertex *vertex,
+                                                          u32 firing,
+                                                          Fifo *fifos) const {
+    auto *schedule = schedule_;
+    const auto taskIx = task->ix();
+    const auto mappedLRTIx = task->mappedLRT()->virtualIx();
+    const auto lambda = [taskIx, mappedLRTIx, flags, schedule](const pisdf::DependencyInfo &dep) {
+        auto broadcast = false;
+        for (auto k = dep.firingStart_; !broadcast && k <= dep.firingEnd_; ++k) {
+            const auto *snkTask = dep.vertex_ ? schedule->task(dep.handler_->getTaskIx(dep.vertex_, k)) : nullptr;
+            broadcast |= setFlagsFromSink(taskIx, mappedLRTIx, snkTask, flags);
         }
+    };
+    for (const auto *edge : vertex->outputEdges()) {
+        fifos[edge->sourcePortIx()].count_ = pisdf::detail::computeConsDependency(handler, edge, firing, lambda);
     }
+    task->setOnFiring(firing);
 }
 
-bool spider::sched::TaskLauncher::setFlagsFromSink(const Task *task, const Task *sinkTask, bool *flags) {
-    const auto mappedLRTIx = task->mappedLRT()->virtualIx();
+bool spider::sched::TaskLauncher::setFlagsFromSink(u32 taskIx, size_t mappedLRTIx, const Task *sinkTask, bool *flags) {
     /* == Check if task are not ready == */
     if (!sinkTask || (sinkTask->state() != TaskState::READY &&
                       sinkTask->state() != TaskState::SKIPPED)) {
@@ -228,7 +244,7 @@ bool spider::sched::TaskLauncher::setFlagsFromSink(const Task *task, const Task 
     auto &currentFlag = flags[snkMappedLRTIx];
     if (!currentFlag && snkMappedLRTIx != mappedLRTIx) {
         currentFlag = sinkTask->syncExecIxOnLRT(mappedLRTIx) == UINT32_MAX ||
-                      task->jobExecIx() >= sinkTask->syncExecIxOnLRT(mappedLRTIx);
+                      taskIx >= sinkTask->syncExecIxOnLRT(mappedLRTIx);
     }
     return false;
 }
