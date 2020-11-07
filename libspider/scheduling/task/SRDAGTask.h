@@ -99,9 +99,9 @@ namespace spider {
 
             inline TaskState state() const noexcept final { return state_; }
 
-            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].jobExecIx; }
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].first; }
 
-            inline u32 syncRateOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].rate; }
+            inline u32 syncRateOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].second; }
 
             inline srdag::Vertex *vertex() const { return vertex_; }
 
@@ -120,11 +120,11 @@ namespace spider {
             inline void setMappedPE(const spider::PE *pe) final;
 
             inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
-                syncInfoArray_[lrtIx].jobExecIx = value;
+                syncInfoArray_[lrtIx].first = value;
             }
 
             inline void setSyncRateOnLRT(size_t lrtIx, u32 value) final {
-                syncInfoArray_[lrtIx].rate = value;
+                syncInfoArray_[lrtIx].second = value;
             }
 
         private:

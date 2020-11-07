@@ -143,8 +143,8 @@ const spider::PE *spider::sched::SRDAGTask::mappedLRT() const {
 
 void spider::sched::SRDAGTask::setMappedPE(const spider::PE *pe) {
     mappedPEIx_ = static_cast<u32>(pe->virtualIx());
-    syncInfoArray_[pe->attachedLRT()->virtualIx()].jobExecIx = UINT32_MAX;
-    syncInfoArray_[pe->attachedLRT()->virtualIx()].rate = 0;
+    syncInfoArray_[pe->attachedLRT()->virtualIx()].first = UINT32_MAX;
+    syncInfoArray_[pe->attachedLRT()->virtualIx()].second = 0;
 }
 
 #endif

@@ -87,11 +87,11 @@ u32 spider::sched::VectPiSDFTask::jobExecIx() const noexcept {
 }
 
 u32 spider::sched::VectPiSDFTask::syncExecIxOnLRT(size_t lrtIx) const {
-    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].jobExecIx;
+    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].first;
 }
 
 u32 spider::sched::VectPiSDFTask::syncRateOnLRT(size_t lrtIx) const {
-    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].rate;
+    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].second;
 }
 
 void spider::sched::VectPiSDFTask::setEndTime(u64 time) {
@@ -111,11 +111,11 @@ void spider::sched::VectPiSDFTask::setJobExecIx(u32 ix) noexcept {
 }
 
 void spider::sched::VectPiSDFTask::setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
-    syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].jobExecIx = value;
+    syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].first = value;
 }
 
 void spider::sched::VectPiSDFTask::setSyncRateOnLRT(size_t lrtIx, u32 value) {
     const auto offsetLRTIx = lrtIx + firing() * archi::platform()->LRTCount();
-    syncInfoArray_[offsetLRTIx].rate = value;
+    syncInfoArray_[offsetLRTIx].second = value;
 }
 

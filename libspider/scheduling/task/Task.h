@@ -277,10 +277,7 @@ namespace spider {
             virtual void setSyncRateOnLRT(size_t lrtIx, u32 value) = 0;
 
         protected:
-            struct SyncInfo {
-                u32 jobExecIx;
-                u32 rate;
-            };
+            using SyncInfo = std::pair<u32, u32>;
         };
     }
 }

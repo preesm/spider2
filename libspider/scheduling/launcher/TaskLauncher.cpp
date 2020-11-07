@@ -147,11 +147,11 @@ void spider::sched::TaskLauncher::sendTask(Task *task, JobMessage &message) {
         }
     }
     /* == Send the job == */
-//    const auto grtIx = archi::platform()->getGRTIx();
-//    auto *communicator = rt::platform()->communicator();
-//    const auto mappedLRTIx = task->mappedLRT()->virtualIx();
-//    const auto messageIx = communicator->push(std::move(message), mappedLRTIx);
-//    communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, mappedLRTIx);
+    const auto grtIx = archi::platform()->getGRTIx();
+    auto *communicator = rt::platform()->communicator();
+    const auto mappedLRTIx = task->mappedLRT()->virtualIx();
+    const auto messageIx = communicator->push(std::move(message), mappedLRTIx);
+    communicator->push(Notification{ NotificationType::JOB_ADD, grtIx, messageIx }, mappedLRTIx);
     /* == Set job in TaskState::RUNNING == */
     task->setState(TaskState::RUNNING);
 }
