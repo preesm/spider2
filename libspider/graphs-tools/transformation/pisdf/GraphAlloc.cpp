@@ -52,8 +52,9 @@ spider::pisdf::GraphAlloc::GraphAlloc(const Graph *graph) {
 
 void spider::pisdf::GraphAlloc::clear(const Graph *graph) {
     for (const auto &vertex : graph->vertices()) {
-        deallocate(taskIxArray_[vertex->ix()]);
-        destroy(tasksArray_[vertex->ix()]);
+        const auto ix = vertex->ix();
+        deallocate(taskIxArray_[ix]);
+        destroy(tasksArray_[ix]);
     }
     for (const auto &edge : graph->edges()) {
         deallocate(edgeAllocArray_[edge->ix()]);
