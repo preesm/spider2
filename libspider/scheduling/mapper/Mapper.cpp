@@ -134,8 +134,9 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *sche
             const auto srcJobExecIx = srcTask->jobExecIx();
             if (currentJob == UINT32_MAX || srcJobExecIx > currentJob) {
                 task->setSyncExecIxOnLRT(srcLRTIx, srcJobExecIx);
-                task->setSyncRateOnLRT(srcLRTIx, static_cast<u32>(task->inputRate(ix)));
             }
+            /* == By summing up all the rates we are sure to compute com cost accurately == */
+            task->setSyncRateOnLRT(srcLRTIx, task->syncRateOnLRT(srcLRTIx) + static_cast<u32>(task->inputRate(ix)));
             minTime = std::max(minTime, srcTask->endTime());
         }
     }
@@ -159,10 +160,12 @@ ufast64 spider::sched::Mapper::computeStartTime(PiSDFTask *task, const Schedule 
                 const auto srcJobExecIx = srcTask->jobExecIx();
                 if (currentJob == UINT32_MAX || srcJobExecIx > currentJob) {
                     task->setSyncExecIxOnLRT(srcLRTIx, srcJobExecIx);
-                    const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
-                    const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
-                    task->setSyncRateOnLRT(srcLRTIx, (dep.rate_ > 0) * (memoryEnd - memoryStart + 1));
                 }
+                /* == By summing up all the rates we are sure to compute com cost accurately == */
+                const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
+                const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
+                const auto rate = (dep.rate_ > 0) * (memoryEnd - memoryStart + 1);
+                task->setSyncRateOnLRT(srcLRTIx, task->syncRateOnLRT(srcLRTIx) + rate);
                 minTime = std::max(minTime, srcTask->endTime());
             }
         }
