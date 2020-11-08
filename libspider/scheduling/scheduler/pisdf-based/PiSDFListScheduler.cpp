@@ -149,9 +149,10 @@ void spider::sched::PiSDFListScheduler::recursiveSetNonSchedulable(spider::vecto
                                                                    u32 firing) {
     const auto lambda = [&sortedTaskVector](const pisdf::DependencyInfo &dep) {
         if (dep.vertex_ && dep.rate_ > 0) {
+            const auto *srcTaskIxArray = dep.handler_->getTaskIndexes(dep.vertex_);
             /* == Disable non-null edge == */
             for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                auto &sinkTask = sortedTaskVector[dep.handler_->getTaskIx(dep.vertex_, k)];
+                auto &sinkTask = sortedTaskVector[srcTaskIxArray[k]];
                 sinkTask.level_ = NON_SCHEDULABLE_LEVEL;
                 recursiveSetNonSchedulable(sortedTaskVector, dep.handler_, dep.vertex_, k);
             }
@@ -184,19 +185,19 @@ i32 spider::sched::PiSDFListScheduler::computeScheduleLevel(spider::vector<ListT
 void spider::sched::PiSDFListScheduler::computeLevelForDep(const pisdf::DependencyInfo &dep,
                                                            spider::vector<ListTask> &sortedTaskVector,
                                                            i32 &level) {
-    const auto *source = dep.vertex_;
-    if (!source || dep.rate_ <= 0) {
+    if (!dep.vertex_ || dep.rate_ <= 0) {
         return;
     }
-    const auto *sourceRTInfo = source->runtimeInformation();
+    const auto *sourceRTInfo = dep.vertex_->runtimeInformation();
+    const auto *srcTaskIxArray = dep.handler_->getTaskIndexes(dep.vertex_);
     for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
         const auto minExecutionTime = computeMinExecTime(sourceRTInfo, dep.handler_->getParams());
-        const auto sourceTaskIx = dep.handler_->getTaskIx(source, k);
+        const auto sourceTaskIx = srcTaskIxArray[k];
+        /* == In case of dynamic applications, the task index may not be the one set by the scheduler,
+         *    so we must check if it is the proper task == */
         if (sourceTaskIx < sortedTaskVector.size()) {
             auto &srcTask = sortedTaskVector[sourceTaskIx];
-            if (srcTask.vertex_ == source &&
-                srcTask.handler_ == dep.handler_ &&
-                srcTask.firing_ >= dep.firingStart_ && srcTask.firing_ <= dep.firingEnd_) {
+            if (srcTask.vertex_ == dep.vertex_ && srcTask.firing_ == k) {
                 const auto sourceLevel = computeScheduleLevel(sortedTaskVector, srcTask);
                 if (sourceLevel != NON_SCHEDULABLE_LEVEL) {
                     level = std::max(level, sourceLevel + static_cast<i32>(minExecutionTime));

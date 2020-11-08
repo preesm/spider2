@@ -126,7 +126,7 @@ const spider::PE *spider::sched::PiSDFTask::mappedLRT() const {
 }
 
 u32 spider::sched::PiSDFTask::ix() const noexcept {
-    return handler_->getTaskIx(vertex(), currentFiring_);
+    return handler_->getTaskIx(vertexIx_, currentFiring_);
 }
 
 u32 spider::sched::PiSDFTask::firing() const {

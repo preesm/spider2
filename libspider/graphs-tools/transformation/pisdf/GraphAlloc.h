@@ -85,7 +85,14 @@ namespace spider {
              * @warning if this graph firing has not yet been resolved, value should be UINT32_MAX but it is not guarenteed.
              * @throw @refitem spider::Exception if firing is greater or equal to the repetition value of the vertex.
              */
-            u32 getTaskIx(const Vertex *vertex, u32 firing) const;
+            u32 getTaskIx(u32 vertexIx, u32 firing) const;
+
+            /**
+             * @brief Get the array of task indexes (i.e for all of its firings) associated with a given vertices.
+             * @param vertexIx Index of the vertex.
+             * @return const pointer to the array of task indexes.
+             */
+            const u32 *getTaskIndexes(u32 vertexIx) const;
 
             /**
              * @brief Get the allocated memory address of a given edge.

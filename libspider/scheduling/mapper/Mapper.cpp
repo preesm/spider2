@@ -151,20 +151,17 @@ ufast64 spider::sched::Mapper::computeStartTime(PiSDFTask *task, const Schedule 
             return;
         }
         const auto firing = task->firing();
+        const auto *srcTaskIxArray = dep.handler_->getTaskIndexes(dep.vertex_);
         for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-            const auto srcTaskIx = dep.handler_->getTaskIx(dep.vertex_, k);
-            if (srcTaskIx != UINT32_MAX) {
-                const auto *srcTask = schedule->task(srcTaskIx);
-                if (!srcTask) {
-                    throwNullptrException();
-                }
+            const auto srcTaskIx = srcTaskIxArray[k];
+            const auto *srcTask = schedule->task(srcTaskIxArray[k]);
+            if (srcTask) {
                 const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
-                const auto srcJobIx = srcTask->ix();
                 const auto srcEndTime = srcTask->endTime();
                 task->setOnFiring(firing);
                 const auto currentJob = task->syncExecIxOnLRT(srcLRTIx);
-                if (currentJob == UINT32_MAX || srcJobIx > currentJob) {
-                    task->setSyncExecIxOnLRT(srcLRTIx, srcJobIx);
+                if (currentJob == UINT32_MAX || srcTaskIx > currentJob) {
+                    task->setSyncExecIxOnLRT(srcLRTIx, srcTaskIx);
                 }
                 /* == By summing up all the rates we are sure to compute com cost accurately == */
                 const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;

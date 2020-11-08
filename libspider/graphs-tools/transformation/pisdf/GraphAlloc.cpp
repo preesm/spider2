@@ -107,8 +107,12 @@ void spider::pisdf::GraphAlloc::initialize(GraphFiring *handler, const Vertex *v
     }
 }
 
-u32 spider::pisdf::GraphAlloc::getTaskIx(const Vertex *vertex, u32 firing) const {
-    return taskIxArray_[vertex->ix()][firing];
+u32 spider::pisdf::GraphAlloc::getTaskIx(u32 vertexIx, u32 firing) const {
+    return taskIxArray_[vertexIx][firing];
+}
+
+const u32 *spider::pisdf::GraphAlloc::getTaskIndexes(u32 vertexIx) const {
+    return taskIxArray_[vertexIx];
 }
 
 size_t spider::pisdf::GraphAlloc::getEdgeAddress(const Edge *edge, u32 firing) const {

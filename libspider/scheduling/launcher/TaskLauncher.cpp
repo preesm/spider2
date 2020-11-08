@@ -168,10 +168,10 @@ spider::array<spider::SyncInfo> spider::sched::TaskLauncher::buildExecConstraint
     if (constraintsCount) {
         auto resultIt = std::begin(result);
         for (size_t i = 0; i < lrtCount; ++i) {
-            if (task->syncExecIxOnLRT(i) != UINT32_MAX) {
+            const auto *srcTask = schedule_->task(task->syncExecIxOnLRT(i));
+            if (srcTask) {
                 /* == Set this dependency as a synchronization constraint == */
                 resultIt->lrtToWait_ = i;
-                const auto *srcTask = schedule_->task(task->syncExecIxOnLRT(i));
                 resultIt->jobToWait_ = srcTask->jobExecIx();
                 /* == Update iterator == */
                 if ((++resultIt) == std::end(result)) {

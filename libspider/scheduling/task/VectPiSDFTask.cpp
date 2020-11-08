@@ -116,7 +116,9 @@ void spider::sched::VectPiSDFTask::setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
 }
 
 void spider::sched::VectPiSDFTask::setOnFiring(u32 firing) {
+    if (firing != currentFiring_) {
         PiSDFTask::setOnFiring(firing);
         currentOffset_ = currentFiring_ * LRT_COUNT;
+    }
 }
 

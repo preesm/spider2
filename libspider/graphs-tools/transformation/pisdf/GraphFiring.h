@@ -183,6 +183,12 @@ namespace spider {
 
             u32 getTaskIx(const Vertex *vertex, u32 firing) const;
 
+            u32 getTaskIx(u32 vertexIx, u32 firing) const;
+
+            const u32 *getTaskIndexes(const Vertex *vertex) const;
+
+            const u32 *getTaskIndexes(u32 vertexIx) const;
+
             size_t getEdgeAddress(const Edge *edge, u32 firing) const;
 
             u32 getEdgeOffset(const Edge *edge, u32 firing) const;
