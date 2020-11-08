@@ -75,18 +75,11 @@ namespace spider {
                     dep.rate_ = srcRate;
                     dep.edgeIx_ = static_cast<u32>(edge->sourcePortIx());
                     const auto delayedLowerCons = lowerCons - delayValue;
-                    const auto startDiv = delayedLowerCons / srcRate;
-                    const auto memStart = delayedLowerCons % srcRate;
                     const auto delayedUpperCons = upperCons - delayValue;
-                    const auto endDiv = delayedUpperCons / srcRate;
-                    const auto memEnd = delayedUpperCons % srcRate;
-                    /* == floor div == */
-                    const auto start = memStart ? startDiv - (delayedLowerCons < 0) : startDiv;
-                    const auto end = memEnd ? endDiv - (delayedUpperCons < 0) : endDiv;
-                    dep.memoryStart_ = static_cast<u32>(memStart);
-                    dep.memoryEnd_ = static_cast<u32>(memEnd);
-                    dep.firingStart_ = static_cast<u32>(start);
-                    dep.firingEnd_ = static_cast<u32>(end);
+                    dep.firingStart_ = static_cast<u32>(delayedLowerCons / srcRate);
+                    dep.memoryStart_ = static_cast<u32>(delayedLowerCons % srcRate);
+                    dep.firingEnd_ = static_cast<u32>(delayedUpperCons / srcRate);
+                    dep.memoryEnd_ = static_cast<u32>(delayedUpperCons % srcRate);
                     return dep;
                 }
 
@@ -103,27 +96,6 @@ namespace spider {
                 }
 
                 template<class ...Args>
-                i32 computeExecDependencyGetter(const Edge *edge,
-                                                int64_t lowerCons,
-                                                int64_t upperCons,
-                                                const pisdf::GraphFiring *handler,
-                                                Args &&...args) {
-                    /* == Case of getter vertex == */
-                    const auto *delayFromVertex = edge->source()->convertTo<DelayVertex>()->delay();
-                    const auto *delayEdge = delayFromVertex->edge();
-                    const auto *sink = delayEdge->sink();
-                    const auto srcRate = handler->getSrcRate(edge);
-                    const auto snkRate = handler->getSnkRate(delayEdge);
-                    const auto srcRV = handler->getRV(delayEdge->source());
-                    const auto snkRV = handler->getRV(sink);
-                    const auto offset =
-                            sink->subtype() == VertexType::OUTPUT ? srcRate * srcRV - snkRate : snkRate * snkRV;
-                    lowerCons += offset;
-                    upperCons += offset;
-                    return computeExecDependency(delayEdge, lowerCons, upperCons, handler, std::forward<Args>(args)...);
-                }
-
-                template<class ...Args>
                 i32 computeExecDependencyInput(const Edge *edge,
                                                int64_t lowerCons,
                                                int64_t upperCons,
@@ -136,10 +108,12 @@ namespace spider {
                     const auto *ghdl = handler->getParent()->base();
                     const auto upperLCons = srcRate * handler->firingValue();
                     const auto *upperEdge = source->graph()->inputEdge(source->ix());
-                    const auto lowerConsMod = (lowerCons - delayValue) % srcRate;
-                    const auto upperConsMod = (upperCons - delayValue) % srcRate;
-                    const auto firingStart = static_cast<u32>(math::floorDiv(lowerCons - delayValue, srcRate));
-                    const auto firingEnd = static_cast<u32>(math::floorDiv(upperCons - delayValue, srcRate));
+                    const auto delayedLowerCons = lowerCons - delayValue;
+                    const auto delayedUpperCons = upperCons - delayValue;
+                    const auto firingStart = static_cast<u32>(delayedLowerCons / srcRate);
+                    const auto firingEnd = static_cast<u32>(delayedUpperCons / srcRate);
+                    const auto lowerConsMod = delayedLowerCons % srcRate;
+                    const auto upperConsMod = delayedUpperCons % srcRate;
                     i32 count = 0;
                     for (auto k = firingStart; k <= firingEnd; ++k) {
                         const auto start = k == firingStart ? lowerConsMod : 0;
@@ -165,10 +139,12 @@ namespace spider {
                     const auto *graph = source->convertTo<pisdf::Graph>();
                     const auto *innerEdge = graph->outputInterface(edge->sourcePortIx())->edge();
                     const auto ifDelay = innerEdge->delay() ? innerEdge->delay()->value() : 0u;
-                    const auto lowerConsMod = (lowerCons - delayValue) % srcRate + ifDelay;
-                    const auto upperConsMod = (upperCons - delayValue) % srcRate + ifDelay - srcRate;
-                    const auto firingStart = static_cast<u32>(math::floorDiv(lowerCons - delayValue, srcRate));
-                    const auto firingEnd = static_cast<u32>(math::floorDiv(upperCons - delayValue, srcRate));
+                    const auto delayedLowerCons = lowerCons - delayValue;
+                    const auto delayedUpperCons = upperCons - delayValue;
+                    const auto firingStart = static_cast<u32>(delayedLowerCons / srcRate);
+                    const auto firingEnd = static_cast<u32>(delayedUpperCons / srcRate);
+                    const auto lowerConsMod = delayedLowerCons % srcRate + ifDelay;
+                    const auto upperConsMod = delayedUpperCons % srcRate + ifDelay - srcRate;
                     i32 count = 0;
                     for (auto k = firingStart; k <= firingEnd; ++k) {
                         const auto *ghdl = handler->getSubgraphGraphFiring(graph, k);
@@ -198,14 +174,36 @@ namespace spider {
                     impl::apply({ nullptr, nullptr, 0, 0, 0, 0, 0, 0 }, std::forward<Args>(args)...);
                     return 0;
                 }
-                const auto sourceType = edge->source()->subtype();
-                const auto *delay = edge->delay();
-                const auto delayValue = delay ? delay->value() : 0;
-                /* == Handle specific cases == */
+                auto sourceType = edge->source()->subtype();
+                /* == Case of getter vertex == */
                 if (sourceType == VertexType::DELAY) {
-                    return impl::computeExecDependencyGetter(edge, lowerCons, upperCons, handler,
-                                                             std::forward<Args>(args)...);
-                } else if (lowerCons >= delayValue) {
+                    /* == This implem could support recursive delay but model does not specify it == */
+                    const auto *delayFromVertex = edge->source()->convertTo<DelayVertex>()->delay();
+                    const auto *delayEdge = delayFromVertex->edge();
+                    const auto *sink = delayEdge->sink();
+                    const auto srcRate = handler->getSrcRate(edge);
+                    const auto snkRate = handler->getSnkRate(delayEdge);
+                    const auto srcRV = handler->getRV(delayEdge->source());
+                    const auto snkRV = handler->getRV(sink);
+                    const auto offset =
+                            sink->subtype() == VertexType::OUTPUT ? srcRate * srcRV - snkRate : snkRate * snkRV;
+                    lowerCons += offset;
+                    upperCons += offset;
+                    edge = delayEdge;
+                    sourceType = edge->source()->subtype();
+                }
+                const auto *delay = edge->delay();
+                auto delayValue = delay ? delay->value() : 0;
+                /* == setter only == */
+                if (delay && upperCons < delayValue) {
+                    /* == This implem could support recursive delay but model does not specify it == */
+                    edge = delay->setter()->outputEdge(delay->setterPortIx());
+                    sourceType = edge->source()->subtype();
+                    delay = nullptr;
+                    delayValue = 0;
+                }
+                /* == Handle specific cases == */
+                if (lowerCons >= delayValue) {
                     /* == source only == */
                     if (sourceType == VertexType::INPUT) {
                         return impl::computeExecDependencyInput(edge, lowerCons, upperCons, delayValue, handler,
@@ -219,11 +217,6 @@ namespace spider {
                         impl::apply(dep, std::forward<Args>(args)...);
                         return static_cast<i32>(dep.firingEnd_ - dep.firingStart_ + 1);
                     }
-                } else if (delay && (upperCons < delayValue)) {
-                    /* == setter only == */
-                    const auto *setterEdge = delay->setter()->outputEdge(delay->setterPortIx());
-                    return computeExecDependency(setterEdge, lowerCons, upperCons, handler,
-                                                 std::forward<Args>(args)...);
                 } else if (delay) {
                     /* == setter + source == */
                     const auto *setterEdge = delay->setter()->outputEdge(delay->setterPortIx());
