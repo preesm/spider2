@@ -136,11 +136,14 @@ namespace spider {
                     const auto *ghdl = handler->getParent()->base();
                     const auto upperLCons = srcRate * handler->firingValue();
                     const auto *upperEdge = source->graph()->inputEdge(source->ix());
-                    auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);
+                    const auto lowerConsMod = (lowerCons - delayValue) % srcRate;
+                    const auto upperConsMod = (upperCons - delayValue) % srcRate;
+                    const auto firingStart = static_cast<u32>(math::floorDiv(lowerCons - delayValue, srcRate));
+                    const auto firingEnd = static_cast<u32>(math::floorDiv(upperCons - delayValue, srcRate));
                     i32 count = 0;
-                    for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-                        const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
-                        const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
+                    for (auto k = firingStart; k <= firingEnd; ++k) {
+                        const auto start = k == firingStart ? lowerConsMod : 0;
+                        const auto end = k == firingEnd ? upperConsMod : srcRate - 1;
                         count += computeExecDependency(upperEdge, upperLCons + start, upperLCons + end, ghdl,
                                                        std::forward<Args>(args)...);
                     }
@@ -162,17 +165,20 @@ namespace spider {
                     const auto *graph = source->convertTo<pisdf::Graph>();
                     const auto *innerEdge = graph->outputInterface(edge->sourcePortIx())->edge();
                     const auto ifDelay = innerEdge->delay() ? innerEdge->delay()->value() : 0u;
-                    auto dep = createExecDependency(edge, lowerCons, upperCons, srcRate, delayValue, handler);
+                    const auto lowerConsMod = (lowerCons - delayValue) % srcRate + ifDelay;
+                    const auto upperConsMod = (upperCons - delayValue) % srcRate + ifDelay - srcRate;
+                    const auto firingStart = static_cast<u32>(math::floorDiv(lowerCons - delayValue, srcRate));
+                    const auto firingEnd = static_cast<u32>(math::floorDiv(upperCons - delayValue, srcRate));
                     i32 count = 0;
-                    for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
+                    for (auto k = firingStart; k <= firingEnd; ++k) {
                         const auto *ghdl = handler->getSubgraphGraphFiring(graph, k);
                         if (ghdl->isResolved()) {
-                            const auto ifSrcRV = ghdl->getRV(innerEdge->source());
-                            const auto ifSrcRate = ghdl->getSrcRate(innerEdge);
-                            const auto start = k == dep.firingStart_ ? (lowerCons - delayValue) % srcRate : 0;
-                            const auto end = k == dep.firingEnd_ ? (upperCons - delayValue) % srcRate : srcRate - 1;
-                            const auto lCons = ifSrcRV * ifSrcRate - srcRate + start + ifDelay;
-                            const auto uCons = ifSrcRV * ifSrcRate - srcRate + end + ifDelay;
+                            /* == Source rate of producer of the interface multiplied by its RV == */
+                            const auto ifSrcRate = ghdl->getSrcRate(innerEdge) * ghdl->getRV(innerEdge->source());
+                            const auto start = k == firingStart ? lowerConsMod : ifDelay;
+                            const auto end = k == firingEnd ? upperConsMod : ifDelay - 1;
+                            const auto lCons = ifSrcRate - srcRate + start;
+                            const auto uCons = ifSrcRate + end;
                             count += computeExecDependency(innerEdge, lCons, uCons, ghdl, std::forward<Args>(args)...);
                         } else {
                             apply(unresolved, std::forward<Args>(args)...);

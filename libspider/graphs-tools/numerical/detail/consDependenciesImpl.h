@@ -159,6 +159,8 @@ namespace spider {
                     /* == Case of source graph == */
                     const auto *sink = edge->sink();
                     const auto snkRate = handler->getSnkRate(edge);
+                    const auto lowerProdMod = (lowerProd + delayValue) % snkRate;
+                    const auto upperProdMod = (upperProd + delayValue) % snkRate;
                     const auto firingStart = static_cast<u32>(math::floorDiv(lowerProd + delayValue, snkRate));
                     const auto firingEnd = static_cast<u32>(math::floorDiv(upperProd + delayValue, snkRate));
                     const auto *graph = sink->convertTo<pisdf::Graph>();
@@ -169,15 +171,16 @@ namespace spider {
                         if (gh->isResolved()) {
                             const auto adjustedSnkRate = gh->getSnkRate(innerEdge) * gh->getRV(innerEdge->sink());
                             const auto fullRepCount = adjustedSnkRate / snkRate;
-                            const auto lProd = k == firingStart ? (lowerProd + delayValue) % snkRate : 0;
-                            const auto uProd = k == firingEnd ? (upperProd + delayValue) % snkRate : snkRate - 1;
+                            const auto fullRepRest = adjustedSnkRate % snkRate; /* will be optimized with div */
+                            const auto lProd = k == firingStart ? lowerProdMod % snkRate : 0;
+                            const auto uProd = k == firingEnd ? upperProdMod : snkRate - 1;
                             for (auto i = 0; i < fullRepCount; ++i) {
                                 const auto offset = i * snkRate;
                                 count += computeConsDependency(innerEdge, lProd + offset, uProd + offset, gh,
                                                                std::forward<Args>(args)...);
                             }
                             const auto lp = lProd + fullRepCount * snkRate;
-                            if ((snkRate * fullRepCount) != adjustedSnkRate && (lp < adjustedSnkRate)) {
+                            if (fullRepRest && (lp < adjustedSnkRate)) {
                                 const auto up = std::min(uProd + fullRepCount * snkRate, adjustedSnkRate - 1);
                                 count += computeConsDependency(innerEdge, lp, up, gh, std::forward<Args>(args)...);
                             }

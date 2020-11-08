@@ -42,7 +42,6 @@
 #include <scheduling/schedule/Schedule.h>
 #include <scheduling/schedule/exporter/SchedSVGGanttExporter.h>
 #include <scheduling/task/SRDAGTask.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/task/Task.h>
 #include <scheduling/ResourcesAllocator.h>
 #include <scheduling/memory/FifoAllocator.h>
@@ -65,6 +64,8 @@
 #include <graphs-tools/numerical/detail/DependencyIterator.h>
 #include <runtime/algorithm/pisdf-based/PiSDFJITMSRuntime.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
+#include <scheduling/task/VectPiSDFTask.h>
+#include <scheduling/task/UniPiSDFTask.h>
 
 #include "extra/variant.h"
 
@@ -186,10 +187,10 @@ void hTest() {
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
-            spider::SchedulingPolicy::LIST,
-            spider::MappingPolicy::BEST_FIT,
+            spider::SchedulingPolicy::GREEDY,
+            spider::MappingPolicy::ROUND_ROBIN,
             spider::FifoAllocatorType::DEFAULT,
-            10u,
+            100u,
     };
     auto context = spider::createRuntimeContext(graph, runtimeConfig);
     spider::run(context);
@@ -215,14 +216,14 @@ void hTest() {
     spider::quit();
 }
 
-
 int main(int, char **) {
-    spiderTest();
-//    simpleTest();
+//    spiderTest();
+    simpleTest();
 //    hTest();
     std::cerr << sizeof(spider::sched::Task) << '\n';
+    std::cerr << sizeof(spider::sched::VectPiSDFTask) << '\n';
+    std::cerr << sizeof(spider::sched::UniPiSDFTask) << '\n';
     std::cerr << sizeof(spider::sched::SRDAGTask) << '\n';
-    std::cerr << sizeof(spider::sched::PiSDFTask) << '\n';
     return 0;
 }
 
@@ -370,10 +371,10 @@ void simpleTest() {
             spider::RunMode::LOOP,
             spider::RuntimeType::PISDF_BASED,
             spider::ExecutionPolicy::DELAYED,
-            spider::SchedulingPolicy::GREEDY,
+            spider::SchedulingPolicy::LIST,
             spider::MappingPolicy::BEST_FIT,
             spider::FifoAllocatorType::DEFAULT,
-            10u,
+            1u,
     };
     auto context = spider::createRuntimeContext(graph, runtimeConfig);
     spider::run(context);
@@ -444,7 +445,7 @@ void spiderSmallTest() {
 
 void spiderTest() {
     spider::start();
-    spider::api::enableLogger(spider::log::Type::TRANSFO);
+//    spider::api::enableLogger(spider::log::Type::TRANSFO);
 //    spider::api::enableLogger(spider::log::Type::OPTIMS);
 //    spider::api::enableLogger(spider::log::Type::LRT);
 //    spider::api::enableLogger(spider::log::Type::SCHEDULE);
@@ -500,13 +501,18 @@ void spiderTest() {
                                              spider::printer::printf("width_setter: setting value: %" PRId64".\n",
                                                                      output[0]);
                                              i *= 2;
+                                             if (i == 40) {
+                                                 i = 10;
+                                             }
                                          });
 
         spider::api::createRuntimeKernel(sub_setter,
                                          [](const int64_t *, int64_t *output, void *[], void *[]) -> void {
                                              static int64_t i = 1;
-                                             output[0] = i;
-                                             ++i;
+                                             output[0] = i++;
+                                             if (i == 3) {
+                                                 i = 1;
+                                             }
                                              spider::printer::printf("sub_setter: setting value: %" PRId64".\n",
                                                                      output[0]);
                                          });
@@ -569,12 +575,12 @@ void spiderTest() {
         /* === Export dot === */
         spider::api::exportGraphToDOT(graph, "./original.dot");
         fprintf(stderr, "%zu\n", graph->totalActorCount());
-        spider::api::enableLogger(spider::log::MEMORY);
+//        spider::api::enableLogger(spider::log::MEMORY);
         try {
             const auto &start = spider::time::now();
             const auto runtimeConfig = spider::RuntimeConfig{
                     spider::RunMode::LOOP,
-                    spider::RuntimeType::SRDAG_BASED,
+                    spider::RuntimeType::PISDF_BASED,
                     spider::ExecutionPolicy::DELAYED,
                     spider::SchedulingPolicy::LIST,
                     spider::MappingPolicy::ROUND_ROBIN,

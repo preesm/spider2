@@ -105,13 +105,9 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
     const auto currentSize = schedule_->size();
     scheduler_->schedule(graph, schedule_.get());
     auto end = time::now();
-    const auto sched = time::duration::nanoseconds(start, end);
+    log::info("sched: %lld ns\n", time::duration::nanoseconds(start, end));
     /* == Map, Allocate and Send tasks == */
-    start = time::now();
     execute<SRDAGTask>(currentSize);
-    end = time::now();
-    const auto map = time::duration::nanoseconds(start, end);
-    log::info("alloc: %lld ns -- sched: %lld ns -- map: %lld ns\n", sched + map, sched, map);
 }
 
 #endif
@@ -122,13 +118,9 @@ void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandle
     const auto currentSize = schedule_->size();
     scheduler_->schedule(graphHandler, schedule_.get());
     auto end = time::now();
-    const auto sched = time::duration::nanoseconds(start, end);
+    log::info("sched: %lld ns\n", time::duration::nanoseconds(start, end));
     /* == Map, Allocate and Send tasks == */
-    start = time::now();
     execute<PiSDFTask>(currentSize);
-    end = time::now();
-    const auto map = time::duration::nanoseconds(start, end);
-    log::info("alloc: %lld ns -- sched: %lld ns -- map: %lld ns\n", sched + map, sched, map);
 }
 
 void spider::sched::ResourcesAllocator::clear() {
@@ -141,8 +133,7 @@ void spider::sched::ResourcesAllocator::clear() {
 
 template<class T>
 void spider::sched::ResourcesAllocator::execute(size_t offset) {
-    const auto startTime = computeMinStartTime();
-    mapper_->setStartTime(startTime);
+    mapper_->setStartTime(computeMinStartTime());
     allocator_->updateDynamicBuffersCount();
     auto launcher = TaskLauncher{ schedule_.get(), allocator_.get() };
     switch (executionPolicy_) {
@@ -165,22 +156,32 @@ void spider::sched::ResourcesAllocator::execute(size_t offset) {
                 }
                 /* == Send the task == */
                 task->visit(&launcher);
+                /* == Update min start time of the mapping process == */
+                mapper_->setStartTime(computeMinStartTime());
             }
         }
             break;
         case ExecutionPolicy::DELAYED: {
+            auto start = time::now();
             auto size = schedule_->size();
             for (auto i = offset; i < size; ++i) {
                 auto *task = static_cast<T *>(schedule_->task(i));
                 /* == Map the task == */
                 mapper_->map(task, schedule_.get());
+                /* == Update min start time of the mapping process == */
+                mapper_->setStartTime(computeMinStartTime());
             }
+            auto end = time::now();
+            log::info("map: %lld ns\n", time::duration::nanoseconds(start, end));
+            start = time::now();
             size = schedule_->size(); /* == in case communications were added, size will have changed == */
             for (auto i = offset; i < size; ++i) {
                 /* == Send the task == */
                 auto *task = schedule_->task(i);
                 task->visit(&launcher);
             }
+            end = time::now();
+            log::info("send: %lld ns\n", time::duration::nanoseconds(start, end));
         }
             break;
         default:
