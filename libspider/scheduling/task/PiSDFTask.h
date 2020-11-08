@@ -75,7 +75,7 @@ namespace spider {
              * @brief Set task on a given firing (can be used anywhere as long as you know what you're doing).
              * @param firing Firing value to set.
              */
-            void setOnFiring(u32 firing) final;
+            void setOnFiring(u32 firing) override;
 
             virtual void reset() = 0;
 
@@ -127,7 +127,7 @@ namespace spider {
 
             void setIx(u32 ix) noexcept final;
 
-        private:
+        protected:
             pisdf::GraphFiring *handler_{ nullptr };
             u32 vertexIx_{ UINT32_MAX };
             u32 currentFiring_{ 0 };

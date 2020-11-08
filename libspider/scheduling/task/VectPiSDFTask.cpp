@@ -71,51 +71,57 @@ void spider::sched::VectPiSDFTask::reset() {
 }
 
 u64 spider::sched::VectPiSDFTask::endTime() const {
-    return endTimeArray_[firing()];
+    return endTimeArray_[currentFiring_];
 }
 
 const spider::PE *spider::sched::VectPiSDFTask::mappedPe() const {
-    return archi::platform()->peFromVirtualIx(mappedPEIxArray_[firing()]);
+    return archi::platform()->peFromVirtualIx(mappedPEIxArray_[currentFiring_]);
 }
 
 spider::sched::TaskState spider::sched::VectPiSDFTask::state() const noexcept {
-    return stateArray_[firing()];
+    return stateArray_[currentFiring_];
 }
 
 u32 spider::sched::VectPiSDFTask::jobExecIx() const noexcept {
-    return jobExecIxArray_[firing()];
+    return jobExecIxArray_[currentFiring_];
 }
 
 u32 spider::sched::VectPiSDFTask::syncExecIxOnLRT(size_t lrtIx) const {
-    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].first;
+    return syncInfoArray_[lrtIx + currentOffset_].first;
 }
 
 u32 spider::sched::VectPiSDFTask::syncRateOnLRT(size_t lrtIx) const {
-    return syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].second;
+    return syncInfoArray_[lrtIx + currentOffset_].second;
 }
 
 void spider::sched::VectPiSDFTask::setEndTime(u64 time) {
-    endTimeArray_[firing()] = time;
+    endTimeArray_[currentFiring_] = time;
 }
 
 void spider::sched::VectPiSDFTask::setMappedPE(const PE *pe) {
-    mappedPEIxArray_[firing()] = static_cast<u32>(pe->virtualIx());
+    mappedPEIxArray_[currentFiring_] = static_cast<u32>(pe->virtualIx());
 }
 
 void spider::sched::VectPiSDFTask::setState(TaskState state) noexcept {
-    stateArray_[firing()] = state;
+    stateArray_[currentFiring_] = state;
 }
 
 void spider::sched::VectPiSDFTask::setJobExecIx(u32 ix) noexcept {
-    jobExecIxArray_[firing()] = ix;
+    jobExecIxArray_[currentFiring_] = ix;
 }
 
 void spider::sched::VectPiSDFTask::setSyncExecIxOnLRT(size_t lrtIx, u32 value) {
-    syncInfoArray_[lrtIx + firing() * archi::platform()->LRTCount()].first = value;
+    syncInfoArray_[lrtIx + currentOffset_].first = value;
 }
 
 void spider::sched::VectPiSDFTask::setSyncRateOnLRT(size_t lrtIx, u32 value) {
-    const auto offsetLRTIx = lrtIx + firing() * archi::platform()->LRTCount();
-    syncInfoArray_[offsetLRTIx].second = value;
+    syncInfoArray_[lrtIx + currentOffset_].second = value;
+}
+
+void spider::sched::VectPiSDFTask::setOnFiring(u32 firing) {
+    if (firing != currentFiring_) {
+        PiSDFTask::setOnFiring(firing);
+        currentOffset_ = static_cast<u32>(currentFiring_ * archi::platform()->LRTCount());
+    }
 }
 

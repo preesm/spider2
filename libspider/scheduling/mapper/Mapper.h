@@ -135,6 +135,12 @@ namespace spider {
              */
             ufast64 computeStartTime(PiSDFTask *task, const Schedule *schedule) const;
 
+            static void computeStartTimeForDep(const pisdf::DependencyInfo &dep,
+                                               PiSDFTask *task,
+                                               const Schedule *schedule,
+                                               u32 firing,
+                                               ufast64 &minStartTime);
+
             /**
              * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
              *        on a given PE.
