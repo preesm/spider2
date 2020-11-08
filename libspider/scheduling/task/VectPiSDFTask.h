@@ -77,8 +77,6 @@ namespace spider {
 
             u32 syncExecIxOnLRT(size_t lrtIx) const final;
 
-            u32 syncRateOnLRT(size_t lrtIx) const final;
-
             /* === Setter(s) === */
 
             void setOnFiring(u32 firing) override;
@@ -93,15 +91,13 @@ namespace spider {
 
             void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final;
 
-            void setSyncRateOnLRT(size_t lrtIx, u32 value) final;
-
         private:
-            spider::unique_ptr<SyncInfo> syncInfoArray_; /*!< Exec constraints array of the instances of the vertex*/
-            spider::unique_ptr<u64> endTimeArray_;       /*!< Mapping end time array of the instances of the vertex */
-            spider::unique_ptr<u32> mappedPEIxArray_;    /*!< Mapping PE array of the instances of the vertex */
-            spider::unique_ptr<u32> jobExecIxArray_;     /*!< Index array of the job sent to the PE */
+            spider::unique_ptr<u32> syncInfoArray_;   /*!< Exec constraints array of the instances of the vertex*/
+            spider::unique_ptr<u64> endTimeArray_;    /*!< Mapping end time array of the instances of the vertex */
+            spider::unique_ptr<u32> mappedPEIxArray_; /*!< Mapping PE array of the instances of the vertex */
+            spider::unique_ptr<u32> jobExecIxArray_;  /*!< Index array of the job sent to the PE */
             u32 currentOffset_ = 0;
-            spider::unique_ptr<TaskState> stateArray_;   /*!< State array of the instances of the vertex */
+            spider::unique_ptr<TaskState> stateArray_; /*!< State array of the instances of the vertex */
         };
     }
 }

@@ -58,7 +58,7 @@ spider::sched::SRDAGTask::SRDAGTask(srdag::Vertex *vertex) : Task(), vertex_{ ve
     }
     const auto *platform = archi::platform();
     if (platform) {
-        syncInfoArray_ = make_unique(make_n<SyncInfo, StackID::SCHEDULE>(archi::platform()->LRTCount(), { UINT32_MAX, 0 }));
+        syncInfoArray_ = make_unique(make_n<u32, StackID::SCHEDULE>(archi::platform()->LRTCount(), UINT32_MAX));
     }
 }
 
@@ -146,8 +146,7 @@ const spider::PE *spider::sched::SRDAGTask::mappedLRT() const {
 
 void spider::sched::SRDAGTask::setMappedPE(const spider::PE *pe) {
     mappedPEIx_ = static_cast<u32>(pe->virtualIx());
-    syncInfoArray_[pe->attachedLRT()->virtualIx()].first = UINT32_MAX;
-    syncInfoArray_[pe->attachedLRT()->virtualIx()].second = 0;
+    syncInfoArray_[pe->attachedLRT()->virtualIx()] = UINT32_MAX;
 }
 
 #endif

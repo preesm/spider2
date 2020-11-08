@@ -105,8 +105,6 @@ namespace spider {
 
             inline u32 syncExecIxOnLRT(size_t) const final { return syncExecTaskIx_; }
 
-            inline u32 syncRateOnLRT(size_t) const final { return 0; }
-
             inline TaskState state() const noexcept final { return state_; }
 
             inline SyncType syncType() const { return type_; }
@@ -156,8 +154,6 @@ namespace spider {
                     syncExecTaskIx_ = value;
                 }
             }
-
-            inline void setSyncRateOnLRT(size_t, u32) final { }
 
         private:
             u64 startTime_{ UINT64_MAX };     /*!< Mapping start time of the vertexTask */

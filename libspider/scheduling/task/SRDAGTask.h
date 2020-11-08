@@ -99,9 +99,7 @@ namespace spider {
 
             inline TaskState state() const noexcept final { return state_; }
 
-            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].first; }
-
-            inline u32 syncRateOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].second; }
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx]; }
 
             inline srdag::Vertex *vertex() const { return vertex_; }
 
@@ -120,15 +118,11 @@ namespace spider {
             inline void setMappedPE(const spider::PE *pe) final;
 
             inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
-                syncInfoArray_[lrtIx].first = value;
-            }
-
-            inline void setSyncRateOnLRT(size_t lrtIx, u32 value) final {
-                syncInfoArray_[lrtIx].second = value;
+                syncInfoArray_[lrtIx] = value;
             }
 
         private:
-            spider::unique_ptr<SyncInfo> syncInfoArray_;
+            spider::unique_ptr<u32> syncInfoArray_;
             srdag::Vertex *vertex_ = nullptr;
             u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
             u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */

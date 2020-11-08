@@ -125,7 +125,7 @@ namespace spider {
              * @param schedule  Pointer to the schedule.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(Task *task, const Schedule *schedule) const;
+            ufast64 computeStartTime(Task *task, const Schedule *schedule, u32 *comRates) const;
 
             /**
              * @brief Compute the minimum start time possible for a given task.
@@ -133,13 +133,7 @@ namespace spider {
              * @param schedule     Pointer to the schedule.
              * @return value of the minimum start time possible
              */
-            ufast64 computeStartTime(PiSDFTask *task, const Schedule *schedule) const;
-
-            static void computeStartTimeForDep(const pisdf::DependencyInfo &dep,
-                                               PiSDFTask *task,
-                                               const Schedule *schedule,
-                                               u32 firing,
-                                               ufast64 &minStartTime);
+            ufast64 computeStartTime(PiSDFTask *task, const Schedule *schedule, u32 *comRates) const;
 
             /**
              * @brief Compute the communication cost and the data size that would need to be send if a vertexTask is mapped
@@ -151,7 +145,8 @@ namespace spider {
              */
             static std::pair<ufast64, ufast64> computeCommunicationCost(Task *task,
                                                                         const PE *mappedPE,
-                                                                        const Schedule *schedule);
+                                                                        const Schedule *schedule,
+                                                                        const u32 *comRates);
 
             void mapCommunications(MappingResult &mappingInfo, Task *task, Schedule *schedule) const;
 

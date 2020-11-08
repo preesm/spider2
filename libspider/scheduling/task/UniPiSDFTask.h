@@ -75,9 +75,7 @@ namespace spider {
 
             inline TaskState state() const noexcept final { return state_; }
 
-            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].first; }
-
-            inline u32 syncRateOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx].second; }
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx]; }
 
             /* === Setter(s) === */
 
@@ -90,15 +88,11 @@ namespace spider {
             inline void setJobExecIx(u32 ix) noexcept final { jobExecIx_ = ix; }
 
             inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
-                syncInfoArray_[lrtIx].first = value;
-            }
-
-            inline void setSyncRateOnLRT(size_t lrtIx, u32 value) final {
-                syncInfoArray_[lrtIx].second = value;
+                syncInfoArray_[lrtIx] = value;
             }
 
         private:
-            spider::unique_ptr<SyncInfo> syncInfoArray_;   /*!< Exec constraints array of the instances of the vertex*/
+            spider::unique_ptr<u32> syncInfoArray_;        /*!< Exec constraints array of the instances of the vertex*/
             u64 endTime_ = 0;                              /*!< Mapping end time array of the instances of the vertex */
             u32 mappedPEIx_ = UINT32_MAX;                  /*!< Mapping PE array of the instances of the vertex */
             u32 jobExecIx_ = UINT32_MAX;                   /*!< Index array of the job sent to the PE */

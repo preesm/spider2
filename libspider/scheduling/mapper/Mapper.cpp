@@ -75,8 +75,12 @@ void spider::sched::Mapper::map(PiSDFTask *task, Schedule *schedule) {
 
 template<class T>
 void spider::sched::Mapper::mapImpl(T *task, Schedule *schedule) {
+    auto comRates = spider::make_unique(make_n<u32>(archi::platform()->LRTCount(), 0));
+    if (!comRates) {
+        throwNullptrException();
+    }
     /* == Compute the minimum start time possible for the task == */
-    const auto minStartTime = computeStartTime(task, schedule);
+    const auto minStartTime = computeStartTime(task, schedule, comRates.get());
     /* == Build the data dependency vector in order to compute receive cost == */
     const auto *platform = archi::platform();
     /* == Search for a slave to map the task on */
@@ -86,7 +90,7 @@ void spider::sched::Mapper::mapImpl(T *task, Schedule *schedule) {
         /* == Find best fit PE for this cluster == */
         const auto *foundPE = findPE(cluster, scheduleStats, task, minStartTime);
         if (foundPE) {
-            const auto result = computeCommunicationCost(task, foundPE, schedule);
+            const auto result = computeCommunicationCost(task, foundPE, schedule, comRates.get());
             const auto communicationCost = result.first;
             const auto externDataToReceive = result.second;
             mappingResult.needToAddCommunication |= (externDataToReceive != 0);
@@ -113,7 +117,7 @@ void spider::sched::Mapper::mapImpl(T *task, Schedule *schedule) {
     schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
 }
 
-ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *schedule) const {
+ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *schedule, u32 *comRates) const {
     auto minTime = startTime_;
     if (!task) {
         return minTime;
@@ -128,25 +132,25 @@ ufast64 spider::sched::Mapper::computeStartTime(Task *task, const Schedule *sche
                 task->setSyncExecIxOnLRT(srcLRTIx, srcJobIx);
             }
             /* == By summing up all the rates we are sure to compute com cost accurately == */
-            task->setSyncRateOnLRT(srcLRTIx, task->syncRateOnLRT(srcLRTIx) + static_cast<u32>(task->inputRate(ix)));
+            comRates[srcLRTIx] += static_cast<u32>(task->inputRate(ix));
             minTime = std::max(minTime, srcTask->endTime());
         }
     }
     return minTime;
 }
 
-ufast64 spider::sched::Mapper::computeStartTime(PiSDFTask *task, const Schedule *schedule) const {
+ufast64 spider::sched::Mapper::computeStartTime(PiSDFTask *task, const Schedule *schedule, u32 *comRates) const {
     auto minTime = startTime_;
     if (!task) {
         return minTime;
     }
-    const auto firing = task->firing();
     const auto *vertex = task->vertex();
     const auto *handler = task->handler();
-    const auto lambda = [task, firing, schedule, &minTime] (const pisdf::DependencyInfo &dep) {
+    const auto lambda = [task, schedule, comRates, &minTime](const pisdf::DependencyInfo &dep) {
         if (!dep.vertex_ || !dep.handler_) {
             return;
         }
+        const auto firing = task->firing();
         for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
             const auto srcTaskIx = dep.handler_->getTaskIx(dep.vertex_, k);
             if (srcTaskIx != UINT32_MAX) {
@@ -165,55 +169,22 @@ ufast64 spider::sched::Mapper::computeStartTime(PiSDFTask *task, const Schedule 
                 /* == By summing up all the rates we are sure to compute com cost accurately == */
                 const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
                 const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
-                const auto rate = (dep.rate_ > 0)* (memoryEnd - memoryStart + 1);
-                task->setSyncRateOnLRT(srcLRTIx, task->syncRateOnLRT(srcLRTIx) + rate);
+                comRates[srcLRTIx] += (dep.rate_ > 0) * (memoryEnd - memoryStart + 1);
                 minTime = std::max(minTime, srcEndTime);
             }
         }
     };
+    const auto firing = task->firing();
     for (const auto *edge : vertex->inputEdges()) {
         pisdf::detail::computeExecDependency(handler, edge, firing, lambda);
     }
     return minTime;
 }
 
-void
-spider::sched::Mapper::computeStartTimeForDep(const pisdf::DependencyInfo &dep,
-                                              PiSDFTask *task,
-                                              const Schedule *schedule,
-                                              u32 firing,
-                                              ufast64 &minStartTime) {
-    if (!dep.vertex_ || !dep.handler_) {
-        return;
-    }
-    for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-        const auto srcTaskIx = dep.handler_->getTaskIx(dep.vertex_, k);
-        if (srcTaskIx != UINT32_MAX) {
-            const auto *srcTask = schedule->task(srcTaskIx);
-            if (!srcTask) {
-                throwNullptrException();
-            }
-            const auto srcLRTIx = srcTask->mappedLRT()->virtualIx();
-            const auto srcJobIx = srcTask->ix();
-            const auto srcEndTime = srcTask->endTime();
-            task->setOnFiring(firing);
-            const auto currentJob = task->syncExecIxOnLRT(srcLRTIx);
-            if (currentJob == UINT32_MAX || srcJobIx > currentJob) {
-                task->setSyncExecIxOnLRT(srcLRTIx, srcJobIx);
-            }
-            /* == By summing up all the rates we are sure to compute com cost accurately == */
-            const auto memoryStart = (k == dep.firingStart_) * dep.memoryStart_;
-            const auto memoryEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
-            const auto rate = (dep.rate_ > 0)* (memoryEnd - memoryStart + 1);
-            task->setSyncRateOnLRT(srcLRTIx, task->syncRateOnLRT(srcLRTIx) + rate);
-            minStartTime = std::max(minStartTime, srcEndTime);
-        }
-    }
-}
-
 std::pair<ufast64, ufast64> spider::sched::Mapper::computeCommunicationCost(Task *task,
                                                                             const PE *mappedPE,
-                                                                            const Schedule *schedule) {
+                                                                            const Schedule *schedule,
+                                                                            const u32 *comRates) {
     /* == Compute communication cost == */
     ufast64 externDataToReceive = 0u;
     ufast64 communicationCost = 0;
@@ -222,7 +193,7 @@ std::pair<ufast64, ufast64> spider::sched::Mapper::computeCommunicationCost(Task
     const auto firing = task->firing();
     for (size_t i = 0; i < lrtCount; ++i) {
         const auto srcTaskIx = task->syncExecIxOnLRT(i);
-        const auto rate = task->syncRateOnLRT(i);
+        const auto rate = comRates[i];
         if (srcTaskIx != UINT32_MAX) {
             const auto *srcTask = schedule->task(srcTaskIx);
             if (srcTask && srcTask->state() != TaskState::NOT_RUNNABLE) {

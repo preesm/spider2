@@ -52,12 +52,12 @@
 spider::sched::UniPiSDFTask::UniPiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex) :
         PiSDFTask(handler, vertex) {
     const auto lrtCount = archi::platform()->LRTCount();
-    syncInfoArray_ = spider::make_unique(make_n<SyncInfo, StackID::SCHEDULE>(lrtCount, { UINT32_MAX, 0 }));
+    syncInfoArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(lrtCount, UINT32_MAX));
 }
 
 void spider::sched::UniPiSDFTask::reset() {
     const auto lrtCount = archi::platform()->LRTCount();
-    std::fill(syncInfoArray_.get(), syncInfoArray_.get() + lrtCount, SyncInfo{ UINT32_MAX, 0 });
+    std::fill(syncInfoArray_.get(), syncInfoArray_.get() + lrtCount, UINT32_MAX);
     endTime_ = 0;
     jobExecIx_ = UINT32_MAX;
     mappedPEIx_ = UINT32_MAX;
