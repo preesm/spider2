@@ -7,8 +7,11 @@ Spider2 Changelog
 ### New Feature
 
 ### Changes
+* Drastic improvement in mapping performance in PiSDF mode.
+* Drastic improvement in memory alloc perfs in PiSDF mode.
 
 ### Bug fix
+* Fixed support of external interfaces in PiSDF mode.
 
 
 ## Release version 1.0.1

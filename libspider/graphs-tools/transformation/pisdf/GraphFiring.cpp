@@ -274,7 +274,11 @@ void spider::pisdf::GraphFiring::setEdgeOffset(u32 value, const Edge *edge, u32 
 
 void spider::pisdf::GraphFiring::setEdgeDepCount(const Vertex *vertex, const Edge *edge, u32 firing, u32 value) {
     const auto offset = firing * vertex->inputEdgeCount();
-    depsCountArray_[vertex->ix()][offset + edge->sinkPortIx()] = value;
+    if (vertex->subtype() != pisdf::VertexType::EXTERN_OUT) {
+        depsCountArray_[vertex->ix()][offset + edge->sinkPortIx()] = value;
+    } else {
+        depsCountArray_[vertex->ix()][offset + edge->sinkPortIx()] = 1;
+    }
 }
 
 /* === Private method(s) implementation === */

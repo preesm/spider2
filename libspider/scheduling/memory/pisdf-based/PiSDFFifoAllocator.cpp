@@ -232,6 +232,9 @@ void spider::sched::PiSDFFifoAllocator::buildOutputFifo(Fifo &fifo, const pisdf:
     const auto sourceSubType = edge->source()->subtype();
     const auto sinkSubType = edge->sink()->subtype();
     if (sourceSubType == pisdf::VertexType::EXTERN_IN || sinkSubType == pisdf::VertexType::EXTERN_OUT) {
+        auto bufferAddres = handler->getEdgeAddress(edge, 0);
+        fifo.offset_ = static_cast<u32>(fifo.address_ - bufferAddres);
+        fifo.address_ = bufferAddres;
         fifo.attribute_ = FifoAttribute::RW_EXT;
     } else if (sourceSubType == pisdf::VertexType::FORK || sourceSubType == pisdf::VertexType::DUPLICATE) {
         fifo.attribute_ = FifoAttribute::RW_ONLY;

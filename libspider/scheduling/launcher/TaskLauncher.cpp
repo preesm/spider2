@@ -116,7 +116,8 @@ void spider::sched::TaskLauncher::visit(PiSDFTask *task) {
     }
     auto fifos = spider::make<JobFifos, StackID::RUNTIME>(totalFifoCount, static_cast<u32>(vertex->outputEdgeCount()));
     /* == Set the synchronization flags == */
-    message.synchronizationFlags_ = buildJobNotificationFlags(task, handler, vertex, firing, fifos->outputFifos().data());
+    message.synchronizationFlags_ = buildJobNotificationFlags(task, handler, vertex, firing,
+                                                              fifos->outputFifos().data());
     /* == Set Fifos == */
     message.fifos_ = allocator_->buildJobFifos(task, fifos);
     /* == Set input params == */

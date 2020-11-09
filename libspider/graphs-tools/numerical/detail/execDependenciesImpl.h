@@ -103,17 +103,14 @@ namespace spider {
                                                const pisdf::GraphFiring *handler,
                                                Args &&...args) {
                     /* == Case of input interface == */
-                    const auto *source = edge->source();
                     const auto srcRate = handler->getSrcRate(edge);
                     const auto *ghdl = handler->getParent()->base();
                     const auto upperLCons = srcRate * handler->firingValue();
-                    const auto *upperEdge = source->graph()->inputEdge(source->ix());
-                    const auto delayedLowerCons = lowerCons - delayValue;
-                    const auto delayedUpperCons = upperCons - delayValue;
-                    const auto firingStart = static_cast<u32>(delayedLowerCons / srcRate);
-                    const auto firingEnd = static_cast<u32>(delayedUpperCons / srcRate);
-                    const auto lowerConsMod = delayedLowerCons % srcRate;
-                    const auto upperConsMod = delayedUpperCons % srcRate;
+                    const auto *upperEdge = edge->source()->graph()->inputEdge(edge->source()->ix());
+                    const auto firingStart = static_cast<u32>((lowerCons - delayValue) / srcRate);
+                    const auto firingEnd = static_cast<u32>((upperCons - delayValue) / srcRate);
+                    const auto lowerConsMod = (lowerCons - delayValue) % srcRate;
+                    const auto upperConsMod = (upperCons - delayValue) % srcRate;
                     i32 count = 0;
                     for (auto k = firingStart; k <= firingEnd; ++k) {
                         const auto start = k == firingStart ? lowerConsMod : 0;
@@ -134,17 +131,14 @@ namespace spider {
                     static DependencyInfo unresolved = { nullptr, nullptr, -1,
                                                          UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX };
                     /* == Case of source graph == */
-                    const auto *source = edge->source();
                     const auto srcRate = handler->getSrcRate(edge);
-                    const auto *graph = source->convertTo<pisdf::Graph>();
+                    const auto *graph = edge->source()->convertTo<pisdf::Graph>();
                     const auto *innerEdge = graph->outputInterface(edge->sourcePortIx())->edge();
                     const auto ifDelay = innerEdge->delay() ? innerEdge->delay()->value() : 0u;
-                    const auto delayedLowerCons = lowerCons - delayValue;
-                    const auto delayedUpperCons = upperCons - delayValue;
-                    const auto firingStart = static_cast<u32>(delayedLowerCons / srcRate);
-                    const auto firingEnd = static_cast<u32>(delayedUpperCons / srcRate);
-                    const auto lowerConsMod = delayedLowerCons % srcRate + ifDelay;
-                    const auto upperConsMod = delayedUpperCons % srcRate + ifDelay - srcRate;
+                    const auto firingStart = static_cast<u32>((lowerCons - delayValue) / srcRate);
+                    const auto firingEnd = static_cast<u32>((upperCons - delayValue) / srcRate);
+                    const auto lowerConsMod = (lowerCons - delayValue) % srcRate + ifDelay;
+                    const auto upperConsMod = (upperCons - delayValue) % srcRate + ifDelay - srcRate;
                     i32 count = 0;
                     for (auto k = firingStart; k <= firingEnd; ++k) {
                         const auto *ghdl = handler->getSubgraphGraphFiring(graph, k);
