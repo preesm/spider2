@@ -100,12 +100,9 @@ spider::sched::ResourcesAllocator::ResourcesAllocator(SchedulingPolicy schedulin
 #ifndef _NO_BUILD_LEGACY_RT
 
 void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
-    auto start = time::now();
     /* == Schedule the graph == */
     const auto currentSize = schedule_->size();
     scheduler_->schedule(graph, schedule_.get());
-    auto end = time::now();
-    log::info("sched: %lld ns\n", time::duration::nanoseconds(start, end));
     /* == Map, Allocate and Send tasks == */
     execute<SRDAGTask>(currentSize);
 }
@@ -113,12 +110,9 @@ void spider::sched::ResourcesAllocator::execute(const srdag::Graph *graph) {
 #endif
 
 void spider::sched::ResourcesAllocator::execute(pisdf::GraphHandler *graphHandler) {
-    auto start = time::now();
     /* == Schedule the graph == */
     const auto currentSize = schedule_->size();
     scheduler_->schedule(graphHandler, schedule_.get());
-    auto end = time::now();
-    log::info("sched: %lld ns\n", time::duration::nanoseconds(start, end));
     /* == Map, Allocate and Send tasks == */
     execute<PiSDFTask>(currentSize);
 }
@@ -162,7 +156,6 @@ void spider::sched::ResourcesAllocator::execute(size_t offset) {
         }
             break;
         case ExecutionPolicy::DELAYED: {
-            auto start = time::now();
             auto size = schedule_->size();
             for (auto i = offset; i < size; ++i) {
                 auto *task = static_cast<T *>(schedule_->task(i));
@@ -171,17 +164,12 @@ void spider::sched::ResourcesAllocator::execute(size_t offset) {
                 /* == Update min start time of the mapping process == */
                 mapper_->setStartTime(computeMinStartTime());
             }
-            auto end = time::now();
-            log::info("map: %lld ns\n", time::duration::nanoseconds(start, end));
-            start = time::now();
             size = schedule_->size(); /* == in case communications were added, size will have changed == */
             for (auto i = offset; i < size; ++i) {
                 /* == Send the task == */
                 auto *task = schedule_->task(i);
                 task->visit(&launcher);
             }
-            end = time::now();
-            log::info("send: %lld ns\n", time::duration::nanoseconds(start, end));
         }
             break;
         default:
