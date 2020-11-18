@@ -78,6 +78,8 @@ namespace spider {
 
             ~TransfoJob() = default;
         };
+
+        using JobStack = spider::vector<TransfoJob>;
     }
 }
 #endif
