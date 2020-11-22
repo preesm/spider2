@@ -35,7 +35,6 @@
 /* === Include(s) === */
 
 #include <scheduling/mapper/RoundRobinMapper.h>
-#include <scheduling/task/PiSDFTask.h>
 #include <scheduling/schedule/Schedule.h>
 #include <archi/Platform.h>
 #include <archi/Cluster.h>
@@ -48,77 +47,7 @@ spider::sched::RoundRobinMapper::RoundRobinMapper() : Mapper() {
     currentPeIx_ = spider::make_unique(make_n<size_t, StackID::SCHEDULE>(archi::platform()->clusterCount(), 0));
 }
 
-void spider::sched::RoundRobinMapper::map(Task *task, Schedule *schedule) {
-    if (!task) {
-        throwSpiderException("can not map nullptr task.");
-    }
-    if (task->state() == TaskState::SKIPPED) {
-        return;
-    }
-    task->setState(TaskState::PENDING);
-    /* == Map standard task == */
-    mapImpl(task, schedule);
-}
-
-void spider::sched::RoundRobinMapper::map(PiSDFTask *task, Schedule *schedule) {
-    if (!task) {
-        throwSpiderException("can not map nullptr task.");
-    }
-    if (task->state() == TaskState::SKIPPED) {
-        return;
-    }
-    task->setState(TaskState::PENDING);
-    /* == Map pisdf task with dependencies == */
-    mapImpl(task, schedule, task->computeExecDependencies());
-}
-
 /* === Private method(s) implementation === */
-
-template<class... Args>
-void spider::sched::RoundRobinMapper::mapImpl(Task *task, Schedule *schedule, Args &&... args) {
-    /* == Compute the minimum start time possible for the task == */
-    const auto minStartTime = Mapper::computeStartTime(task, schedule, std::forward<Args>(args)...);
-    /* == Build the data dependency vector in order to compute receive cost == */
-    const auto *platform = archi::platform();
-    /* == Search for a slave to map the task on */
-    const auto &scheduleStats = schedule->stats();
-    MappingResult mappingResult{ };
-    for (const auto *cluster : platform->clusters()) {
-        /* == Find best fit PE for this cluster == */
-        const auto *foundPE = findPE(cluster, scheduleStats, task, minStartTime);
-        if (foundPE) {
-            currentPeIx_[cluster->ix()] = (currentPeIx_[cluster->ix()] + 1u) % cluster->PECount();
-            const auto result = Mapper::computeCommunicationCost(task, foundPE, schedule, std::forward<Args>(args)...);
-            const auto communicationCost = result.first;
-            const auto externDataToReceive = result.second;
-            mappingResult.needToAddCommunication |= (externDataToReceive != 0);
-            /* == Check if it is better than previous cluster PE == */
-            const auto startTime{ std::max(scheduleStats.endTime(foundPE->virtualIx()), minStartTime) };
-            const auto endTime{ startTime + task->timingOnPE(foundPE) };
-            const auto scheduleCost{ math::saturateAdd(endTime, communicationCost) };
-            if (scheduleCost < mappingResult.scheduleCost) {
-                mappingResult.mappingPE = foundPE;
-                mappingResult.startTime = startTime;
-                mappingResult.endTime = endTime;
-                mappingResult.scheduleCost = scheduleCost;
-            }
-            break;
-        }
-    }
-    /* == Throw if no possible mapping was found == */
-    if (!mappingResult.mappingPE) {
-        throwSpiderException("Could not find suitable processing element for vertex: [%s]", task->name().c_str());
-    }
-    if (mappingResult.needToAddCommunication) {
-        /* == Map communications == */
-        task->setStartTime(mappingResult.startTime);
-        task->setEndTime(mappingResult.endTime);
-        Mapper::mapCommunications(task, mappingResult.mappingPE->cluster(), schedule, std::forward<Args>(args)...);
-        mappingResult.startTime = task->startTime();
-        mappingResult.endTime = task->endTime();
-    }
-    schedule->updateTaskAndSetReady(task, mappingResult.mappingPE, mappingResult.startTime, mappingResult.endTime);
-}
 
 const spider::PE *spider::sched::RoundRobinMapper::findPE(const Cluster *cluster,
                                                           const Stats &,
@@ -135,5 +64,6 @@ const spider::PE *spider::sched::RoundRobinMapper::findPE(const Cluster *cluster
     if (!pe->enabled() || !task->isMappableOnPE(pe)) {
         return nullptr;
     }
+    currentPeIx_[cluster->ix()] = (currentPeIx_[cluster->ix()] + 1u) % cluster->PECount();
     return pe;
 }

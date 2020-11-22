@@ -35,30 +35,21 @@
 /* === Include(s) === */
 
 #include <scheduling/task/PiSDFTask.h>
-#include <scheduling/task/SyncTask.h>
-#include <scheduling/schedule/Schedule.h>
 #include <scheduling/launcher/TaskLauncher.h>
-#include <graphs/pisdf/ExternInterface.h>
-#include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Vertex.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs/pisdf/Param.h>
-#include <graphs-tools/helper/pisdf-helper.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
 #include <graphs-tools/transformation/pisdf/GraphHandler.h>
-#include <graphs-tools/numerical/dependencies.h>
-#include <runtime/common/Fifo.h>
-#include <api/runtime-api.h>
+
+#include <archi/Platform.h>
+#include <api/archi-api.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
 
-spider::sched::PiSDFTask::PiSDFTask(pisdf::GraphFiring *handler,
-                                    const pisdf::Vertex *vertex,
-                                    u32 firing) : Task(),
-                                                  handler_{ handler },
-                                                  firing_{ firing } {
+spider::sched::PiSDFTask::PiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex) :
+        Task(), handler_{ handler } {
     if (!vertex) {
         throwSpiderException("nullptr vertex.");
     }
@@ -69,7 +60,16 @@ void spider::sched::PiSDFTask::visit(TaskLauncher *launcher) {
     launcher->visit(this);
 }
 
-void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
+void spider::sched::PiSDFTask::setOnFiring(u32 firing) {
+#ifndef NDEBUG
+    if (firing >= handler_->getRV(vertex())) {
+        throwSpiderException("invalid firing value for vertex: %s", vertex()->name().c_str());
+    }
+#endif
+    currentFiring_ = firing;
+}
+
+bool spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
     const auto *vertex = this->vertex();
     if (vertex->subtype() != pisdf::VertexType::CONFIG) {
         throwSpiderException("Only config vertices can update parameter values.");
@@ -83,14 +83,7 @@ void spider::sched::PiSDFTask::receiveParams(const spider::array<i64> &values) {
                                     handler_->getParams()[ix]->name().c_str(), value);
         }
     }
-}
-
-spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeExecDependencies() const {
-    return handler_->computeExecDependencies(vertex(), firing_);
-}
-
-spider::vector<spider::pisdf::DependencyIterator> spider::sched::PiSDFTask::computeConsDependencies() const {
-    return handler_->computeConsDependencies(vertex(), firing_);
+    return handler_->isResolved();
 }
 
 u32 spider::sched::PiSDFTask::color() const {
@@ -107,20 +100,12 @@ std::string spider::sched::PiSDFTask::name() const {
     const auto *handler = handler_;
     while (handler) {
         const auto *graph = vertex->graph();
-        const auto firing = handler->firingValue();
-        name = graph->name() + std::string(":").append(std::to_string(firing)).append(":").append(name);
-        handler = handler->getParent()->handler();
+        const auto hdlFiring = handler->firingValue();
+        name = graph->name() + std::string(":").append(std::to_string(hdlFiring)).append(":").append(name);
+        handler = handler->getParent()->base();
         vertex = graph;
     }
-    return name.append(this->vertex()->name()).append(":").append(std::to_string(firing_));
-}
-
-u32 spider::sched::PiSDFTask::ix() const noexcept {
-    return handler_->getTaskIx(vertex(), firing_);
-}
-
-void spider::sched::PiSDFTask::setIx(u32 ix) noexcept {
-    handler_->setTaskIx(vertex(), firing_, ix);
+    return name.append(this->vertex()->name()).append(":").append(std::to_string(currentFiring_));
 }
 
 bool spider::sched::PiSDFTask::isMappableOnPE(const spider::PE *pe) const {
@@ -131,6 +116,26 @@ u64 spider::sched::PiSDFTask::timingOnPE(const spider::PE *pe) const {
     return static_cast<u64>(vertex()->runtimeInformation()->timingOnPE(pe, handler_->getParams()));
 }
 
+const spider::PE *spider::sched::PiSDFTask::mappedLRT() const {
+    const auto *pe = this->mappedPe();
+    if (!pe) {
+        return nullptr;
+    }
+    return pe->attachedLRT();
+}
+
+u32 spider::sched::PiSDFTask::ix() const noexcept {
+    return handler_->getTaskIx(vertexIx_, currentFiring_);
+}
+
+u32 spider::sched::PiSDFTask::firing() const {
+    return currentFiring_;
+}
+
 const spider::pisdf::Vertex *spider::sched::PiSDFTask::vertex() const {
     return handler_->vertex(vertexIx_);
+}
+
+void spider::sched::PiSDFTask::setIx(u32 ix) noexcept {
+    handler_->setTaskIx(vertex(), currentFiring_, ix);
 }

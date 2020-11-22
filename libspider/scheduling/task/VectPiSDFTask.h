@@ -32,49 +32,74 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GREEDYSCHEDULER_H
-#define SPIDER2_GREEDYSCHEDULER_H
-
-#ifndef _NO_BUILD_LEGACY_RT
+#ifndef SPIDER2_VECTPISDFTASK_H
+#define SPIDER2_VECTPISDFTASK_H
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/task/PiSDFTask.h>
+#include <memory/unique_ptr.h>
+#include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
 
-    namespace srdag {
+    namespace pisdf {
         class Vertex;
+
+        class Edge;
+
+        class GraphFiring;
     }
 
     namespace sched {
 
         /* === Class definition === */
 
-        class GreedyScheduler final : public Scheduler {
+        class VectPiSDFTask final : public PiSDFTask {
         public:
+            VectPiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
 
-            GreedyScheduler() = default;
-
-            ~GreedyScheduler() noexcept override = default;
+            ~VectPiSDFTask() final = default;
 
             /* === Method(s) === */
 
-            void schedule(const srdag::Graph *graph, Schedule *schedule) override;
+            void reset() final;
+
+            /* === Getter(s) === */
+
+            u64 endTime() const final;
+
+            const PE *mappedPe() const final;
+
+            TaskState state() const noexcept final;
+
+            u32 jobExecIx() const noexcept final;
+
+            u32 syncExecIxOnLRT(size_t lrtIx) const final;
+
+            /* === Setter(s) === */
+
+            void setOnFiring(u32 firing) override;
+
+            void setEndTime(u64 time) final;
+
+            void setMappedPE(const PE *pe) final;
+
+            void setState(TaskState state) noexcept final;
+
+            void setJobExecIx(u32 ix) noexcept final;
+
+            void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final;
 
         private:
-
-            /* === Private method(s) === */
-
-            /**
-             * @brief Evaluate if a vertex is schedulable for a given firing.
-             * @param vertex    Pointer to the vertex.
-             * @param schedule  Pointer to the schedule.
-             * @return true if schedulable, false else.
-             */
-            bool evaluate(srdag::Vertex *vertex, Schedule *schedule);
+            spider::unique_ptr<u32> syncInfoArray_;   /*!< Exec constraints array of the instances of the vertex*/
+            spider::unique_ptr<u64> endTimeArray_;    /*!< Mapping end time array of the instances of the vertex */
+            spider::unique_ptr<u32> mappedPEIxArray_; /*!< Mapping PE array of the instances of the vertex */
+            spider::unique_ptr<u32> jobExecIxArray_;  /*!< Index array of the job sent to the PE */
+            u32 currentOffset_ = 0;
+            spider::unique_ptr<TaskState> stateArray_; /*!< State array of the instances of the vertex */
         };
     }
 }
-#endif
-#endif //SPIDER2_GREEDYSCHEDULER_H
+
+#endif //SPIDER2_VECTPISDFTASK_H

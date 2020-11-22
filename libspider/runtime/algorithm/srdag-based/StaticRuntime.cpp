@@ -40,7 +40,7 @@
 #include <runtime/runner/RTRunner.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
+#include <graphs-tools/transformation/srdag/singleRateTransformation.h>
 #include <graphs-tools/transformation/optims/optimizations.h>
 #include <graphs-tools/helper/pisdf-helper.h>
 #include <scheduling/ResourcesAllocator.h>

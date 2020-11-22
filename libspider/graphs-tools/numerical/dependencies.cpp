@@ -51,40 +51,62 @@
 
 /* === Function(s) definition === */
 
-i32 spider::pisdf::computeExecDependencyCount(const Vertex *vertex,
-                                              u32 firing,
-                                              size_t edgeIx,
-                                              const GraphFiring *handler) {
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::computeExecDependencies(const GraphFiring *handler, const Vertex *vertex, u32 firing) {
+    auto result = factory::vector<DependencyIterator>(StackID::TRANSFO);
+    if (vertex->inputEdgeCount()) {
+        spider::reserve(result, vertex->inputEdgeCount());
+        for (const auto *edge : vertex->inputEdges()) {
+            result.emplace_back(computeExecDependency(handler, vertex, firing, edge->sinkPortIx()));
+        }
+    }
+    return result;
+}
+
+spider::pisdf::DependencyIterator
+spider::pisdf::computeExecDependency(const GraphFiring *handler, const Vertex *vertex, u32 firing, size_t edgeIx,
+                                     i32 *count) {
 #ifndef NDEBUG
-    if (!handler || !vertex) {
+    if (!vertex) {
         throwNullptrException();
     }
 #endif
-    const auto *edge = vertex->inputEdge(edgeIx);
-    const auto snkRate = handler->getSnkRate(edge);
-    if (!snkRate) {
-        return 0;
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    auto depCount = detail::computeExecDependency(handler, vertex->inputEdge(edgeIx), firing, result);
+    if (count) {
+        *count = depCount;
     }
-    return detail::computeExecDependency(edge, snkRate * firing, snkRate * (firing + 1) - 1, handler, nullptr);
+    return DependencyIterator{ result };
 }
 
+spider::vector<spider::pisdf::DependencyIterator>
+spider::pisdf::computeConsDependencies(const GraphFiring *handler, const Vertex *vertex, u32 firing) {
+    auto result = factory::vector<pisdf::DependencyIterator>(StackID::TRANSFO);
+    if (vertex->outputEdgeCount()) {
+        spider::reserve(result, vertex->outputEdgeCount());
+        for (const auto *edge : vertex->outputEdges()) {
+            result.emplace_back(computeConsDependency(handler, vertex, firing, edge->sourcePortIx()));
+        }
+    }
+    return result;
+}
 
-i32 spider::pisdf::computeConsDependencyCount(const Vertex *vertex,
-                                              u32 firing,
-                                              size_t edgeIx,
-                                              const pisdf::GraphFiring *handler) {
+spider::pisdf::DependencyIterator
+spider::pisdf::computeConsDependency(const GraphFiring *handler, const Vertex *vertex, u32 firing, size_t edgeIx,
+                                     i32 *count) {
 #ifndef NDEBUG
-    if (!handler || !vertex) {
+    if (!vertex) {
         throwNullptrException();
     }
 #endif
-    const auto *edge = vertex->outputEdge(edgeIx);
-    const auto srcRate = handler->getSrcRate(edge);
-    if (!srcRate) {
-        return 0;
+    auto result = factory::vector<DependencyInfo>(StackID::TRANSFO);
+    auto depCount = detail::computeConsDependency(handler, vertex->outputEdge(edgeIx), firing, result);
+    if (count) {
+        *count = depCount;
     }
-    return detail::computeConsDependency(edge, srcRate * firing, srcRate * (firing + 1) - 1, handler, nullptr);
+    return DependencyIterator{ result };
 }
+
 
 ifast64 spider::pisdf::computeConsLowerDep(ifast64 consumption, ifast64 production, ifast32 firing, ifast64 delay) {
     return std::max(static_cast<ifast64>(-1), math::floorDiv(firing * consumption - delay, production));

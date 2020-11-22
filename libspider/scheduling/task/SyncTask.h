@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
+#include <memory/unique_ptr.h>
 
 namespace spider {
 
@@ -64,6 +65,12 @@ namespace spider {
 
             /* === Getter(s) === */
 
+            inline bool receiveParams(const spider::array<i64> &) final { return true; }
+
+            /* === Getter(s) === */
+
+            inline i64 inputRate(size_t) const final { return 0; };
+
             inline Task *previousTask(size_t, const Schedule *) const final { return dependency_; }
 
             inline Task *nextTask(size_t, const Schedule *) const final { return successor_; }
@@ -78,11 +85,27 @@ namespace spider {
 
             inline u32 ix() const noexcept final { return ix_; }
 
+            inline bool isMappableOnPE(const PE *) const final { return true; }
+
             u64 timingOnPE(const PE *) const final;
 
             inline size_t dependencyCount() const final { return 1u; }
 
             inline size_t successorCount() const final { return 1u; }
+
+            inline u64 startTime() const final { return startTime_; }
+
+            inline u64 endTime() const final { return endTime_; }
+
+            const PE *mappedPe() const final;
+
+            const PE *mappedLRT() const final;
+
+            inline u32 jobExecIx() const noexcept final { return jobExecIx_; }
+
+            inline u32 syncExecIxOnLRT(size_t) const final { return syncExecTaskIx_; }
+
+            inline TaskState state() const noexcept final { return state_; }
 
             inline SyncType syncType() const { return type_; }
 
@@ -116,12 +139,34 @@ namespace spider {
 
             inline void setDepIx(u32 depIx) { depIx_ = depIx; }
 
+            inline void setStartTime(u64 time) final { startTime_ = time; }
+
+            inline void setEndTime(u64 time) final { endTime_ = time; }
+
+            inline void setState(TaskState state) noexcept final { state_ = state; }
+
+            inline void setJobExecIx(u32 ix) noexcept final { jobExecIx_ = ix; }
+
+            inline void setMappedPE(const spider::PE *pe) final;
+
+            inline void setSyncExecIxOnLRT(size_t, u32 value) final {
+                if (syncExecTaskIx_ == UINT32_MAX || value > syncExecTaskIx_) {
+                    syncExecTaskIx_ = value;
+                }
+            }
+
         private:
+            u64 startTime_{ UINT64_MAX };     /*!< Mapping start time of the vertexTask */
+            u64 endTime_{ UINT64_MAX };       /*!< Mapping end time of the vertexTask */
             Task *successor_{ nullptr };      /*!< Successor task */
             Task *dependency_{ nullptr };     /*!< Successor task */
             const MemoryBus *bus_{ nullptr }; /*!< Memory bus used by the task */
             u32 depIx_ = UINT32_MAX;
             u32 ix_ = UINT32_MAX;
+            u32 syncExecTaskIx_{ UINT32_MAX };
+            u32 mappedPEIx_ = UINT32_MAX;     /*!< Mapping PE of the vertexTask */
+            u32 jobExecIx_{ UINT32_MAX };     /*!< Index of the job sent to the PE */
+            TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */
             SyncType type_;
         };
     }

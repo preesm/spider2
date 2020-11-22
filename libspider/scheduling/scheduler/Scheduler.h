@@ -80,23 +80,40 @@ namespace spider {
             /* === Method(s) === */
 
 #ifndef _NO_BUILD_LEGACY_RT
+
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graph  Graph to use to perform the update.
              */
-            inline virtual spider::vector<SRDAGTask *> schedule(const srdag::Graph *) { return { }; }
+            inline virtual void schedule(const srdag::Graph *, Schedule *) { }
+
 #endif
 
             /**
              * @brief Update internal state of the scheduler (mostly for dynamic applications)
              * @param graphHandler Handler of the top graph.
              */
-            inline virtual spider::vector<PiSDFTask *> schedule(pisdf::GraphHandler *) { return { }; }
+            inline virtual void schedule(pisdf::GraphHandler *, Schedule *) { }
 
             /**
              * @brief Clears scheduler resources.
              */
             inline virtual void clear() { }
+
+        protected:
+
+            /* === Protected method(s) === */
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+            static void addTask(Schedule *schedule, const srdag::Vertex *vertex);
+
+#endif
+
+            static void addTask(Schedule *schedule,
+                                const pisdf::GraphFiring *handler,
+                                const pisdf::Vertex *vertex,
+                                u32 firing);
         };
     }
 }

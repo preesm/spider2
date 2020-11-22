@@ -39,6 +39,7 @@
 
 #include <graphs-tools/numerical/detail/DependencyInfo.h>
 #include <containers/vector.h>
+#include <memory/unique_ptr.h>
 
 namespace spider {
     namespace pisdf {
@@ -51,61 +52,71 @@ namespace spider {
 
             using const_iterator = const DependencyInfo *;
 
-            explicit DependencyIterator(spider::vector<DependencyInfo> infos) : infos_{ std::move(infos) } { }
+            explicit DependencyIterator(const spider::vector<DependencyInfo> &infos) {
+                dependencies_ = spider::make_unique(allocate<DependencyInfo, StackID::TRANSFO>(infos.size()));
+                for (size_t i = 0; i < infos.size(); ++i) {
+                    dependencies_[i] = infos[i];
+                }
+                count_ = static_cast<u32>(infos.size());
+            }
 
-            DependencyIterator(const DependencyIterator &) = default;
+            DependencyIterator() = default;
 
-            DependencyIterator(DependencyIterator &&) noexcept = default;
+            DependencyIterator(const DependencyIterator &) = delete;
 
-            DependencyIterator &operator=(const DependencyIterator &) = default;
+            DependencyIterator(DependencyIterator &&) = default;
 
-            DependencyIterator &operator=(DependencyIterator &&) noexcept = default;
+            DependencyIterator &operator=(const DependencyIterator &) = delete;
+
+            DependencyIterator &operator=(DependencyIterator &&) = default;
 
             ~DependencyIterator() noexcept = default;
 
             /* === Methods === */
 
             inline size_t count() const {
-                return infos_.size();
+                return count_;
             }
 
             inline size_t total() const {
-                if (!infos_.empty() && infos_[0].rate_ < 0) {
+                if (!count_ && dependencies_[0].rate_ < 0) {
                     return SIZE_MAX;
                 }
-                size_t count = 0;
-                for (const auto &dep : infos_) {
-                    count += (dep.rate_ >= 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
+                size_t res = 0;
+                for (u32 i = 0; i < count_; ++i) {
+                    const auto &dep = dependencies_[i];
+                    res += (dep.rate_ >= 0) * (dep.firingEnd_ - dep.firingStart_ + 1u);
                 }
-                return count;
+                return res;
             }
 
             inline DependencyInfo &operator[](size_t ix) {
-                return infos_.at(ix);
+                return dependencies_[ix];
             }
 
             inline const DependencyInfo &operator[](size_t ix) const {
-                return infos_.at(ix);
+                return dependencies_[ix];
             }
 
             inline iterator begin() {
-                return infos_.data();
+                return dependencies_.get();
             }
 
             inline const_iterator begin() const {
-                return infos_.data();
+                return dependencies_.get();
             }
 
             inline iterator end() {
-                return infos_.data() + infos_.size();
+                return dependencies_.get() + count_;
             }
 
             inline const_iterator end() const {
-                return infos_.data() + infos_.size();
+                return dependencies_.get() + count_;
             }
 
         private:
-            spider::vector<DependencyInfo> infos_;
+            spider::unique_ptr<DependencyInfo> dependencies_;
+            u32 count_;
         };
 
         /* == Type def for full dependencies of a vertex == */

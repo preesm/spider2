@@ -65,6 +65,7 @@ spider::srdag::Vertex::Vertex(const pisdf::Vertex *reference,
         throwSpiderException("invalid instance value for vertex [%s].", name().c_str());
     }
     instanceValue_ = instanceValue;
+    scheduleTask_ = spider::make_unique(spider::make<sched::SRDAGTask, StackID::SCHEDULE>(this));
 }
 
 spider::srdag::Vertex::~Vertex() {

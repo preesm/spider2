@@ -121,7 +121,8 @@ spider::SchedSVGGanttExporter::SchedSVGGanttExporter(const sched::Schedule *sche
     /* == Compute values needed for printing == */
     u64 minExecTime = UINT64_MAX;
     u64 maxExecTime = 0;
-    for (const auto &task : schedule_->tasks()) {
+    for (size_t i = 0; i < schedule_->size(); ++i) {
+        const auto &task = schedule_->task(i);
         const auto execTime = task->endTime() - task->startTime();
         minExecTime = std::min(execTime, minExecTime);
         maxExecTime = std::max(execTime, maxExecTime);
@@ -155,8 +156,9 @@ void spider::SchedSVGGanttExporter::printFromFile(FILE *file) const {
     axisPrinter(file);
 
     /* == Print the jobs == */
-    for (auto &task : schedule_->tasks()) {
-        taskPrinter(file, task.get());
+    for (size_t i = 0; i < schedule_->size(); ++i) {
+        const auto &task = schedule_->task(i);
+        taskPrinter(file, task);
     }
     printer::fprintf(file, " </g>\n");
     printer::fprintf(file, "</svg>");
@@ -340,8 +342,9 @@ void spider::SchedSVGGanttExporter::printFromTasks(const vector<spider::GanttTas
     axisPrinter(file);
 
     /* == Print the jobs == */
-    for (auto &task : schedule_->tasks()) {
-        taskPrinter(file, task.get());
+    for (size_t i = 0; i < schedule_->size(); ++i) {
+        const auto &task = schedule_->task(i);
+        taskPrinter(file, task);
     }
     printer::fprintf(file, " </g>\n");
     printer::fprintf(file, "</svg>");

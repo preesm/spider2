@@ -50,7 +50,7 @@ void spider::SchedStatsExporter::print() const {
 void spider::SchedStatsExporter::printFromFile(FILE *file) const {
     const auto &stats = schedule_->stats();
     printer::fprintf(file, "Schedule statistics: \n");
-    printer::fprintf(file, "Total number of jobs:     %zu\n", schedule_->taskCount());
+    printer::fprintf(file, "Total number of jobs:     %zu\n", schedule_->size());
     printer::fprintf(file, "Makespan of the schedule: %zu\n", stats.makespan());
     for (const auto &pe : archi::platform()->peArray()) {
         printer::fprintf(file, "PE #%zu\n", pe->virtualIx());
@@ -62,7 +62,8 @@ void spider::SchedStatsExporter::printFromFile(FILE *file) const {
         printer::fprintf(file, "\t >> utilization factor: %f\n", stats.utilizationFactor(pe->virtualIx()));
         if (stats.jobCount(pe->virtualIx())) {
             printer::fprintf(file, "\t >> job list: \n");
-            for (const auto &task : schedule_->tasks()) {
+            for (size_t i = 0; i < schedule_->size(); ++i) {
+                const auto &task = schedule_->task(i);
                 if (task->mappedPe()->virtualIx() == pe->virtualIx()) {
                     printer::fprintf(file, "\t\t >> {%zu,%zu}\n", task->startTime(), task->endTime());
                 }

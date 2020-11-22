@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
+#include <memory/unique_ptr.h>
 #include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
@@ -54,51 +55,84 @@ namespace spider {
 
         /* === Class definition === */
 
-        class PiSDFTask final : public Task {
+        class PiSDFTask : public Task {
         public:
-            explicit PiSDFTask(pisdf::GraphFiring *handler,
-                               const pisdf::Vertex *vertex,
-                               u32 firing);
+            PiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
 
-            ~PiSDFTask() noexcept override = default;
+            ~PiSDFTask() override = default;
 
             /* === Method(s) === */
 
             void visit(sched::TaskLauncher *launcher) final;
 
-            void receiveParams(const spider::array<i64> &values) final;
+            /**
+             * @brief Update output params based on received values.
+             * @param values Values of the params.
+             */
+            bool receiveParams(const spider::array<i64> &values) final;
 
-            spider::vector<pisdf::DependencyIterator> computeExecDependencies() const;
+            /**
+             * @brief Set task on a given firing (can be used anywhere as long as you know what you're doing).
+             * @param firing Firing value to set.
+             */
+            void setOnFiring(u32 firing) override;
 
-            spider::vector<pisdf::DependencyIterator> computeConsDependencies() const;
+            virtual void reset() = 0;
 
             /* === Getter(s) === */
+
+            inline i64 inputRate(size_t) const final { return 0; };
+
+            inline Task *previousTask(size_t, const Schedule *) const final { return nullptr; }
+
+            inline Task *nextTask(size_t, const Schedule *) const final { return nullptr; }
+
+            inline size_t dependencyCount() const final { return 0u; }
+
+            inline size_t successorCount() const final { return 0u; }
 
             u32 color() const final;
 
             std::string name() const final;
 
-            u32 ix() const noexcept final;
+            inline u64 startTime() const final {
+                return endTime() - timingOnPE(mappedPe());
+            }
 
             bool isMappableOnPE(const PE *pe) const final;
 
             u64 timingOnPE(const PE *pe) const final;
 
+            const PE *mappedLRT() const final;
+
+            u32 ix() const noexcept final;
+
             const pisdf::Vertex *vertex() const;
 
+            /**
+             * @brief Get the base associated with the task.
+             * @return pointer to the base.
+             */
             inline pisdf::GraphFiring *handler() const { return handler_; }
 
-            inline u32 firing() const { return firing_; }
+            /**
+             * @brief Get the current firing of this task.
+             * @return firing of the vertex associated to the task.
+             */
+            u32 firing() const final;
 
             /* === Setter(s) === */
 
+            inline void setStartTime(u64) final { }
+
             void setIx(u32 ix) noexcept final;
 
-        private:
-            pisdf::GraphFiring *handler_ = nullptr;
-            u32 vertexIx_ = UINT32_MAX;
-            u32 firing_ = UINT32_MAX;
+        protected:
+            pisdf::GraphFiring *handler_{ nullptr };
+            u32 vertexIx_{ UINT32_MAX };
+            u32 currentFiring_{ 0 };
         };
     }
 }
+
 #endif //SPIDER2_PISDFTASK_H

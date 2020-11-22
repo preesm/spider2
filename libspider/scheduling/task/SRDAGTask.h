@@ -40,13 +40,13 @@
 /* === Include(s) === */
 
 #include <scheduling/task/Task.h>
+#include <memory/unique_ptr.h>
+#include <containers/array.h>
 
 namespace spider {
 
     namespace srdag {
         class Vertex;
-
-        class Edge;
     }
 
     namespace sched {
@@ -63,13 +63,11 @@ namespace spider {
 
             void visit(TaskLauncher *launcher) final;
 
-            void receiveParams(const spider::array<i64> &values) final;
+            bool receiveParams(const spider::array<i64> &values) final;
 
             /* === Getter(s) === */
 
             i64 inputRate(size_t ix) const final;
-
-            i64 outputRate(size_t ix) const final;
 
             Task *previousTask(size_t ix, const Schedule *schedule) const final;
 
@@ -89,14 +87,47 @@ namespace spider {
 
             size_t successorCount() const final;
 
+            u64 startTime() const final;
+
+            inline u64 endTime() const final { return endTime_; }
+
+            const PE *mappedPe() const final;
+
+            const PE *mappedLRT() const final;
+
+            inline u32 jobExecIx() const noexcept final { return jobExecIx_; }
+
+            inline TaskState state() const noexcept final { return state_; }
+
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx]; }
+
             inline srdag::Vertex *vertex() const { return vertex_; }
 
             /* === Setter(s) === */
 
+            inline void setStartTime(u64) final { }
+
+            inline void setEndTime(u64 time) final { endTime_ = time; }
+
             void setIx(u32 ix) noexcept final;
 
+            inline void setState(TaskState state) noexcept final { state_ = state; }
+
+            inline void setJobExecIx(u32 ix) noexcept final { jobExecIx_ = ix; }
+
+            inline void setMappedPE(const spider::PE *pe) final;
+
+            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
+                syncInfoArray_[lrtIx] = value;
+            }
+
         private:
+            spider::unique_ptr<u32> syncInfoArray_;
             srdag::Vertex *vertex_ = nullptr;
+            u64 endTime_{ UINT64_MAX };                     /*!< Mapping end time of the vertexTask */
+            u32 mappedPEIx_ = UINT32_MAX;                   /*!< Mapping PE of the vertexTask */
+            u32 jobExecIx_{ UINT32_MAX };                   /*!< Index of the job sent to the PE */
+            TaskState state_{ TaskState::NOT_SCHEDULABLE }; /*!< State of the vertexTask */
         };
     }
 }

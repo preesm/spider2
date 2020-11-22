@@ -1,7 +1,7 @@
 /**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
  * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
@@ -32,32 +32,34 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_TRANSFORMATION_H
-#define SPIDER2_TRANSFORMATION_H
+/* === Include(s) === */
+
+#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/schedule/Schedule.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+
+#include <scheduling/task/PiSDFTask.h>
 
 #ifndef _NO_BUILD_LEGACY_RT
 
-/* === Includes === */
+#include <scheduling/task/SRDAGTask.h>
+#include <graphs/srdag/SRDAGVertex.h>
 
-#include <graphs-tools/transformation/srdag/SingleRateTransformer.h>
-
-namespace spider {
-    namespace srdag {
-
-        /* === Functions prototype === */
-
-        /**
-         * @brief Perform static single rate transformation for a given input job.
-         * @remark If one of the subgraph of the job is dynamic then it is automatically split into two graphs.
-         * @warning This function expect that dynamic graphs have been split using @refitem splitDynamicGraph before hand.
-         * @param job    TransfoJob containing information on the transformation to perform.
-         * @param srdag  Graph to append result of the transformation.
-         * @return a pair of @refitem JobStack, the first one containing future static jobs, second one containing
-         * jobs of dynamic graphs.
-         * @throws @refitem Spider::Exception if srdag is nullptr
-         */
-        std::pair<JobStack, JobStack> singleRateTransformation(TransfoJob &job, srdag::Graph *srdag);
-    }
-}
 #endif
-#endif //SPIDER2_TRANSFORMATION_H
+
+/* === Function(s) definition === */
+
+#ifndef _NO_BUILD_LEGACY_RT
+
+void spider::sched::Scheduler::addTask(Schedule *schedule, const srdag::Vertex *vertex) {
+    schedule->addTask(vertex->scheduleTask());
+}
+
+#endif
+
+void spider::sched::Scheduler::addTask(Schedule *schedule,
+                                       const pisdf::GraphFiring *handler,
+                                       const pisdf::Vertex *vertex,
+                                       u32 firing) {
+    schedule->addTask(handler->getTask(vertex), firing);
+}

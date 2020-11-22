@@ -35,10 +35,15 @@
 /* === Include(s) === */
 
 #include <scheduling/schedule/Schedule.h>
+#include <archi/PE.h>
 
 /* === Static function === */
 
 /* === Method(s) implementation === */
+
+spider::sched::Schedule::~Schedule() {
+    tasks_.clear();
+}
 
 void spider::sched::Schedule::reserve(size_t size) {
     spider::reserve(tasks_, size);
@@ -51,7 +56,8 @@ void spider::sched::Schedule::clear() {
 
 void spider::sched::Schedule::reset() {
     for (auto &task : tasks_) {
-        task->setState(TaskState::READY);
+        task.first->setOnFiring(task.second);
+        task.first->setState(TaskState::READY);
     }
 }
 

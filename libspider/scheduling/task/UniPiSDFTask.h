@@ -32,49 +32,73 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_GREEDYSCHEDULER_H
-#define SPIDER2_GREEDYSCHEDULER_H
-
-#ifndef _NO_BUILD_LEGACY_RT
+#ifndef SPIDER2_UNIPISDFTASK_H
+#define SPIDER2_UNIPISDFTASK_H
 
 /* === Include(s) === */
 
-#include <scheduling/scheduler/Scheduler.h>
+#include <scheduling/task/PiSDFTask.h>
+#include <memory/unique_ptr.h>
+#include <graphs-tools/numerical/detail/DependencyIterator.h>
 
 namespace spider {
 
-    namespace srdag {
+    namespace pisdf {
         class Vertex;
+
+        class Edge;
+
+        class GraphFiring;
     }
 
     namespace sched {
 
         /* === Class definition === */
 
-        class GreedyScheduler final : public Scheduler {
+        class UniPiSDFTask final : public PiSDFTask {
         public:
+            UniPiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex);
 
-            GreedyScheduler() = default;
-
-            ~GreedyScheduler() noexcept override = default;
+            ~UniPiSDFTask() final = default;
 
             /* === Method(s) === */
 
-            void schedule(const srdag::Graph *graph, Schedule *schedule) override;
+            void reset() final;
+
+            /* === Getter(s) === */
+
+            inline u64 endTime() const final { return endTime_; }
+
+            const PE *mappedPe() const final;
+
+            inline u32 jobExecIx() const noexcept final { return jobExecIx_; }
+
+            inline TaskState state() const noexcept final { return state_; }
+
+            inline u32 syncExecIxOnLRT(size_t lrtIx) const final { return syncInfoArray_[lrtIx]; }
+
+            /* === Setter(s) === */
+
+            inline void setEndTime(u64 time) final { endTime_ = time; }
+
+            void setMappedPE(const PE *pe) final;
+
+            inline void setState(TaskState state) noexcept final { state_ = state; }
+
+            inline void setJobExecIx(u32 ix) noexcept final { jobExecIx_ = ix; }
+
+            inline void setSyncExecIxOnLRT(size_t lrtIx, u32 value) final {
+                syncInfoArray_[lrtIx] = value;
+            }
 
         private:
-
-            /* === Private method(s) === */
-
-            /**
-             * @brief Evaluate if a vertex is schedulable for a given firing.
-             * @param vertex    Pointer to the vertex.
-             * @param schedule  Pointer to the schedule.
-             * @return true if schedulable, false else.
-             */
-            bool evaluate(srdag::Vertex *vertex, Schedule *schedule);
+            spider::unique_ptr<u32> syncInfoArray_;        /*!< Exec constraints array of the instances of the vertex*/
+            u64 endTime_ = 0;                              /*!< Mapping end time array of the instances of the vertex */
+            u32 mappedPEIx_ = UINT32_MAX;                  /*!< Mapping PE array of the instances of the vertex */
+            u32 jobExecIx_ = UINT32_MAX;                   /*!< Index array of the job sent to the PE */
+            TaskState state_ = TaskState::NOT_SCHEDULABLE; /*!< State array of the instances of the vertex */
         };
     }
 }
-#endif
-#endif //SPIDER2_GREEDYSCHEDULER_H
+
+#endif //SPIDER2_UNIPISDFTASK_H

@@ -52,6 +52,8 @@ namespace spider {
         class Task;
 
         class Schedule;
+
+        class PiSDFSchedule;
     }
 
     namespace pisdf {
@@ -87,7 +89,7 @@ namespace spider {
     private:
         const sched::Schedule *schedule_ = nullptr;
 
-        static void printTask(FILE *file, const sched::Task *task) ;
+        static void printTask(FILE *file, const sched::Task *task);
     };
 }
 #endif

@@ -1,7 +1,7 @@
 /**
- * Copyright or © or Copr. IETR/INSA - Rennes (2019 - 2020) :
+ * Copyright or © or Copr. IETR/INSA - Rennes (2020) :
  *
- * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2019 - 2020)
+ * Florian Arrestier <florian.arrestier@insa-rennes.fr> (2020)
  *
  * Spider 2.0 is a dataflow based runtime used to execute dynamic PiSDF
  * applications. The Preesm tool may be used to design PiSDF applications.
@@ -32,38 +32,41 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_SRDAGCOPYVERTEXVISITOR_H
-#define SPIDER2_SRDAGCOPYVERTEXVISITOR_H
-
-#ifndef _NO_BUILD_LEGACY_RT
-
 /* === Include(s) === */
 
-#include <graphs-tools/transformation/srdag/TransfoJob.h>
-#include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
+#include <scheduling/task/UniPiSDFTask.h>
+#include <scheduling/launcher/TaskLauncher.h>
+#include <graphs/pisdf/Vertex.h>
+#include <graphs/pisdf/Graph.h>
+#include <graphs-tools/transformation/pisdf/GraphFiring.h>
+#include <graphs-tools/transformation/pisdf/GraphHandler.h>
 
-namespace spider {
-    namespace srdag {
+#include <archi/Platform.h>
+#include <api/archi-api.h>
 
-        /* === Struct definition === */
+/* === Static function === */
 
-        struct SRDAGCopyVertexVisitor final : public pisdf::DefaultVisitor {
-        public:
-            SRDAGCopyVertexVisitor(const TransfoJob &job, srdag::Graph *srdag) : job_{ job }, srdag_{ srdag } { };
+/* === Method(s) implementation === */
 
-            ~SRDAGCopyVertexVisitor() override = default;
-
-            void visit(pisdf::Vertex *vertex) override;
-
-            void visit(pisdf::Graph *graph) override;
-
-            const TransfoJob &job_;
-            srdag::Graph *srdag_ = nullptr;
-            size_t ix_ = SIZE_MAX;
-        private:
-            void makeClone(pisdf::Vertex *vertex);
-        };
-    }
+spider::sched::UniPiSDFTask::UniPiSDFTask(pisdf::GraphFiring *handler, const pisdf::Vertex *vertex) :
+        PiSDFTask(handler, vertex) {
+    const auto lrtCount = archi::platform()->LRTCount();
+    syncInfoArray_ = spider::make_unique(make_n<u32, StackID::SCHEDULE>(lrtCount, UINT32_MAX));
 }
-#endif
-#endif //SPIDER2_SRDAGCOPYVERTEXVISITOR_H
+
+void spider::sched::UniPiSDFTask::reset() {
+    const auto lrtCount = archi::platform()->LRTCount();
+    std::fill(syncInfoArray_.get(), syncInfoArray_.get() + lrtCount, UINT32_MAX);
+    endTime_ = 0;
+    jobExecIx_ = UINT32_MAX;
+    mappedPEIx_ = UINT32_MAX;
+    state_ = TaskState::NOT_SCHEDULABLE;
+}
+
+const spider::PE *spider::sched::UniPiSDFTask::mappedPe() const {
+    return archi::platform()->peFromVirtualIx(mappedPEIx_);
+}
+
+void spider::sched::UniPiSDFTask::setMappedPE(const PE *pe) {
+    mappedPEIx_ = static_cast<u32>(pe->virtualIx());
+}

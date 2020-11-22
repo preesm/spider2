@@ -48,7 +48,7 @@
 #include <graphs/pisdf/Delay.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Vertex.h>
-#include <graphs-tools/transformation/srdag/Transformation.h>
+#include <graphs-tools/transformation/srdag/singleRateTransformation.h>
 #include <api/spider.h>
 
 class srdagTest : public ::testing::Test {

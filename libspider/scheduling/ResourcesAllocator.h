@@ -103,7 +103,7 @@ namespace spider {
             /* === Private method(s) === */
 
             template<class T>
-            void execute(const spider::vector<T> &tasks);
+            void execute(size_t offset);
 
             /**
              * @brief Allocates the scheduler corresponding to the given policy.

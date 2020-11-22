@@ -41,8 +41,12 @@
 
 namespace spider {
 
+    class RTInfo;
+
     namespace pisdf {
         struct DependencyIterator;
+        struct DependencyInfo;
+
         class GraphFiring;
     }
 
@@ -59,7 +63,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<sched::PiSDFTask*> schedule(pisdf::GraphHandler *graphHandler) override;
+            void schedule(pisdf::GraphHandler *graphHandler, Schedule *schedule) override;
 
             void clear() override;
 
@@ -91,7 +95,7 @@ namespace spider {
 
             /**
              * @brief Recursively add vertices into the sortedTaskVector_ vector.
-             * @param graphHandler  Top level graph handler;
+             * @param graphHandler  Top level graph base;
              */
             void recursiveAddVertices(spider::pisdf::GraphHandler *graphHandler);
 
@@ -101,19 +105,20 @@ namespace spider {
              *         sortedTaskVector_.
              * @param vertex  Pointer to the vertex associated.
              * @param firing  Firing of the vertex.
-             * @param handler Pointer to the handler of the vertex.
+             * @param handler Pointer to the base of the vertex.
              */
             void createListTask(pisdf::Vertex *vertex, u32 firing, pisdf::GraphFiring *handler);
 
             /**
              * @brief Recursively set all consumer of this vertex as not schedulable.
+             * @param handler Pointer to the base of the vertex.
              * @param vertex  Pointer to the vertex associated.
              * @param firing  Firing of the vertex.
-             * @param handler Pointer to the handler of the vertex.
              */
-            void recursiveSetNonSchedulable(const pisdf::Vertex *vertex,
-                                            u32 firing,
-                                            const pisdf::GraphFiring *handler);
+            static void recursiveSetNonSchedulable(spider::vector<ListTask> &sortedTaskVector,
+                                                   const pisdf::GraphFiring *handler,
+                                                   const pisdf::Vertex *vertex,
+                                                   u32 firing);
 
             /**
              * @brief Compute recursively the schedule level used to sort the vertices for scheduling.
@@ -134,7 +139,12 @@ namespace spider {
              * @param listTask  Reference to the current @refitem ListVertex evaluated.
              * @return level value of the vertex for its given firing.
              */
-            i32 computeScheduleLevel(ListTask &listTask);
+            static i32 computeScheduleLevel(spider::vector<ListTask> &sortedTaskVector, ListTask &listTask);
+
+            static void computeLevelForDep(const pisdf::DependencyInfo &dep, spider::vector<ListTask> &sortedTaskVector, i32 &level);
+
+            static i64
+            computeMinExecTime(const RTInfo *rtInfo, const spider::vector<std::shared_ptr<pisdf::Param>> &params);
 
             /**
              * @brief Sort the list of vertices.

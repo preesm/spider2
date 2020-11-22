@@ -42,6 +42,7 @@
 namespace spider {
 
     namespace pisdf {
+        struct DependencyInfo;
         class GraphFiring;
     }
 
@@ -58,7 +59,7 @@ namespace spider {
 
             /* === Method(s) === */
 
-            spider::vector<sched::PiSDFTask *> schedule(pisdf::GraphHandler *graphHandler) override;
+            void schedule(pisdf::GraphHandler *graphHandler, Schedule *schedule) override;
 
         private:
 
@@ -66,23 +67,25 @@ namespace spider {
 
             /**
              * @brief Recursively add vertices into the unscheduledVertices_ vector.
-             * @param graphHandler  Top level graph handler;
-             * @param result        Resulting vector of scheduled tasks;
+             * @param graphHandler  Top level graph base;
+             * @param schedule      Pointer to the schedule;
              */
-            void evaluate(pisdf::GraphHandler *graphHandler, spider::vector<sched::PiSDFTask*> &result);
+            void evaluate(pisdf::GraphHandler *graphHandler, Schedule *schedule);
 
             /**
              * @brief Evaluate if a vertex is schedulable for a given firing.
-             * @param handler Pointer to the GraphFiring handler.
-             * @param vertex  Pointer to the vertex.
-             * @param firing  Firing of the vertex.
-             * @param result  Resulting vector of scheduled tasks;
+             * @param handler  Pointer to the GraphFiring base.
+             * @param vertex   Pointer to the vertex.
+             * @param firing   Firing of the vertex.
+             * @param schedule Pointer to the schedule;
              * @return true if schedulable, false else.
              */
-            bool evaluate(pisdf::GraphFiring *handler,
-                          const pisdf::Vertex *vertex,
-                          u32 firing,
-                          spider::vector<sched::PiSDFTask*> &result);
+            static bool evaluate(pisdf::GraphFiring *handler,
+                                 const pisdf::Vertex *vertex,
+                                 u32 firing,
+                                 Schedule *schedule);
+
+            static void eval(const pisdf::DependencyInfo &dep, Schedule *schedule, bool &schedulable);
         };
     }
 }

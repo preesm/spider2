@@ -39,6 +39,8 @@
 #include <graphs/pisdf/ExternInterface.h>
 #include <graphs/pisdf/Graph.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
+
+#include <graphs-tools/numerical/detail/dependenciesImpl.h>
 #include <runtime/message/Notification.h>
 #include <runtime/platform/RTPlatform.h>
 #include <runtime/communicator/RTCommunicator.h>
@@ -58,11 +60,11 @@ void spider::sched::PiSDFFifoAllocator::updateDynamicBuffersCount() {
         const auto *task = it->task_;
         const auto *vertex = task->vertex();
         const auto *edge = vertex->outputEdge(it->edgeIx_);
-        const auto count = pisdf::computeConsDependencyCount(vertex, task->firing(), it->edgeIx_, task->handler());
+        const auto count = pisdf::detail::computeConsDependency(task->handler(), edge, it->firing_);
         if (count > 0) {
             const auto sndIx = task->mappedLRT()->virtualIx();
             const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-            const auto address = task->handler()->getEdgeAddress(edge, task->firing());
+            const auto address = task->handler()->getEdgeAddress(edge, it->firing_);
             auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx, address };
             auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx,
                                                   static_cast<size_t>(count - 1) };
@@ -76,30 +78,27 @@ void spider::sched::PiSDFFifoAllocator::updateDynamicBuffersCount() {
 }
 
 spider::unique_ptr<spider::JobFifos>
-spider::sched::PiSDFFifoAllocator::buildJobFifos(PiSDFTask *task,
-                                                 const pisdf::VertexDependencies &execDeps,
-                                                 const pisdf::VertexDependencies &consDeps) {
+spider::sched::PiSDFFifoAllocator::buildJobFifos(PiSDFTask *task, JobFifos *fifos) {
     const auto *vertex = task->vertex();
-    auto fifos = spider::make<JobFifos, StackID::RUNTIME>(computeInputFifoCount(execDeps),
-                                                          static_cast<u32>(vertex->outputEdgeCount()));
+    const auto *handler = task->handler();
+    const auto firing = task->firing();
     /* == Allocate input fifos == */
     auto *inputFifos = fifos->inputFifos().data();
     for (const auto *edge : vertex->inputEdges()) {
-        const auto &depIt = execDeps[edge->sinkPortIx()];
-        const auto depCount = depIt.total();
+        const auto depCount = handler->getEdgeDepCount(vertex, edge, firing);
         if (depCount > 1) {
-            buildMergeFifo(inputFifos, static_cast<size_t>(task->handler()->getSnkRate(edge)), depIt);
+            buildMergeFifo(inputFifos, handler, edge, firing);
             inputFifos += depCount + 1;
         } else {
-            buildSingleFifo(inputFifos, depIt[0]);
+            buildSingleFifo(inputFifos, handler, edge, firing);
             inputFifos += 1;
         }
     }
     /* == Allocate output fifos == */
     allocate(task, fifos);
+    auto *outputFifos = fifos->outputFifos().data();
     for (const auto *edge : vertex->outputEdges()) {
-        const auto edgeIx = edge->sourcePortIx();
-        fifos->setOutputFifo(edgeIx, buildOutputFifo(edge, task, consDeps[edgeIx]));
+        buildOutputFifo(*(outputFifos++), edge, task);
     }
     return spider::make_unique(fifos);
 }
@@ -142,7 +141,7 @@ void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task, const JobFifos
             for (auto *edge : vertex->outputEdges()) {
                 if (edge->sink()->subtype() == pisdf::VertexType::EXTERN_OUT) {
                     const auto *ext = edge->sink()->convertTo<pisdf::ExternInterface>();
-                    handler->setEdgeAddress(ext->address(), edge, firing);
+                    handler->setEdgeAddress(ext->address(), edge, 0);
                 } else {
                     const auto size = static_cast<size_t>(handler->getSrcRate(edge));
                     handler->setEdgeAddress(FifoAllocator::allocate(size * handler->getRV(vertex)), edge, firing);
@@ -152,53 +151,46 @@ void spider::sched::PiSDFFifoAllocator::allocate(PiSDFTask *task, const JobFifos
     }
 }
 
-u32 spider::sched::PiSDFFifoAllocator::computeInputFifoCount(const pisdf::VertexDependencies &dependencies) {
-    u32 inputCount = 0;
-    u32 mergeCount = 0;
-    for (const auto &depIt : dependencies) {
-        const auto current = inputCount;
-        for (const auto &dep : depIt) {
-            inputCount += (dep.firingEnd_ - dep.firingStart_ + 1);
+void spider::sched::PiSDFFifoAllocator::buildSingleFifo(Fifo *fifos,
+                                                        const pisdf::GraphFiring *handler,
+                                                        const pisdf::Edge *edge,
+                                                        u32 firing) {
+    auto lambda = [fifos](const pisdf::DependencyInfo &dep) {
+        Fifo fifo{ };
+        if (dep.vertex_) {
+            const auto *srcEdge = dep.vertex_->outputEdge(dep.edgeIx_);
+            const auto size = dep.memoryEnd_ - dep.memoryStart_ + 1;
+            fifo = buildInputFifo(srcEdge, size, dep.memoryStart_, dep.firingStart_, dep.handler_);
         }
-        mergeCount += (inputCount > (current + 1));
-    }
-    return inputCount + mergeCount;
-}
-
-void spider::sched::PiSDFFifoAllocator::buildSingleFifo(Fifo *fifos, const pisdf::DependencyInfo &dep) {
-    Fifo fifo{ };
-    if (dep.vertex_) {
-        const auto *srcEdge = dep.vertex_->outputEdge(dep.edgeIx_);
-        const auto size = dep.memoryEnd_ - dep.memoryStart_ + 1;
-        fifo = buildInputFifo(srcEdge, size, dep.memoryStart_, dep.firingStart_, dep.handler_);
-    }
-    fifos[0] = fifo;
+        fifos[0] = fifo;
+    };
+    pisdf::detail::computeExecDependency(handler, edge, firing, lambda);
 }
 
 void spider::sched::PiSDFFifoAllocator::buildMergeFifo(Fifo *fifos,
-                                                       size_t mergedSize,
-                                                       const pisdf::DependencyIterator &dependencies) {
+                                                       const pisdf::GraphFiring *handler,
+                                                       const pisdf::Edge *edge,
+                                                       u32 firing) {
     /* == Allocate the Fifos == */
-    size_t fifoIx = 1u;
-    size_t inputSize = 0u;
-    for (const auto &dep : dependencies) {
+    u32 fifoIx = 1;
+    auto lambda = [fifos, &fifoIx](const pisdf::DependencyInfo &dep) {
+        if (!dep.vertex_ || !dep.handler_) {
+            return;
+        }
         for (auto k = dep.firingStart_; k <= dep.firingEnd_; ++k) {
-            const auto *srcVertex = dep.vertex_;
-            const auto *srcEdge = srcVertex->outputEdge(dep.edgeIx_);
+            const auto *srcEdge = dep.vertex_->outputEdge(dep.edgeIx_);
             const auto memStart = k == dep.firingStart_ ? dep.memoryStart_ : 0;
             const auto memEnd = k == dep.firingEnd_ ? dep.memoryEnd_ : static_cast<u32>(dep.rate_) - 1;
             fifos[fifoIx] = buildInputFifo(srcEdge, memEnd - memStart + 1, memStart, k, dep.handler_);
-            inputSize += fifos[fifoIx].size_;
             fifoIx++;
         }
-    }
-    if (inputSize != mergedSize) {
-        throwSpiderException("invalid rate.");
-    }
+    };
+    const auto snkRate = handler->getSnkRate(edge);
+    pisdf::detail::computeExecDependency(handler, edge, firing, lambda);
     /* == Allocate merged fifo == */
-    fifos[0].address_ = FifoAllocator::allocate(mergedSize);
-    fifos[0].size_ = static_cast<u32>(mergedSize);
-    fifos[0].offset_ = static_cast<u32>(fifoIx - 1);
+    fifos[0].address_ = FifoAllocator::allocate(static_cast<size_t>(snkRate));
+    fifos[0].size_ = static_cast<u32>(snkRate);
+    fifos[0].offset_ = fifoIx - 1;
     fifos[0].count_ = 1;
     fifos[0].attribute_ = FifoAttribute::R_MERGE;
 }
@@ -221,21 +213,18 @@ spider::Fifo spider::sched::PiSDFFifoAllocator::buildInputFifo(const pisdf::Edge
     return fifo;
 }
 
-spider::Fifo spider::sched::PiSDFFifoAllocator::buildOutputFifo(const pisdf::Edge *edge,
-                                                                const PiSDFTask *task,
-                                                                const pisdf::DependencyIterator &depIt) {
-    Fifo fifo{ };
+void spider::sched::PiSDFFifoAllocator::buildOutputFifo(Fifo &fifo, const pisdf::Edge *edge, const PiSDFTask *task) {
     auto *handler = task->handler();
     const auto firing = task->firing();
     fifo.address_ = handler->getEdgeAddress(edge, firing);
     fifo.offset_ = handler->getEdgeOffset(edge, firing);
     fifo.size_ = static_cast<u32>(handler->getSrcRate(edge));
     fifo.attribute_ = FifoAttribute::RW_OWN;
-    fifo.count_ = getFifoCount(depIt);
-    if (fifo.count_ < 0) {
+    if (!fifo.count_) {
+        /* == Dynamic case, the FIFO will be automatically managed == */
         fifo.count_ = 1;
-        dynamicBuffers_.push_back({ task, static_cast<u32>(edge->sourcePortIx()) });
-    } else if (!fifo.count_) {
+        dynamicBuffers_.push_back({ task, static_cast<u32>(edge->sourcePortIx()), firing });
+    } else if (fifo.count_ < 0) {
         fifo.count_ = 1;
         fifo.attribute_ = FifoAttribute::W_SINK;
     }
@@ -243,17 +232,11 @@ spider::Fifo spider::sched::PiSDFFifoAllocator::buildOutputFifo(const pisdf::Edg
     const auto sourceSubType = edge->source()->subtype();
     const auto sinkSubType = edge->sink()->subtype();
     if (sourceSubType == pisdf::VertexType::EXTERN_IN || sinkSubType == pisdf::VertexType::EXTERN_OUT) {
+        auto bufferAddres = handler->getEdgeAddress(edge, 0);
+        fifo.offset_ = static_cast<u32>(fifo.address_ - bufferAddres);
+        fifo.address_ = bufferAddres;
         fifo.attribute_ = FifoAttribute::RW_EXT;
     } else if (sourceSubType == pisdf::VertexType::FORK || sourceSubType == pisdf::VertexType::DUPLICATE) {
         fifo.attribute_ = FifoAttribute::RW_ONLY;
     }
-    return fifo;
-}
-
-i32 spider::sched::PiSDFFifoAllocator::getFifoCount(const spider::pisdf::DependencyIterator &depIt) {
-    const auto count = depIt.total();
-    if (count == SIZE_MAX) {
-        return -1;
-    }
-    return static_cast<i32>(count);
 }

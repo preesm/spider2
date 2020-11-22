@@ -93,7 +93,7 @@ namespace spider {
          * @brief Creates a Connected component from a given seed Vertex.
          * @param vertex   Pointer to the seed Vertex.
          * @param rates    Const reference to the vector of pre-computed rates.
-         * @param handler  Reference to the BRV handler.
+         * @param handler  Reference to the BRV base.
          * @return created ConnectedComponent.
          */
         static ConnectedComponent extractConnectedComponent(pisdf::Vertex *vertex,
@@ -154,7 +154,7 @@ namespace spider {
         /**
          * @brief Computes the repetition values of current connected component.
          * @param component       Const reference to current connected component.
-         * @param handler         Reference to the BRV handler.
+         * @param handler         Reference to the BRV base.
          */
         static void computeRepetitionValues(const ConnectedComponent &component, BRVHandler &handler) {
             /* == 0. Compute the LCM factor for the current component == */
