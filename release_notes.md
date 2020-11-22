@@ -9,6 +9,7 @@ Spider2 Changelog
 ### Changes
 * Drastic improvement in mapping performance in PiSDF mode.
 * Drastic improvement in memory alloc perfs in PiSDF mode.
+* Removed unnecessary abstraction for single rate transformation.
 
 ### Bug fix
 * Fixed support of external interfaces in PiSDF mode.
