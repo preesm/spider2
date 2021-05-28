@@ -38,7 +38,7 @@
 /* === Include(s) === */
 
 #include <runtime/common/Fifo.h>
-#include <containers/array_handle.h>
+#include <containers/array_view.h>
 #include <memory/unique_ptr.h>
 
 namespace spider {
@@ -67,13 +67,13 @@ namespace spider {
          * @brief Return an array handle on the input @refitem RTFifo.
          * @return @refitem spider::array_handle of @refitem RTFifo.
          */
-        array_handle<Fifo> inputFifos() const;
+        array_view<Fifo> inputFifos() const;
 
         /**
          * @brief Return an array handle on the output @refitem RTFifo.
          * @return @refitem spider::array_handle of @refitem RTFifo.
          */
-        array_handle<Fifo> outputFifos() const;
+        array_view<Fifo> outputFifos() const;
 
         /**
          * @brief Get the input fifo at index ix.

@@ -40,7 +40,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory/memory.h>
-#include <containers/array_handle.h>
+#include <containers/array_view.h>
 
 /* === Class definition === */
 
@@ -51,7 +51,7 @@ namespace spider {
      * @tparam T Type of the container content.
      */
     template<typename T>
-    class array : public array_handle<T> {
+    class array : public array_view<T> {
     public:
         using value_type = T;
         using size_type = size_t;
@@ -72,7 +72,7 @@ namespace spider {
          * @param stack  Stack on which the array should be allocated.
          * @param size   Size of the array.
          */
-        explicit array(size_type size, StackID stack = StackID::GENERAL) : array_handle<T>(allocate<T>(stack, size),
+        explicit array(size_type size, StackID stack = StackID::GENERAL) : array_view<T>(allocate<T>(stack, size),
                                                                                            size) { }
 
         /**
@@ -82,36 +82,36 @@ namespace spider {
          * @param value  Value to set to all the elements of the array.
          */
         array(size_t size, const_reference value, StackID stack = StackID::GENERAL) : array(size, stack) {
-            array_handle<T>::assign(value);
+            array_view<T>::assign(value);
         }
 
         array(std::initializer_list<value_type> il, StackID stack = StackID::GENERAL) : array(il.size(), stack) {
-            std::copy(il.begin(), il.end(), array_handle<T>::begin());
+            std::copy(il.begin(), il.end(), array_view<T>::begin());
         }
 
         array() noexcept = default;
 
         array(const array &other) : array(other.size_) {
-            std::copy(other.begin(), other.end(), array_handle<T>::begin());
+            std::copy(other.begin(), other.end(), array_view<T>::begin());
         };
 
         array(array &&other) noexcept: array() {
             swap(*this, other);
         }
 
-        array(T *data, size_type size) : array_handle<T>(data, size) { }
+        array(T *data, size_type size) : array_view<T>(data, size) { }
 
         ~array() {
-            deallocate(array_handle<T>::data_);
+            deallocate(array_view<T>::data_);
         }
 
         /* === Member functions === */
 
         array &operator=(const array &other) {
-            deallocate(array_handle<T>::data_);
-            array_handle<T>::data_ = allocate<T>(other.size_);
-            array_handle<T>::size_ = other.size_;
-            std::copy(other.begin(), other.end(), array_handle<T>::begin());
+            deallocate(array_view<T>::data_);
+            array_view<T>::data_ = allocate<T>(other.size_);
+            array_view<T>::size_ = other.size_;
+            std::copy(other.begin(), other.end(), array_view<T>::begin());
             return *this;
         }
 
@@ -132,7 +132,7 @@ namespace spider {
         inline friend void swap(array<T> &first, array<T> &second) noexcept {
             /* == Do the swapping of the values == */
             using std::swap;
-            swap(static_cast<array_handle<T> &>(first), static_cast<array_handle<T> &>(second));
+            swap(static_cast<array_view<T> &>(first), static_cast<array_view<T> &>(second));
         }
 
         /* === Non member functions === */

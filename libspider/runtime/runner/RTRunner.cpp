@@ -42,7 +42,7 @@
 #include <api/archi-api.h>
 #include <archi/Platform.h>
 #include <archi/PE.h>
-#include <containers/array_handle.h>
+#include <containers/array_view.h>
 #include <api/config-api.h>
 
 /* === Define(s) === */
@@ -109,7 +109,7 @@ void spider::RTRunner::sendJobStampNotification(bool *notificationFlags, size_t 
         return;
     }
     size_t lrtIx = 0;
-    for (const auto &shouldNotify : array_handle<bool>{ notificationFlags, archi::platform()->LRTCount() }) {
+    for (const auto &shouldNotify : array_view<bool>{ notificationFlags, archi::platform()->LRTCount() }) {
         if (shouldNotify && lrtIx != ix()) {
             rt::platform()->communicator()->push(Notification{ NotificationType::JOB_UPDATE_JOBSTAMP, ix(), jobIx },
                                                  lrtIx);

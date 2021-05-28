@@ -88,9 +88,9 @@ namespace spider {
 
     class MemoryInterface;
 
-    spider::array<void *> getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface);
+    spider::array<void *> getInputBuffers(const array_view<Fifo> &fifos, MemoryInterface *memoryInterface);
 
-    spider::array<void *> getOutputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface);
+    spider::array<void *> getOutputBuffers(const array_view<Fifo> &fifos, MemoryInterface *memoryInterface);
 }
 
 #endif //SPIDER2_FIFO_H

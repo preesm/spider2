@@ -116,6 +116,11 @@ static void printConfig(const spider::StartUpConfig &cfg) {
 
 /* === Function(s) definition === */
 
+std::array<std::unique_ptr<spider::Stack>, STACK_COUNT> &stackArray() {
+    static std::array<std::unique_ptr<spider::Stack>, STACK_COUNT> stackArray = {{ nullptr }};
+    return stackArray;
+}
+
 spider::StartUpConfig spider::parseInputArguments(int32_t argc, char **argv) {
     spider::log::info("parsing of input arguments is not yet supported.\n");
     for (auto i = 0; i < argc; ++i) {
@@ -129,7 +134,7 @@ void spider::api::setStackAllocatorPolicy(StackID stackId,
                                           size_t alignment,
                                           size_t size,
                                           void *externBuffer) {
-    auto *stack = stackArray()[static_cast<size_t>(stackId)];
+    auto &stack = stackArray()[static_cast<size_t>(stackId)];
     switch (policy) {
         case AllocatorPolicy::FREELIST_FIND_FIRST:
             stack->setPolicy(new FreeListAllocatorPolicy(size, externBuffer, FreeListPolicy::FIND_FIRST, alignment));
@@ -143,6 +148,8 @@ void spider::api::setStackAllocatorPolicy(StackID stackId,
         case AllocatorPolicy::LINEAR_STATIC:
             stack->setPolicy(new LinearStaticAllocator(size, externBuffer, alignment));
             break;
+        default:
+            throwSpiderException("unsupported AllocatorPolicy value.");
     }
 }
 
@@ -161,7 +168,7 @@ void spider::start(const StartUpConfig &cfg) {
     /* == Initialize stacks == */
     auto it = EnumIterator<StackID>{ }.begin();
     for (auto &stack : stackArray()) {
-        stack = new Stack(*(it++));
+        stack = std::unique_ptr<Stack>(new Stack(*(it++)));
     }
     if (cfg.generalStackAllocatorPolicy_ != AllocatorPolicy::GENERIC) {
         api::setStackAllocatorPolicy(StackID::GENERAL,
@@ -296,7 +303,6 @@ void spider::quit() {
             totalAverage += stack->average();
             totalPeak += stack->peak();
         }
-        delete stack;
     }
     Stack::print("Total", totalPeak, totalAverage, 1, totalUsage);
 

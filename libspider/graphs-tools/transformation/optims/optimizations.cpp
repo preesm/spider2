@@ -49,7 +49,7 @@
 
 /* === Static function(s) === */
 
-static u32 countNonNullEdges(const spider::array_handle<spider::srdag::Edge *> &edges) {
+static u32 countNonNullEdges(const spider::array_view<spider::srdag::Edge *> &edges) {
     u32 count = 0;
     for (const auto *edge : edges) {
         if (edge) {

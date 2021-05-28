@@ -105,13 +105,13 @@ namespace spider {
              * @brief Get the subgraphs @refitem GraphFiring.
              * @return const reference to the array of subgraphs GraphFiring.
              */
-            spider::array_handle<GraphHandler *> subgraphFirings() const;
+            spider::array_view<GraphHandler *> subgraphFirings() const;
 
             /**
              * @brief non const overload of the @refitem GraphFiring::subgraphFirings method.
              * @return non const reference to the array of subgraphs GraphFiring.
              */
-            spider::array_handle<GraphHandler *> subgraphHandlers();
+            spider::array_view<GraphHandler *> subgraphHandlers();
 
             /**
              * @brief Get the firing value of this GraphFiring.

@@ -32,8 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
-#ifndef SPIDER2_ARRAY_HANDLE_H
-#define SPIDER2_ARRAY_HANDLE_H
+#ifndef SPIDER2_ARRAY_VIEW_H
+#define SPIDER2_ARRAY_VIEW_H
 
 /* === Include(s) === */
 
@@ -51,7 +51,7 @@ namespace spider {
      * @tparam T Type of the container content.
      */
     template<typename T>
-    class array_handle {
+    class array_view {
     public:
         using value_type = T;
         using size_type = size_t;
@@ -62,9 +62,9 @@ namespace spider {
         using iterator = value_type *;
         using const_iterator = const value_type *;
 
-        array_handle() = default;
+        array_view() = default;
 
-        array_handle(T *data, size_type size) : data_{ data }, size_{ size } {
+        array_view(T *data, size_type size) : data_{ data }, size_{ size } {
 #ifndef NDEBUG
             if (!data && size) {
                 throwSpiderException("unsafe array handle created with nullptr data and size != 0.");
@@ -72,17 +72,17 @@ namespace spider {
 #endif
         }
 
-        array_handle(const array_handle &) = default;
+        array_view(const array_view &) = default;
 
-        array_handle(array_handle &&) noexcept = default;
+        array_view(array_view &&) noexcept = default;
 
-        ~array_handle() = default;
+        ~array_view() = default;
 
         /* === Member functions === */
 
-        array_handle &operator=(const array_handle &) = default;
+        array_view &operator=(const array_view &) = default;
 
-        array_handle &operator=(array_handle &&) noexcept = default;
+        array_view &operator=(array_view &&) noexcept = default;
 
         /**
          * @brief Replaces the contents of the container.
@@ -112,7 +112,7 @@ namespace spider {
          * @param first   First container.
          * @param second  Other container to exchange the contents with.
          */
-        inline friend void swap(array_handle<T> &first, array_handle<T> &second) noexcept {
+        inline friend void swap(array_view<T> &first, array_view<T> &second) noexcept {
             /* == Do the swapping of the values == */
             using std::swap;
             swap(first.data_, second.data_);
@@ -259,7 +259,7 @@ namespace spider {
 
         /* === Non member functions === */
 
-        inline friend bool operator==(const array_handle &lhs, const array_handle &rhs) {
+        inline friend bool operator==(const array_view &lhs, const array_view &rhs) {
             if (lhs.size() != rhs.size()) {
                 return false;
             }
@@ -273,7 +273,7 @@ namespace spider {
             return true;
         }
 
-        inline friend bool operator!=(const array_handle &lhs, const array_handle &rhs) {
+        inline friend bool operator!=(const array_view &lhs, const array_view &rhs) {
             return !(lhs == rhs);
         }
 
@@ -283,8 +283,8 @@ namespace spider {
     };
 
     template<class T>
-    array_handle<T> make_handle(T *data, size_t size) {
-        return array_handle<T>(data, size);
+    array_view<T> make_view(T *data, size_t size) {
+        return array_view<T>(data, size);
     }
 }
-#endif //SPIDER2_ARRAY_HANDLE_H
+#endif //SPIDER2_ARRAY_VIEW_H

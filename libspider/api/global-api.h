@@ -41,6 +41,7 @@
 #include <cstddef>
 #include <array>
 #include <functional>
+#include <memory>
 
 /* === non-namespace Enumeration(s) === */
 
@@ -288,10 +289,7 @@ namespace spider {
         return nameArray;
     }
 
-    inline std::array<Stack *, STACK_COUNT> &stackArray() {
-        static std::array<Stack *, STACK_COUNT> stackArray = {{ nullptr }};
-        return stackArray;
-    }
+    std::array<std::unique_ptr<Stack>, STACK_COUNT> &stackArray();
 
     /* === Type definition(s) === */
 

@@ -39,7 +39,7 @@
 
 /* === Function(s) definition === */
 
-void *spider::allocate(Stack *stack, size_t size, size_t n) {
+void *spider::allocate(std::unique_ptr<Stack> &stack, size_t size, size_t n) {
     if (!n) {
         return nullptr;
     }
@@ -63,7 +63,7 @@ void spider::deallocate(void *ptr) {
     auto stackId = static_cast<StackID>(reinterpret_cast<uint64_t *>(originalPtr)[0]);
 
     /* == Deallocate the pointer == */
-    auto *stack = stackArray()[static_cast<size_t>(stackId)];
+    auto &stack = stackArray()[static_cast<size_t>(stackId)];
     stack->deallocate(originalPtr);
 }
 

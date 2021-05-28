@@ -74,12 +74,12 @@ namespace spider {
 
         /* === Constructors / Destructors === */
 
-        allocator() noexcept: stack_{ stackArray()[static_cast<size_t>(StackID::GENERAL)] } { };
+        allocator() noexcept: stack_{ stackArray()[static_cast<size_t>(StackID::GENERAL)].get() } { };
 
         template<class U>
         allocator(const allocator<U> &other) noexcept : stack_{ other.stack() } { }
 
-        explicit allocator(StackID stackId) : stack_{ stackArray()[static_cast<size_t>(stackId)] } {
+        explicit allocator(StackID stackId) : stack_{ stackArray()[static_cast<size_t>(stackId)].get() } {
             if (!stack_) {
                 throwSpiderException("trying to use non-initialized stack_.");
             }

@@ -168,8 +168,8 @@ namespace spider {
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline spider::array_handle<srdag::Edge *> inputEdges() const {
-                return spider::make_handle(inputEdgeArray_, nINEdges_);
+            inline spider::array_view<srdag::Edge *> inputEdges() const {
+                return spider::make_view(inputEdgeArray_, nINEdges_);
             };
 
             /**
@@ -197,8 +197,8 @@ namespace spider {
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array.
              */
-            inline spider::array_handle<srdag::Edge *> outputEdges() const {
-                return spider::make_handle(outputEdgeArray_, nOUTEdges_);
+            inline spider::array_view<srdag::Edge *> outputEdges() const {
+                return spider::make_view(outputEdgeArray_, nOUTEdges_);
             };
 
             /**

@@ -56,7 +56,7 @@
 #include <graphs-tools/helper/visitors/PiSDFDefaultVisitor.h>
 #include <graphs-tools/transformation/srdag/Transformation.h>
 #include <graphs-tools/transformation/pisdf/GraphFiring.h>
-#include <containers/array_handle.h>
+#include <containers/array_view.h>
 #include <csignal>
 #include <runtime/runner/JITMSRTRunner.h>
 #include <graphs-tools/expression-parser/Expression.h>
