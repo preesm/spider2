@@ -148,7 +148,7 @@ namespace spider {
          * @brief Get the platform of the cluster.
          * @return @refitem Platform of the cluster.
          */
-        inline Platform *platform() const {
+        static inline Platform *platform() {
             return archi::platform();
         }
 

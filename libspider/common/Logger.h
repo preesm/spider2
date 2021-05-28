@@ -49,14 +49,14 @@
 namespace spider {
     namespace log {
 
-        constexpr static const char green[] = "\x1B[32m";
-        constexpr static const char red[] = "\x1B[31m";
-        constexpr static const char yellow[] = "\x1B[33m";
-        constexpr static const char blue[] = "\x1B[34m";
-        constexpr static const char magenta[] = "\x1B[35m";
-        constexpr static const char cyan[] = "\x1B[36m";
-        constexpr static const char white[] = "\x1B[37m";
-        constexpr static const char normal[] = "\x1B[0m";
+        constexpr static auto green = "\x1B[32m";
+        constexpr static auto red = "\x1B[31m";
+        constexpr static auto yellow = "\x1B[33m";
+        constexpr static auto blue = "\x1B[34m";
+        constexpr static auto magenta = "\x1B[35m";
+        constexpr static auto cyan = "\x1B[36m";
+        constexpr static auto white = "\x1B[37m";
+        constexpr static auto normal = "\x1B[0m";
 
         inline std::mutex &mutex() {
             static std::mutex lock;

@@ -44,7 +44,7 @@
 /* === Defines === */
 
 /* == Size of 50 minimum is required for the error message associated == */
-#define EXCEPTION_BUFFER_SIZE 400
+constexpr auto EXCEPTION_BUFFER_SIZE = 400;
 
 /* === Macros === */
 
