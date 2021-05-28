@@ -46,7 +46,7 @@ spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCo
         nINEdges_{ static_cast<u32>(edgeINCount) },
         nOUTEdges_{ static_cast<u32>(edgeOUTCount) },
         subtype_{ type } {
-    inputEdgeArray_ .reset(spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr));
+    inputEdgeArray_.reset(spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr));
     outputEdgeArray_.reset(spider::make_n<Edge *, StackID::PISDF>(edgeOUTCount, nullptr));
     rtInformation_ = spider::make_unique<RTInfo>(StackID::RUNTIME);
     setName(std::move(name));
@@ -215,7 +215,7 @@ void spider::pisdf::Vertex::setName(std::string name) {
     const auto size = name.size();
     name_.reset(spider::make_n<char, StackID::PISDF>(size + 1));
     std::move(std::begin(name), std::end(name), name_.get());
-    name_[size] = '\0';
+    name_[size - 1] = '\0';
 }
 
 
