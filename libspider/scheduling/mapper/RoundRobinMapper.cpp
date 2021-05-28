@@ -53,17 +53,21 @@ const spider::PE *spider::sched::RoundRobinMapper::findPE(const Cluster *cluster
                                                           const Stats &,
                                                           const Task *task,
                                                           ufast64) const {
+    const auto clusterPeCount = cluster->PECount();
+    if (!clusterPeCount) {
+        return nullptr;
+    }
     const auto clusterIx = cluster->ix();
     const auto *pe = cluster->peArray()[currentPeIx_[clusterIx]];
-    size_t count = 0;
-    while ((!pe->enabled() || !task->isMappableOnPE(pe)) && count < cluster->PECount()) {
-        currentPeIx_[clusterIx] = (currentPeIx_[clusterIx] + 1u) % cluster->PECount();
+    auto count = size_t{ 0 };
+    while ((!pe->enabled() || !task->isMappableOnPE(pe)) && count < clusterPeCount) {
+        currentPeIx_[clusterIx] = (currentPeIx_[clusterIx] + 1u) % clusterPeCount;
         pe = cluster->peArray()[currentPeIx_[clusterIx]];
         count++;
     }
     if (!pe->enabled() || !task->isMappableOnPE(pe)) {
         return nullptr;
     }
-    currentPeIx_[cluster->ix()] = (currentPeIx_[cluster->ix()] + 1u) % cluster->PECount();
+    currentPeIx_[cluster->ix()] = (currentPeIx_[clusterIx] + 1u) % clusterPeCount;
     return pe;
 }
