@@ -230,8 +230,6 @@ void spider::pisdf::Graph::moveVertex(Vertex *vertex, Graph *graph) {
     /* == Release the unique_ptr before swap to avoid destruction == */
     vertex = vertexVector_[vertex->ix()].release();
     swapElement(vertex, vertexVector_);
-    /* == Add the edge to the other graph == */
-    graph->addVertex(vertex);
     if (vertex->subtype() == VertexType::CONFIG) {
         /* == configVertexVector_ is just a "viewer" for config vertices so we need to find manually == */
         for (auto &cfg : configVertexVector_) {
@@ -245,6 +243,9 @@ void spider::pisdf::Graph::moveVertex(Vertex *vertex, Graph *graph) {
         RemoveSubgraphVisitor visitor{ this };
         vertex->visit(&visitor);
     }
+    /* == Add the vertex to the other graph == */
+    /* == Adding the vertex AFTER removing it from its previous parent graph (in case of hierarchical) == */
+    graph->addVertex(vertex);
 }
 
 void spider::pisdf::Graph::addEdge(Edge *edge) {
