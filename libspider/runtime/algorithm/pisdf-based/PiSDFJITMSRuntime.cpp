@@ -178,7 +178,7 @@ bool spider::PiSDFJITMSRuntime::dynamicExecute() {
                     /* == Get the config vertex == */
                     auto *task = schedule->task(message.taskIx_);
                     task->receiveParams(message.params_);
-                    readParam++;
+                    readParam += message.params_.size();
                 } else {
                     // LCOV_IGNORE: this is a sanity check, it should never happen and it is not testable from the outside.
                     throwSpiderException("expected parameter notification");
