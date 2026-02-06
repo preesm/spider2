@@ -194,12 +194,24 @@ TEST_F(expressionTest, expressionOperatorsTest) {
                                 << "Expression: if  failed.";
     ASSERT_EQ(Expression("if(1>0, 4, 5)").evaluateDBL(), 4.)
                                 << "Expression: if  failed.";
+
+    #ifndef NDEBUG
     auto param = spider::api::createDynamicParam(nullptr, "x");
     ASSERT_EQ(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), 5.)
                                 << "Expression: if  failed.";
     param->setValue(1);
     ASSERT_EQ(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), 4.)
                                 << "Expression: if  failed.";
+    #else
+    auto param = spider::api::createDynamicParam(nullptr, "x");
+    // Testing for segfault is POSIX only
+    // ASSERT_EXIT(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }),::testing::KilledBySignal(SIGSEGV)
+    //                          , ".*") << "Sould segfault";
+    ASSERT_DEATH(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), ".*") << "Sould segfault.";
+
+    param->setValue(1);
+    ASSERT_DEATH(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), ".*") << "Sould segfault.";
+    #endif
 }
 
 TEST_F(expressionTest, expressionFunctionsTest) {

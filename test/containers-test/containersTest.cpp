@@ -94,12 +94,15 @@ TEST_F(containersTest, arrayAssignTest) {
     ASSERT_NO_THROW(arr[8] = 3.1415) << "operator[] failed for spider::array.";
     ASSERT_NO_THROW(arr[6]) << "const operator[] failed for spider::array.";
     ASSERT_NO_THROW(arr.at(8) = 3.1415) << "method at() failed for spider::array.";
+    #ifndef NDEBUG
     ASSERT_THROW(arr.at(10) = 3.1415, std::out_of_range)
                                 << "method at() should throw for out_of_bound index spider::array.";
     ASSERT_THROW(arr.at(SIZE_MAX) = 3.1415, std::out_of_range)
                                 << "method at() should throw for out_of_bound index spider::array.";
     ASSERT_THROW(test_const_at(arr, true), std::out_of_range)
                                 << "const method at() should throw for out_of_bound index spider::array";
+    #endif
+
 //    ASSERT_DOUBLE_EQ(arr[0], 3.1415) << "failed value initialized spider::array";
 //    ASSERT_DOUBLE_EQ(test_const_at(arr, false), 3.1415) << "const method at() should work for spider::array";
     ASSERT_EQ(arr.size(), 10u) << "invalid size for spider::array";
