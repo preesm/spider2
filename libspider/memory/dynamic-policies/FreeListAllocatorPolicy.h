@@ -75,7 +75,7 @@ public:
 
     u64 deallocate(void *ptr) override;
 
-    static size_t MIN_CHUNK_SIZE;
+    inline static size_t MIN_CHUNK_SIZE = 8192;
 private:
 
     struct Buffer {

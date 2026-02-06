@@ -1,0 +1,68 @@
+name: Build & Test
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron:  '0 7 * * MON'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build_and_test:
+    name: Build & Test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest] #, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Install Doxygen Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y doxygen
+
+      - name: Install Doxygen Macos
+        if: matrix.os == 'macos-latest'
+        run: brew install doxygen
+
+      - name: Install Doxygen Windows
+        if: matrix.os == 'windows-latest'
+        uses: nick-fields/retry@v3
+        with:
+          max_attempts: 3
+          timeout_minutes: 10
+          retry_on: any
+          command: choco install doxygen.install --force
+          shell: bash
+
+      - name: Generating CMake project
+        working-directory: ./bin
+        run: cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+
+      - name: Build Spider library
+        working-directory: ./bin
+        run: cmake --build . --target spider2 --config Release -j8
+
+      - name: Build Spider test
+        working-directory: ./bin
+        run: cmake --build . --target all-spider2-test --config Release -j8
+
+      - name: Running tests
+        if: matrix.os != 'windows-latest'
+        working-directory: ./bin/bin
+        run: ./all-spider2-test
+
+      - name: Running tests
+        if: matrix.os == 'windows-latest'
+        working-directory: ./bin/bin/Release
+        run: ./all-spider2-test
+

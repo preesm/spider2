@@ -38,7 +38,7 @@
 
 /* === Constant(s) === */
 
-size_t FreeListAllocatorPolicy::MIN_CHUNK_SIZE = 8192;
+// size_t FreeListAllocatorPolicy::MIN_CHUNK_SIZE = 8192;
 
 /* === Methods implementation === */
 

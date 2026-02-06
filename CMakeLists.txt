@@ -140,9 +140,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Setting C++ standard to C++11
-set(CMAKE_CXX_STANDARD 11)
+# Setting C++ standard to C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Forcing C++17 anyway because Macos
+# if (APPLE)
+#     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+# endif ()
 
 # We use
 # - InstallBasicPackageFiles (http://robotology.github.io/ycm/gh-pages/v0.8/module/InstallBasicPackageFiles.html)
@@ -253,6 +258,7 @@ endif ()
 
 ### Compile- and install-related commands.
 add_subdirectory(libspider)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 # Create and install CMake configuration files for your project that are
 # necessary to for other projects to call find_package(LibTemplateCMake).
@@ -290,3 +296,5 @@ add_subdirectory(doc)
 
 # Add sandbox directory
 add_subdirectory(sandbox)
+
+# target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)

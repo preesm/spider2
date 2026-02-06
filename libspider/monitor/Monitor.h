@@ -39,6 +39,7 @@
 
 #include <string>
 #include <map>
+#include <cstdint>
 
 namespace spider {
 

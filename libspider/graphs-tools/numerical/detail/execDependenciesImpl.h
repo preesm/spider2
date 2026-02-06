@@ -154,7 +154,7 @@ namespace spider {
                             const auto uCons = ifSrcRate + end;
                             count += computeExecDependency(innerEdge, lCons, uCons, ghdl, std::forward<Args>(args)...);
                         } else {
-                            apply(unresolved, std::forward<Args>(args)...);
+                            impl::apply(unresolved, std::forward<Args>(args)...);
                         }
                     }
                     return count;
