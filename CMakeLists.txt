@@ -81,7 +81,7 @@ if (MSVC)
     install(FILES $<TARGET_PDB_FILE:${PROJECT_NAME}> CONFIGURATIONS "Debug" "RelWithDebInfo" DESTINATION "${CMAKE_INSTALL_BINDIR}")
 else ()
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -pg -O0 --coverage -ftest-coverage -fprofile-arcs")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O2 -DNDEBUG -fno-rtti -flto")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O2 -DNDEBUG -fno-rtti -flto=auto")
     message(STATUS "Using Link Time Optimization (-flto) on GNU platforms.")
     if (${CMAKE_GENERATOR} MATCHES "MinGW Makefiles")
         # To prevent a redefinition conflict

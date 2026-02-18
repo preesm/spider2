@@ -63,7 +63,7 @@ namespace spider {
      * @param n      Number of element of size "size" to allocate.
      * @return allocated buffer on success, nullptr else.
      */
-    void *allocate(Stack *stack, size_t size, size_t n);
+    void *allocate(std::unique_ptr<Stack> &stack, size_t size, size_t n);
 
     /**
      * @brief Allocate raw memory buffer on given stack.

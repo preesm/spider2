@@ -187,8 +187,8 @@ namespace spider {
              * @brief A const reference on the array of input edges. Useful for iterating on the edges.
              * @return const reference to input edge array
              */
-            inline spider::array_handle<Edge *> inputEdges() const {
-                return spider::make_handle(inputEdgeArray_.get(), nINEdges_);
+            inline spider::array_view<Edge *> inputEdges() const {
+                return spider::make_view(inputEdgeArray_.get(), nINEdges_);
             };
 
             /**
@@ -216,8 +216,8 @@ namespace spider {
              * @brief A const reference on the array of output edges. Useful for iterating on the edges.
              * @return const reference to output edge array.
              */
-            inline spider::array_handle<Edge *> outputEdges() const {
-                return spider::make_handle(outputEdgeArray_.get(), nOUTEdges_);
+            inline spider::array_view<Edge *> outputEdges() const {
+                return spider::make_view(outputEdgeArray_.get(), nOUTEdges_);
             };
 
             /**
@@ -263,16 +263,16 @@ namespace spider {
              * @brief A const reference on the vector of refinement input params.
              * @return const reference to input params vector.
              */
-            inline spider::array_handle<u32> refinementParamIxVector() const {
-                return spider::make_handle(refinementParamArray_.get(), nRefinementParams_);
+            inline spider::array_view<u32> refinementParamIxVector() const {
+                return spider::make_view(refinementParamArray_.get(), nRefinementParams_);
             };
 
             /**
              * @brief A const reference on the vector of input params.
              * @return const reference to input params vector.
              */
-            inline spider::array_handle<u32> inputParamIxVector() const {
-                return spider::make_handle(inputParamArray_.get(), nINParams_);
+            inline spider::array_view<u32> inputParamIxVector() const {
+                return spider::make_view(inputParamArray_.get(), nINParams_);
             };
 
             /**
@@ -285,8 +285,8 @@ namespace spider {
              * @brief A const reference on the vector of output params.
              * @return const reference to output params vector.
              */
-            inline spider::array_handle<u32> outputParamIxVector() const {
-                return spider::make_handle(outputParamArray_.get(), nOUTParams_);
+            inline spider::array_view<u32> outputParamIxVector() const {
+                return spider::make_view(outputParamArray_.get(), nOUTParams_);
             };
 
             /**

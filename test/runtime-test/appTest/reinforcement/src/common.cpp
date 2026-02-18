@@ -10,6 +10,10 @@
 // file header
 #include "../include/common.h"
 
+static float rand_norm_float() {
+    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+}
+
 float normalSampler(float mu, float sigma) {
     // Gaussian function:
     //                            1                     (x - mu)²
@@ -30,17 +34,17 @@ float normalSampler(float mu, float sigma) {
     for (int i = 0; i < 2; ++i) {
         // Pre-compute constant value
         for (int n = 0; n < N_SAMPLING_SIZE; ++n) {
-            array_samples[n] = (float) (rand()) / (float) (RAND_MAX);
+            array_samples[n] = rand_norm_float();
         }
         // Choose uniformly a random sample among the sampled ones
-        int sample = (int) ((float) (N_SAMPLING_SIZE) * (float) (rand()) / (float) (RAND_MAX));
+        int sample = static_cast<int>(static_cast<float>(N_SAMPLING_SIZE) * rand_norm_float());
         sample = MIN(N_SAMPLING_SIZE - 1, sample);
         array_uniform[i] = array_samples[sample];
     }
     double U1 = array_uniform[0];
     double U2 = array_uniform[1];
-    float U1_part = (float) (sqrt(-2. * log(U1)));
-    float U2_part = (float) (cos(-2. * M_PI * U2));
+    float U1_part = static_cast<float>(sqrt(-2. * log(U1)));
+    float U2_part = static_cast<float>(cos(-2. * M_PI * U2));
     float standard_normal = U1_part * U2_part;
     return standard_normal * sigma + mu;
 }
@@ -49,10 +53,10 @@ int randomSign(void) {
     // Samples 10 values
     float array_samples[10];
     for (int n = 0; n < 10; ++n) {
-        float value = (float) (rand()) / (float) (RAND_MAX);
+        float value = rand_norm_float();
         array_samples[n] = value;
     }
-    int sample = (int) (10.f * (float) (rand()) / (float) (RAND_MAX));
+    int sample = static_cast<int>(10.f * rand_norm_float());
     sample = MIN(9, sample);
     float value = array_samples[sample];
     if (value > 0.5f) {

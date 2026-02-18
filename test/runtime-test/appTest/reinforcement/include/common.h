@@ -21,11 +21,19 @@
 #define M_PI 3.1415926535897932385f
 #endif
 
-#define MODF(a, b) ((a) - (b) * (int)((a) / (b)))
-#define POW2(x) ((x) * (x))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define ABS(x) ((x) < 0 ? -(x) : (x))
+
+template<typename T>
+constexpr T modf(const T a, const T b) {
+    return static_cast<T>(a - b * static_cast<T>(static_cast<int>(a / b)));
+}
+
+template<typename T>
+constexpr T pow2(const T a) {
+    return static_cast<T>(a * a);
+}
 
 /**
  * @brief Samples a random variable following a normal distribution.

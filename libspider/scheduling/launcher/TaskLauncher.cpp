@@ -257,7 +257,7 @@ void spider::sched::TaskLauncher::sendSyncTask(SyncTask *task, const JobMessage 
     /* == Set the execution task constraints == */
     syncMessage.execConstraints_ = buildExecConstraints(task);
     /* == Set Fifos == */
-    syncMessage.fifos_ = spider::make_unique<JobFifos, StackID::RUNTIME>(1, 1);
+    syncMessage.fifos_ = spider::make_unique<JobFifos, StackID::RUNTIME>(1u, 1u);
     auto fifo = message.fifos_->inputFifo(task->getDepIx());
     fifo.count_ = 0;
     fifo.attribute_ = FifoAttribute::RW_ONLY;

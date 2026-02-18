@@ -52,8 +52,8 @@
 spider::MemoryBus::MemoryBus() {
     sendCostRoutine_ = [](u64) -> u64 { return 0; };
     receiveCostRoutine_ = [](u64) -> u64 { return 0; };
-    sendRoutine_ = [](i64, const void *, const void *) { };
-    receiveRoutine_ = [](i64, const void *, const void *) { };
+    sendRoutine_ = [](i64, const void *, const void *) { /* = empty method = */ };
+    receiveRoutine_ = [](i64, const void *, const void *) { /* = empty method = */ };
 }
 
 uint64_t spider::MemoryBus::sendCost(uint64_t size) const {

@@ -70,12 +70,12 @@ void neuron(int input_size,
 /************************************/
 
 void activateTanHyperbolic(IN float *input, OUT float *output) {
-    output[0] = (float) (tanh((double) (input[0])));
+    output[0] = static_cast<float>(tanh(static_cast<double>(input[0])));
 }
 
 void derivativeTanHyperbolic(IN float *input,
                              OUT float *output) {
-    float f_x = (float) (tanh((double) (input[0])));
+    float f_x = static_cast<float>(tanh(static_cast<double>(input[0])));
     output[0] = 1 - (f_x * f_x);
 }
 
@@ -111,12 +111,12 @@ void derivativeSoftSign(IN float *input,
 
 void activateLogistic(IN float *input,
                       OUT float *output) {
-    output[0] = 1 / (1.f + (float) (exp((double) (-input[0]))));
+    output[0] = 1 / (1.f + static_cast<float>(exp(static_cast<double>(-input[0]))));
 }
 
 void derivativeLogistic(IN float *input,
                         OUT float *output) {
-    float f_x = 1 / (1.f + (float) (exp((double) (-input[0]))));
+    float f_x = 1 / (1.f + static_cast<float>(exp(static_cast<double>(-input[0]))));
     output[0] = f_x * (1 - f_x);
 }
 
@@ -180,7 +180,7 @@ void lossMSE(int size,
     // Compute element wise (label - prediction) * (label - prediction)
     double mse = 0;
     for (int i = 0; i < size; ++i) {
-        mse += (double) (predictions[i] - targets[i]) * (double) (predictions[i] - targets[i]);
+        mse += static_cast<double>(predictions[i] - targets[i]) * static_cast<double>(predictions[i] - targets[i]);
     }
     mse_output[0] = mse / 2.;
 }
@@ -236,7 +236,7 @@ void applyAdamOptimizer(int size,
         fo_moment_out[i] = fo_moment_in[i] * beta1 + (1 - beta1) * g;     // Biased first order moment estimate
         so_moment_out[i] = so_moment_in[i] * beta2 + (1 - beta2) * g * g; // Biased second raw order moment estimate
 
-        param_out[i] = param_in[i] - (float) (lr * fo_moment_out[i] / (epsilon_t + sqrt(so_moment_out[i])));
+        param_out[i] = param_in[i] - static_cast<float>(lr * fo_moment_out[i] / (epsilon_t + sqrt(so_moment_out[i])));
     }
 }
 

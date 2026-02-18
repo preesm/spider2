@@ -51,7 +51,7 @@ extern char **environ;
 spider::expr::CompiledExpression::CompiledExpression(const spider::vector<RPNElement> &postfixStack,
                                                      const param_table_t &params) {
     /* == Tries to create the folder if it does not already exists == */
-    if (mkdir("./.cache", 0777) < 0 && errno != EEXIST) {
+    if (mkdir("./.cache", 0755) < 0 && errno != EEXIST) {
         throwSpiderException("failed to create directory for jit compiled expressions.");
     }
 
@@ -85,7 +85,7 @@ double spider::expr::CompiledExpression::evaluate(const param_table_t &params) {
 /* === Private method(s) === */
 
 spider::vector<RPNElement>
-spider::expr::CompiledExpression::convertToCpp(const spider::vector<RPNElement> &postfixStack) const {
+spider::expr::CompiledExpression::convertToCpp(const spider::vector<RPNElement> &postfixStack) {
     auto res = factory::vector<RPNElement>(postfixStack, StackID::EXPRESSION);
     for (auto &e : res) {
         if (e.token_ == "^") {
@@ -170,7 +170,7 @@ void spider::expr::CompiledExpression::compile(const vector<RPNElement> &postfix
 
 void spider::expr::CompiledExpression::writeFunctionFile(const std::string &func,
                                                          const std::string &expression,
-                                                         const spider::vector<std::pair<size_t, std::string>> &args) const {
+                                                         const spider::vector<std::pair<size_t, std::string>> &args) {
     /* == Check if file already exists == */
     FILE *outputFile;
     if (FILE *file = fopen("./.cache/libjitexpr.cpp", "r+")) {
@@ -203,7 +203,7 @@ void spider::expr::CompiledExpression::writeFunctionFile(const std::string &func
     fclose(outputFile);
 }
 
-void spider::expr::CompiledExpression::writeHelperFile() const {
+void spider::expr::CompiledExpression::writeHelperFile() {
     const auto fileName = "./.cache/jitexpr-helper.h";
     if (FILE *file = fopen(fileName, "r")) {
         fclose(file);
@@ -260,7 +260,7 @@ void spider::expr::CompiledExpression::writeHelperFile() const {
     }
 }
 
-void spider::expr::CompiledExpression::compileExpression() const {
+void spider::expr::CompiledExpression::compileExpression() {
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wwrite-strings"

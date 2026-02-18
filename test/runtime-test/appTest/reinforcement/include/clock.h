@@ -19,6 +19,6 @@
 void startTiming(int stamp);
 
 // Stoping to record time for a given stamp. Returns the time in us
-unsigned int stopTiming(int stamp);
+unsigned long stopTiming(int stamp);
 
 #endif

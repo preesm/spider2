@@ -1,4 +1,4 @@
-set(GRAPH_TARGET_NAME graph-${PROJECT_NAME}-test)
+set(GRAPH_TARGET_NAME pisdf-${PROJECT_NAME}-test)
 
 # Add the test files
 set(${GRAPH_TARGET_NAME}_SRC

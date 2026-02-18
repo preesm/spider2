@@ -127,7 +127,11 @@ void spider::srdag::detail::updateParams(TransfoJob &job) {
     if (!graph->configVertexCount()) {
         for (auto &param : job.params_) {
             if (param->type() == pisdf::ParamType::INHERITED) {
-                const auto value = param->parent()->value(job.params_);
+                const auto *parent = param->parent();
+                if (!parent) {
+                    throwNullptrException();
+                }
+                const auto value = parent->value(job.params_);
                 const auto ix = param->ix();
                 param = spider::make_shared<pisdf::Param, StackID::TRANSFO>(param->name(), value);
                 param->setIx(ix);
@@ -149,7 +153,7 @@ void spider::srdag::detail::cloneVertex(const pisdf::Vertex *vertex, u32 firing,
          *                               A -> |       | -> B
          *    But in reality the vertex does not make it after the SR-Transformation.
          */
-        auto *clone = make<srdag::Vertex, StackID::TRANSFO>(vertex, firing, 2, 2);
+        auto *clone = make<srdag::Vertex, StackID::TRANSFO>(vertex, firing, 2u, 2u);
         clone->setExecutable(false);
         /* == Add clone to the srdag == */
         srdag->addVertex(clone);
@@ -207,10 +211,11 @@ std::shared_ptr<spider::pisdf::Param> spider::srdag::detail::copyParameter(const
     if (param->dynamic()) {
         std::shared_ptr<pisdf::Param> p;
         if (param->type() == pisdf::ParamType::INHERITED) {
-            if (!param->parent()) {
+            const auto *parent = param->parent();
+            if (!parent) {
                 throwNullptrException();
             }
-            const auto &parentParam = jobParams[param->parent()->ix()];
+            const auto &parentParam = jobParams[parent->ix()];
             p = spider::make_shared<pisdf::Param, StackID::TRANSFO>(param->name(), parentParam);
         } else {
             p = spider::make_shared<pisdf::Param, StackID::TRANSFO>(*param);

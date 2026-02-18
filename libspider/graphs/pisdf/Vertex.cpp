@@ -38,7 +38,6 @@
 #include <graphs/pisdf/Edge.h>
 #include <graphs/pisdf/Param.h>
 #include <graphs/pisdf/Graph.h>
-#include <graphs-tools/helper/visitors/PiSDFVisitor.h>
 
 /* === Function(s) definition === */
 
@@ -46,7 +45,7 @@ spider::pisdf::Vertex::Vertex(VertexType type, std::string name, size_t edgeINCo
         nINEdges_{ static_cast<u32>(edgeINCount) },
         nOUTEdges_{ static_cast<u32>(edgeOUTCount) },
         subtype_{ type } {
-    inputEdgeArray_ .reset(spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr));
+    inputEdgeArray_.reset(spider::make_n<Edge *, StackID::PISDF>(edgeINCount, nullptr));
     outputEdgeArray_.reset(spider::make_n<Edge *, StackID::PISDF>(edgeOUTCount, nullptr));
     rtInformation_ = spider::make_unique<RTInfo>(StackID::RUNTIME);
     setName(std::move(name));

@@ -131,12 +131,12 @@ void spider::pisdf::GraphFiring::clear() {
     resolved_ = parent_->isStatic();
 }
 
-spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphFirings() const {
-    return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
+spider::array_view<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphFirings() const {
+    return make_view(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
-spider::array_handle<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphHandlers() {
-    return make_handle(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
+spider::array_view<spider::pisdf::GraphHandler *> spider::pisdf::GraphFiring::subgraphHandlers() {
+    return make_view(subgraphHandlers_.get(), parent_->graph()->subgraphCount());
 }
 
 int64_t spider::pisdf::GraphFiring::getSrcRate(const Edge *edge) const {
@@ -304,6 +304,9 @@ spider::pisdf::GraphFiring::copyParameter(const std::shared_ptr<pisdf::Param> &p
             parentHandler = parentHandler->parent_->base();
             paramParentIx = (*parent)->parent() ? (*parent)->parent()->ix() : throwNullptrException();
             parent = &parentHandler->getParams()[paramParentIx];
+        }
+        if (!parent) {
+            throwNullptrException();
         }
         auto newParam = spider::make_shared<Param, StackID::PISDF>(param->name(), *parent);
         newParam->setIx(param->ix());

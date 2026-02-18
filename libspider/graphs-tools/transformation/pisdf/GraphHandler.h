@@ -39,7 +39,7 @@
 
 #include <common/Types.h>
 #include <memory/unique_ptr.h>
-#include <containers/array_handle.h>
+#include <containers/array_view.h>
 #include <containers/vector.h>
 
 namespace spider {
@@ -79,11 +79,11 @@ namespace spider {
 
             /* === Getter(s) === */
 
-            inline array_handle<GraphFiring *> firings() const { return make_handle(firings_.get(), repetitionCount_); }
+            inline array_view<GraphFiring *> firings() const { return make_view(firings_.get(), repetitionCount_); }
 
             inline GraphFiring *firing(size_t ix) const { return firings_[ix]; }
 
-            inline array_handle<GraphFiring *> firings() { return make_handle(firings_.get(), repetitionCount_); }
+            inline array_view<GraphFiring *> firings() { return make_view(firings_.get(), repetitionCount_); }
 
             inline const GraphFiring *base() const { return handler_; }
 

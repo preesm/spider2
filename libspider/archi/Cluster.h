@@ -42,7 +42,7 @@
 #include <archi/PE.h>
 #include <common/Types.h>
 #include <containers/array.h>
-#include <containers/array_handle.h>
+#include <containers/array_view.h>
 
 namespace spider {
 
@@ -79,7 +79,7 @@ namespace spider {
          * @throws std::out_of_range if PE ix is out of bound.
          */
         inline void setPEStatus(size_t ix, bool status) {
-            auto handle = make_handle(PEArray_, PECount_);
+            auto handle = make_view(PEArray_, PECount_);
             status ? handle.at(ix)->enable() : handle.at(ix)->disable();
         }
 
@@ -89,8 +89,8 @@ namespace spider {
          * @brief Get the array of processing element of the cluster.
          * @return const reference to the @refitem spider::array of @refitem PE of the cluster.
          */
-        inline array_handle<PE *> peArray() const {
-            return make_handle(PEArray_, PECount_);
+        inline array_view<PE *> peArray() const {
+            return make_view(PEArray_, PECount_);
         }
 
         /**
@@ -108,7 +108,7 @@ namespace spider {
          * @throws @refitem std::out_of_range if ix is out of bound
          */
         inline PE *at(size_t ix) const {
-            return make_handle(PEArray_, PECount_).at(ix);
+            return make_view(PEArray_, PECount_).at(ix);
         }
 
         /**
@@ -148,7 +148,7 @@ namespace spider {
          * @brief Get the platform of the cluster.
          * @return @refitem Platform of the cluster.
          */
-        inline Platform *platform() const {
+        static inline Platform *platform() {
             return archi::platform();
         }
 

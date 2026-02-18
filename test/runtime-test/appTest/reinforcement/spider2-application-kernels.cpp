@@ -118,7 +118,6 @@ void spider::rl::stepRTKernel(const int64_t inputParams[], int64_t [], void *inp
     step(
             /* = state_space_size   = */ static_cast<int>(inputParams[0]),
             /* = action_space_size  = */ static_cast<int>(inputParams[1]),
-            /* = state_angular_size = */ static_cast<int>(inputParams[2]),
             /* = state_angular_in   = */ reinterpret_cast<float *>(inputs[0]),
             /* = state_angular_out  = */ reinterpret_cast<float *>(outputs[0]),
             /* = input_actions      = */ reinterpret_cast<float *>(inputs[1]),

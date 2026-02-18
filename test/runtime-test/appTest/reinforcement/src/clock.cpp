@@ -29,7 +29,7 @@ LARGE_INTEGER startTimes[MAX_STAMPS];
 struct timeval startTimes[MAX_STAMPS];
 #endif
 
-double elapsedTimes[MAX_STAMPS];
+unsigned long elapsedTimes[MAX_STAMPS];
 
 // Starting to record time for a given stamp
 void startTiming(int stamp) {
@@ -41,8 +41,8 @@ void startTiming(int stamp) {
 }
 
 // Stoping to record time for a given stamp. Returns the time in us
-unsigned int stopTiming(int stamp) {
-    unsigned int elapsedus;
+unsigned long stopTiming(int stamp) {
+    unsigned long elapsedus;
 #ifdef _WIN32
     LARGE_INTEGER frequency;
     LARGE_INTEGER t2;
@@ -52,17 +52,17 @@ unsigned int stopTiming(int stamp) {
     QueryPerformanceFrequency(&frequency);
 
     // compute and print the elapsed time in millisec
-    elapsedTimes[stamp] = (t2.QuadPart - startTimes[stamp].QuadPart) * 1000.0 / frequency.QuadPart;
+    elapsedTimes[stamp] = (t2.QuadPart - startTimes[stamp].QuadPart) * 1000 / frequency.QuadPart;
 #else
     struct timeval t2;
 
     gettimeofday(&t2, NULL);
 
     // compute and print the elapsed time in millisec
-    elapsedTimes[stamp] = (t2.tv_sec - startTimes[stamp].tv_sec) * 1000.0;      // sec to ms
-    elapsedTimes[stamp] += (t2.tv_usec - startTimes[stamp].tv_usec) / 1000.0;   // us to ms
+    elapsedTimes[stamp] = (t2.tv_sec - startTimes[stamp].tv_sec) * 1000;      // sec to ms
+    elapsedTimes[stamp] += (t2.tv_usec - startTimes[stamp].tv_usec) / 1000;   // us to ms
 #endif
 
-    elapsedus = (int) (elapsedTimes[stamp] * 1000);
+    elapsedus = static_cast<unsigned long>(elapsedTimes[stamp] * 1000);
     return elapsedus;
 }

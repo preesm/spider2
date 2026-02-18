@@ -111,7 +111,7 @@ namespace spider {
 #ifndef _NO_BUILD_LEGACY_RT
 
             inline virtual spider::unique_ptr<JobFifos> buildJobFifos(SRDAGTask *) {
-                return spider::make_unique<JobFifos>(0, 0);
+                return spider::make_unique<JobFifos>(0u, 0u);
             }
 
 #endif
@@ -119,7 +119,7 @@ namespace spider {
             inline virtual void updateDynamicBuffersCount() { }
 
             inline virtual spider::unique_ptr<JobFifos> buildJobFifos(PiSDFTask *, JobFifos *) {
-                return spider::make_unique<JobFifos>(0, 0);
+                return spider::make_unique<JobFifos>(0u, 0u);
             }
 
             /* === Getter(s) === */
@@ -140,8 +140,8 @@ namespace spider {
 
         private:
             const Schedule *schedule_ = nullptr;
-            size_t reservedMemory_ = 0;
-            size_t virtualMemoryAddress_ = 0;
+            size_t reservedMemory_ = 0u;
+            size_t virtualMemoryAddress_ = 0u;
 
         protected:
             explicit FifoAllocator(FifoAllocatorTraits traits) noexcept: traits_{ traits } {

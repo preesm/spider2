@@ -87,6 +87,8 @@ void spider::api::enableLogger(log::Type type) {
         case log::Type::EXPR:
             log::enable<log::EXPR>();
             break;
+        default:
+            printer::fprintf(stderr, "Unsupported logger enum type.\n");
     }
 }
 
@@ -116,6 +118,8 @@ void spider::api::disableLogger(log::Type type) {
         case log::Type::EXPR:
             log::disable<log::EXPR>();
             break;
+        default:
+            printer::fprintf(stderr, "Unsupported logger enum type.\n");
     }
 }
 

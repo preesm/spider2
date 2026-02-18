@@ -58,28 +58,28 @@ namespace spider {
 
         using value_type = T;
 
-//        using pointer = value_type *;
-//        using const_pointer = typename std::pointer_traits<pointer>::template rebind<value_type const>;
-//        using void_pointer = typename std::pointer_traits<pointer>::template rebind<void>;
-//        using const_void_pointer = typename std::pointer_traits<pointer>::template rebind<const void>;
-//
-//        using difference_type = typename std::pointer_traits<pointer>::difference_type;
-//        using size_t = typename std::make_unsigned<difference_type>::type;
+        using pointer = value_type *;
+        using const_pointer = typename std::pointer_traits<pointer>::template rebind<value_type const>;
+        using void_pointer = typename std::pointer_traits<pointer>::template rebind<void>;
+        using const_void_pointer = typename std::pointer_traits<pointer>::template rebind<const void>;
+
+        using difference_type = typename std::pointer_traits<pointer>::difference_type;
+        using size_t = typename std::make_unsigned<difference_type>::type;
 
         /* == Rebind SpiderAllocator to type U == */
-//        template<class U>
-//        struct rebind {
-//            typedef allocator<U> other;
-//        };
+        template<class U>
+        struct rebind {
+            typedef allocator<U> other;
+        };
 
         /* === Constructors / Destructors === */
 
-        allocator() noexcept: stack_{ stackArray()[static_cast<size_t>(StackID::GENERAL)] } { };
+        allocator() noexcept: stack_{ stackArray()[static_cast<size_t>(StackID::GENERAL)].get() } { };
 
         template<class U>
         allocator(const allocator<U> &other) noexcept : stack_{ other.stack() } { }
 
-        explicit allocator(StackID stackId) : stack_{ stackArray()[static_cast<size_t>(stackId)] } {
+        explicit allocator(StackID stackId) : stack_{ stackArray()[static_cast<size_t>(stackId)].get() } {
             if (!stack_) {
                 throwSpiderException("trying to use non-initialized stack_.");
             }

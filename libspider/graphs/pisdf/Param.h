@@ -40,7 +40,7 @@
 #include <common/Exception.h>
 #include <graphs-tools/expression-parser/Expression.h>
 #include <graphs-tools/helper/visitors/PiSDFVisitor.h>
-#include <extra/variant.h>
+#include <variant>
 
 namespace spider {
     namespace pisdf {
@@ -102,46 +102,46 @@ namespace spider {
             inline size_t ix() const { return ix_; }
 
             inline int64_t value() const {
-                if (mpark::holds_alternative<param_t>(internal_)) {
-                    return mpark::get<param_t>(internal_)->value();
-                } else if (mpark::holds_alternative<Expression>(internal_)) {
-                    return mpark::get<Expression>(internal_).value();
+                if (std::holds_alternative<param_t>(internal_)) {
+                    return std::get<param_t>(internal_)->value();
+                } else if (std::holds_alternative<Expression>(internal_)) {
+                    return std::get<Expression>(internal_).value();
                 }
-                return mpark::get<int64_t>(internal_);
+                return std::get<int64_t>(internal_);
             }
 
             inline int64_t value(const vector <std::shared_ptr<Param>> &params) const {
-                if (mpark::holds_alternative<param_t>(internal_)) {
-                    return mpark::get<param_t>(internal_)->value();
-                } else if (mpark::holds_alternative<Expression>(internal_)) {
-                    return mpark::get<Expression>(internal_).evaluate(params);
+                if (std::holds_alternative<param_t>(internal_)) {
+                    return std::get<param_t>(internal_)->value();
+                } else if (std::holds_alternative<Expression>(internal_)) {
+                    return std::get<Expression>(internal_).evaluate(params);
                 }
-                return mpark::get<int64_t>(internal_);
+                return std::get<int64_t>(internal_);
             }
 
             inline ParamType type() const { return type_; }
 
             inline bool dynamic() const {
-                if (mpark::holds_alternative<param_t>(internal_)) {
-                    return mpark::get<param_t>(internal_)->dynamic();
+                if (std::holds_alternative<param_t>(internal_)) {
+                    return std::get<param_t>(internal_)->dynamic();
                 }
                 return (type_ == ParamType::DYNAMIC) || (type_ == ParamType::DYNAMIC_DEPENDANT);
             }
 
             inline Param *parent() const {
-                if (mpark::holds_alternative<param_t>(internal_)) {
-                    return mpark::get<param_t>(internal_).get();
+                if (std::holds_alternative<param_t>(internal_)) {
+                    return std::get<param_t>(internal_).get();
                 }
                 return nullptr;
             }
 
             inline Expression expression() const {
-                if (mpark::holds_alternative<param_t>(internal_)) {
-                    return mpark::get<param_t>(internal_)->expression();
-                } else if (mpark::holds_alternative<Expression>(internal_)) {
-                    return mpark::get<Expression>(internal_);
+                if (std::holds_alternative<param_t>(internal_)) {
+                    return std::get<param_t>(internal_)->expression();
+                } else if (std::holds_alternative<Expression>(internal_)) {
+                    return std::get<Expression>(internal_);
                 }
-                return Expression(mpark::get<int64_t>(internal_));
+                return Expression(std::get<int64_t>(internal_));
             }
 
             /* === Setter(s) === */
@@ -158,7 +158,7 @@ namespace spider {
 
         private:
             using param_t = std::shared_ptr<Param>;
-            using type_t = mpark::variant<int64_t, Expression, param_t>;
+            using type_t = std::variant<int64_t, Expression, param_t>;
             std::string name_;                    /* = Name of the Param. It is transformed to lower case on construction = */
             type_t internal_;                     /* = Internal storage of the parameter = */
             size_t ix_{ SIZE_MAX };               /* = Index of the Param in the Graph = */

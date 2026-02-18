@@ -102,7 +102,7 @@ namespace spider {
 
             void updateSymbolTable(const param_table_t &params);
 
-            spider::vector<RPNElement> convertToCpp(const spider::vector<RPNElement> &postfixStack) const;
+            static spider::vector<RPNElement> convertToCpp(const spider::vector<RPNElement> &postfixStack) ;
 
             /**
              * @brief Compile the expression if needed.
@@ -117,20 +117,20 @@ namespace spider {
              * @param expression   Infix string of the expression to compile.
              * @param args         Arguments of the expression.
              */
-            void writeFunctionFile(const std::string &func,
+            static void writeFunctionFile(const std::string &func,
                                    const std::string &expression,
-                                   const spider::vector<std::pair<size_t, std::string>> &args) const;
+                                   const spider::vector<std::pair<size_t, std::string>> &args) ;
 
             /**
              * @brief Write the .h file with custom functions (if it does not exists).
              */
-            void writeHelperFile() const;
+            static void writeHelperFile() ;
 
             /**
              * @brief Perform just in time compilation of the expression.
              * @throw @refitem spider::Exception if failed to compile.
              */
-            void compileExpression() const;
+            static void compileExpression() ;
 
             /**
              * @brief Import the function from the compiled library.

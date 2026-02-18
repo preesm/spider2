@@ -63,9 +63,9 @@ namespace spider {
 
             Graph &operator=(Graph &&) = default;
 
-            Graph(const Graph &) = default;
+            Graph(const Graph &) = delete;
 
-            Graph &operator=(const Graph &) = default;
+            Graph &operator=(const Graph &) = delete;
 
             ~Graph() = default;
 

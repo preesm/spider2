@@ -47,6 +47,7 @@
 #include <memory/dynamic-policies/FreeListAllocatorPolicy.h>
 #include <memory/dynamic-policies/GenericAllocatorPolicy.h>
 #include <memory/static-policies/LinearStaticAllocator.h>
+#include <api/global-api.h>
 #include <api/spider.h>
 
 class allocatorTest : public ::testing::Test {
@@ -95,7 +96,7 @@ TEST_F(allocatorTest, linearAllocCtorTest) {
 }
 
 TEST_F(allocatorTest, linearAllocTest) {
-    auto *stack = spider::stackArray()[static_cast<uint64_t>(StackID::OPTIMS)];
+    auto &stack = spider::stackArray()[static_cast<uint64_t>(StackID::OPTIMS)];
     ASSERT_EQ(stack->setPolicy(nullptr), false) << "Stack::setPolicy should return false if nullptr as new policy.";
     ASSERT_EQ(stack->setPolicy(new LinearStaticAllocator(512)), true) << "Stack::setPolicy should return true.";
     auto &allocator = *(stack->policy());
@@ -313,8 +314,7 @@ TEST_F(allocatorTest, errorUsageTest) {
     void *tmp = nullptr;
     ASSERT_NO_THROW((tmp = spider::allocate<double, StackID::GENERAL>()));
     ASSERT_NO_THROW(spider::deallocate(tmp));
-    delete spider::stackArray()[static_cast<uint64_t >(StackID::GENERAL)];
-    spider::stackArray()[static_cast<uint64_t >(StackID::GENERAL)] = nullptr;
+    spider::stackArray()[static_cast<uint64_t >(StackID::GENERAL)].reset();
     ASSERT_THROW((spider::allocator<double>(StackID::GENERAL)), spider::Exception)
                                 << "spider::allocator should throw for nullptr stack.";
 }

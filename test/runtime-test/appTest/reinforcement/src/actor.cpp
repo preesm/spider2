@@ -153,7 +153,7 @@ void sigmaGen(OUT float *sigma) {
     sigma[0] = sigma_static;
     // Sigma decay
 
-    sigma_static = (float) (timestep) * (-SIGMA_GAUSSIAN / 20000.f) + SIGMA_GAUSSIAN;
+    sigma_static = static_cast<float>(timestep) * (-SIGMA_GAUSSIAN / 20000.f) + SIGMA_GAUSSIAN;
     timestep = (timestep + 1) % 20000;
     if (timestep == 0) {
         sigma_static = SIGMA_GAUSSIAN;
@@ -180,10 +180,10 @@ void saveNetWork(int n_layer,
             int w_size = size_layer_weights[i];
             int b_size = size_layer_bias[i];
             for (int w = 0; w < w_size; ++w) {
-                fprintf(file, "\t\t\tweights_out[%d] = %ff;\n", w, weights[i][w]);
+                fprintf(file, "\t\t\tweights_out[%d] = %lf;\n", w, weights[i][w]);
             }
             for (int b = 0; b < b_size; ++b) {
-                fprintf(file, "\t\t\tbias_out[%d] = %ff;\n", b, bias[i][b]);
+                fprintf(file, "\t\t\tbias_out[%d] = %lf;\n", b, bias[i][b]);
             }
             fprintf(file, "\t\t\tbreak;\n");
             offset_bias += b_size;

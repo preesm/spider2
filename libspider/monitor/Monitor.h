@@ -38,6 +38,7 @@
 /* === Include(s) === */
 
 #include <string>
+#include <cstdint>
 #include <map>
 #include <cstdint>
 

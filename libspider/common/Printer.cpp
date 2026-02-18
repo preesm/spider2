@@ -59,7 +59,7 @@ namespace spider {
             return res;
         }
 
-        int sprintf(char *str, size_t size, const char *format, ...) {
+        int snprintf(char *str, size_t size, const char *format, ...) {
             va_list list;
             va_start(list, format);
             auto res = std::vsnprintf(str, size, format, list);
@@ -79,7 +79,7 @@ namespace spider {
             return std::vfprintf(stream, format, list);
         }
 
-        int sprintf(char *str, size_t size, const char *format, va_list list) {
+        int snprintf(char *str, size_t size, const char *format, va_list list) {
             return std::vsnprintf(str, size, format, list);
         }
 

@@ -46,12 +46,12 @@ namespace spider {
 
     /* === Static read functions declaration === */
 
-    static void *readDummy(array_handle<Fifo>::iterator &it, MemoryInterface *) {
+    static void *readDummy(array_view<Fifo>::iterator &it, MemoryInterface *) {
         it++;
         return nullptr;
     }
 
-    static void *readExternBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *) {
+    static void *readExternBuffer(array_view<Fifo>::iterator &it, MemoryInterface *) {
         const auto fifo = *(it++);
         if (!fifo.size_) {
             return nullptr;
@@ -59,7 +59,7 @@ namespace spider {
         return cast_buffer_woffset(archi::platform()->getExternalBuffer(fifo.address_), fifo.offset_);
     }
 
-    static void *readBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
+    static void *readBuffer(array_view<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto fifo = *(it++);
         if (!fifo.size_) {
             return nullptr;
@@ -67,13 +67,13 @@ namespace spider {
         return cast_buffer_woffset(memoryInterface->read(fifo.address_, fifo.count_), fifo.offset_);
     }
 
-    static void *readRepeatBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
+    static void *readRepeatBuffer(array_view<Fifo>::iterator &, MemoryInterface *);
 
-    static void *readMergedBuffer(array_handle<Fifo>::iterator &, MemoryInterface *);
+    static void *readMergedBuffer(array_view<Fifo>::iterator &, MemoryInterface *);
 
     /* === Static array of read functions === */
 
-    using fifo_fun_t = void *(*)(array_handle<Fifo>::iterator &it, MemoryInterface *);
+    using fifo_fun_t = void *(*)(array_view<Fifo>::iterator &it, MemoryInterface *);
 
     static std::array<fifo_fun_t, FIFO_ATTR_COUNT> readFunctions = {{ readBuffer,             /*!< RW_ONLY  */
                                                                             readBuffer,       /*!< RW_OWN   */
@@ -86,7 +86,7 @@ namespace spider {
 
     /* === Static read functions definition === */
 
-    static void *readMergedBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
+    static void *readMergedBuffer(array_view<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto mergedFifo = *(it++);
         auto *mergedBuffer = memoryInterface->allocate(mergedFifo.address_, mergedFifo.size_, mergedFifo.count_);
 #ifndef NDEBUG
@@ -105,7 +105,7 @@ namespace spider {
         return mergedBuffer;
     }
 
-    static void *readRepeatBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
+    static void *readRepeatBuffer(array_view<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto repeatFifo = *(it++);
         auto *repeatBuffer = memoryInterface->allocate(repeatFifo.address_, repeatFifo.size_, repeatFifo.count_);
 #ifndef NDEBUG
@@ -134,7 +134,7 @@ namespace spider {
 
     /* === Static allocate functions === */
 
-    static void *allocBuffer(array_handle<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
+    static void *allocBuffer(array_view<Fifo>::iterator &it, MemoryInterface *memoryInterface) {
         const auto fifo = *(it++);
         return memoryInterface->allocate(fifo.address_, fifo.size_, fifo.count_);
     }
@@ -154,7 +154,7 @@ namespace spider {
 /* === Function(s) definition === */
 
 spider::array<void *>
-spider::getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface) {
+spider::getInputBuffers(const array_view<Fifo> &fifos, MemoryInterface *memoryInterface) {
     size_t count = 0u;
     auto it = std::begin(fifos);
     while (it != std::end(fifos)) {
@@ -163,7 +163,7 @@ spider::getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memory
     }
     auto result = spider::array<void *>{ count, nullptr, StackID::RUNTIME };
     /* = yeah it is ugly, but avoids changing everything else and keeps const at high level = */
-    auto fifoIt = const_cast<array_handle<Fifo>::iterator>(std::begin(fifos));
+    auto fifoIt = const_cast<array_view<Fifo>::iterator>(std::begin(fifos));
     auto resIt = std::begin(result);
     while (resIt != std::end(result)) {
         if (fifoIt->attribute_ == FifoAttribute::DUMMY) {
@@ -177,10 +177,10 @@ spider::getInputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memory
 }
 
 spider::array<void *>
-spider::getOutputBuffers(const array_handle<Fifo> &fifos, MemoryInterface *memoryInterface) {
+spider::getOutputBuffers(const array_view<Fifo> &fifos, MemoryInterface *memoryInterface) {
     auto result = spider::array<void *>{ fifos.size(), nullptr, StackID::RUNTIME };
     /* = yeah it is ugly, but avoids changing everything else and keeps const at high level = */
-    auto fifoIt = const_cast<array_handle<Fifo>::iterator>(std::begin(fifos));
+    auto fifoIt = const_cast<array_view<Fifo>::iterator>(std::begin(fifos));
     for (auto it = std::begin(result); it != std::end(result); ++it) {
         (*it) = allocFunctions[static_cast<u8>((*fifoIt).attribute_)](fifoIt, memoryInterface);
     }

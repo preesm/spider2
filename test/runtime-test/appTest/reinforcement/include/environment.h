@@ -33,12 +33,12 @@ void envInit(float *state_angular, float *state_observation);
  * @param state_observation List of output observation of the next state of the environment
  * @param reward            Step reward from the actions applied
  */
-void step(int state_space_size, int action_space_size, int state_angular_size,
+void step(int state_space_size, int action_space_size,
           IN float *state_angular_in, OUT float *state_angular_out, IN float *input_actions, OUT
           float *state_observation, OUT float *reward);
 
 
-void step_noreward(int state_space_size, int action_space_size, int state_angular_size,
+void step_noreward(int state_space_size, int action_space_size,
                    IN float *state_angular_in, OUT float *state_angular_out, IN float *input_actions, OUT
                    float *state_observation);
 

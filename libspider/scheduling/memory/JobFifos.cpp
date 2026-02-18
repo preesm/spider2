@@ -47,12 +47,12 @@ spider::JobFifos::JobFifos(u32 inputFifoCount, u32 outputFifoCount) :
 
 }
 
-spider::array_handle<spider::Fifo> spider::JobFifos::inputFifos() const {
-    return make_handle(inputFifos_.get(), inputFifoCount_);
+spider::array_view<spider::Fifo> spider::JobFifos::inputFifos() const {
+    return make_view(inputFifos_.get(), inputFifoCount_);
 }
 
-spider::array_handle<spider::Fifo> spider::JobFifos::outputFifos() const {
-    return make_handle(outputFifos_.get(), outputFifoCount_);
+spider::array_view<spider::Fifo> spider::JobFifos::outputFifos() const {
+    return make_view(outputFifos_.get(), outputFifoCount_);
 }
 
 size_t spider::JobFifos::inputFifoCount() const {
