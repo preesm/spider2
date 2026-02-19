@@ -340,7 +340,11 @@ std::string spider::rpn::postfixString(const spider::vector<RPNElement> &postfix
     for (auto &t : postfixStack) {
         postfixExpr += t.token_ + " ";
     }
-    postfixExpr.pop_back();
+
+    // If empty() is true, the behavior is undefined.
+    if (!postfixExpr.empty()) {
+        postfixExpr.pop_back();
+    }
     return postfixExpr;
 }
 
