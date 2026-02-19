@@ -203,6 +203,7 @@ TEST_F(expressionTest, expressionOperatorsTest) {
     ASSERT_EQ(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), 4.)
                                 << "Expression: if  failed.";
     #else
+    #ifndef _MSC_VER
     auto param = spider::api::createDynamicParam(nullptr, "x");
     // Testing for segfault is POSIX only
     // ASSERT_EXIT(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }),::testing::KilledBySignal(SIGSEGV)
@@ -211,6 +212,7 @@ TEST_F(expressionTest, expressionOperatorsTest) {
 
     param->setValue(1);
     ASSERT_DEATH(Expression("if(x > 0, 4, 5)", { param }).evaluateDBL({ param }), ".*") << "Sould segfault.";
+    #endif
     #endif
 }
 
