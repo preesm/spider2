@@ -453,11 +453,10 @@ bool spider::optims::reduceUnitaryRateActors(const srdag::Graph *graph) {
     }
     bool optimized = false;
 
-    auto it = graph->vertices().begin();
-    while (it != graph->vertices().end()) {
-        auto &vertex = (*it);
-        auto result = optimizeUnitaryVertex(vertex.get());
-        it += (!result);
+    auto& verts = graph->vertices();
+    for (size_t i = 0; i < graph->vertices().size(); ) {
+        auto result = optimizeUnitaryVertex(verts[i].get());
+        i += (!result);
         optimized |= (result);
     }
     return optimized;
