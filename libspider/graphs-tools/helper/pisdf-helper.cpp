@@ -386,13 +386,13 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
         auto *edge = input->edge();
         const auto *sink = edge->sink();
         if (sink->graph() == runGraph) {
-            auto expr = edge->sourceRateExpression();
+            auto& expr = edge->sourceRateExpression();
             /* == Change source of original edge to run graph interface == */
             edge->setSource(runGraph->inputInterface(inputRunIx), 0u, expr);
             edge->source()->setName(input->name());
             /* == Create an edge with the original interface == */
             graph->addEdge(
-                    make<pisdf::Edge, StackID::PISDF>(input.get(), 0u, expr, runGraph, inputRunIx, std::move(expr)));
+                    make<pisdf::Edge, StackID::PISDF>(input.get(), 0u, expr, runGraph, inputRunIx, expr));
             inputRunIx++;
         }
     }
@@ -403,12 +403,12 @@ void spider::pisdf::separateRunGraphFromInit(Graph *graph) {
         auto *edge = output->edge();
         const auto *source = edge->source();
         if (source->graph() == runGraph) {
-            auto expr = edge->sinkRateExpression();
+            auto& expr = edge->sinkRateExpression();
             /* == Change sink of original edge to run graph interface == */
             edge->setSink(runGraph->outputInterface(ix), 0u, expr);
             edge->sink()->setName(output->name());
             /* == Create an edge with the original interface == */
-            graph->addEdge(make<pisdf::Edge, StackID::PISDF>(runGraph, ix, expr, output.get(), 0u, std::move(expr)));
+            graph->addEdge(make<pisdf::Edge, StackID::PISDF>(runGraph, ix, expr, output.get(), 0u, expr));
             ix++;
         }
     }
