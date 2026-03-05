@@ -187,17 +187,18 @@ void spider::sched::ListScheduler::sortVertices() {
 }
 
 size_t spider::sched::ListScheduler::countNonSchedulableTasks() {
-    auto it = sortedTaskVector_.rbegin();
-    for (; (it->level_ == NON_SCHEDULABLE_LEVEL) && (it != sortedTaskVector_.rend()); ++it) {
-        auto isExec = it->vertex_->executable();
+    size_t i = sortedTaskVector_.size() -1;
+    for (; (sortedTaskVector_[i].level_ == NON_SCHEDULABLE_LEVEL) && (i < sortedTaskVector_.size()); --i) {
+        auto isExec = sortedTaskVector_[i].vertex_->executable();
         if (!isExec) {
-            it->vertex_->setScheduleTaskIx(SIZE_MAX);
-            std::swap(*it, sortedTaskVector_.back());
+            sortedTaskVector_[i].vertex_->setScheduleTaskIx(SIZE_MAX);
+            std::swap(sortedTaskVector_[i], sortedTaskVector_.back());
             sortedTaskVector_.pop_back();
+        } else {
+            sortedTaskVector_[i].level_ = -1;      /* = Reset the schedule level = */
         }
-        it->level_ = -1;      /* = Reset the schedule level = */
     }
-    return static_cast<size_t>(std::distance(sortedTaskVector_.rbegin(), it));
+    return sortedTaskVector_.size() - (i+1);
 }
 
 #endif

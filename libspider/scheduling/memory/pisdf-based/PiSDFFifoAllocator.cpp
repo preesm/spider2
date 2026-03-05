@@ -55,24 +55,24 @@ void spider::sched::PiSDFFifoAllocator::clear() noexcept {
 
 void spider::sched::PiSDFFifoAllocator::updateDynamicBuffersCount() {
     /* == We are in the case of a vertex already executed, now we try to update its counter value == */
-    auto it = std::begin(dynamicBuffers_);
-    while (it != std::end(dynamicBuffers_)) {
-        const auto *task = it->task_;
+    size_t i = 0;
+    while (i < dynamicBuffers_.size()) {
+        const auto *task = dynamicBuffers_[i].task_;
         const auto *vertex = task->vertex();
-        const auto *edge = vertex->outputEdge(it->edgeIx_);
-        const auto count = pisdf::detail::computeConsDependency(task->handler(), edge, it->firing_);
+        const auto *edge = vertex->outputEdge(dynamicBuffers_[i].edgeIx_);
+        const auto count = pisdf::detail::computeConsDependency(task->handler(), edge, dynamicBuffers_[i].firing_);
         if (count > 0) {
             const auto sndIx = task->mappedLRT()->virtualIx();
             const auto grtIx = archi::platform()->spiderGRTPE()->virtualIx();
-            const auto address = task->handler()->getEdgeAddress(edge, it->firing_);
+            const auto address = task->handler()->getEdgeAddress(edge, dynamicBuffers_[i].firing_);
             auto addrNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx, address };
             auto countNotifcation = Notification{ NotificationType::MEM_UPDATE_COUNT, grtIx,
                                                   static_cast<size_t>(count - 1) };
             rt::platform()->communicator()->push(addrNotifcation, sndIx);
             rt::platform()->communicator()->push(countNotifcation, sndIx);
-            spider::out_of_order_erase(dynamicBuffers_, it);
+            spider::out_of_order_erase(dynamicBuffers_, i);
         } else {
-            it++;
+            i++;
         }
     }
 }
