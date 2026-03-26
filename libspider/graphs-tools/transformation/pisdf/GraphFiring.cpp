@@ -356,6 +356,14 @@ void spider::pisdf::GraphFiring::createOrUpdateSubgraphHandlers() {
             currentGraphHandler = spider::make<GraphHandler>(subgraph, subgraph->params(), rv, this);
         } else {
             /* == Resolve every child == */
+            if (!subgraph->dynamic()) {
+                /* Subgraph has no own config actors: its topology depends only on inherited
+                 * params that may have just changed. Force re-resolution by clearing the
+                 * resolved flag so resolveBRV() does not return early. */
+                for (u32 k = 0u; k < currentGraphHandler->repetitionCount(); ++k) {
+                    currentGraphHandler->firing(k)->resolved_ = false;
+                }
+            }
             currentGraphHandler->resolveFirings();
         }
     }
